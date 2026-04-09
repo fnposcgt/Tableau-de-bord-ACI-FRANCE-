@@ -1046,6 +1046,7 @@ function openFiche(siret) {
   var vil = g(s, "v");
   var tv  = 0;
   document.getElementById("fiche-title").textContent = nom;
+  FICHE_CURRENT_SIRET = siret;
   document.getElementById("fiche-sub").textContent =
     vil + (reg ? " \u2014 " + reg : "") + (g(s,"d") ? " (d\u00e9pt. " + g(s,"d") + ")" : "");
   var h = "";
@@ -1832,6 +1833,11 @@ function editAdhOpen(siret, idx2){
   document.getElementById("ea-nom").value=adh.nom||"";
   document.getElementById("ea-tel").value=adh.tel||"";
   document.getElementById("ea-em").value=adh.em||"";
+  document.getElementById("ea-adr").value=adh.adr||"";
+  document.getElementById("ea-adr2").value=adh.adr2||"";
+  document.getElementById("ea-cp").value=adh.cp||"";
+  document.getElementById("ea-vil").value=adh.vil||"";
+  document.getElementById("ea-adh").value=adh.adh||"";
   document.getElementById("ea-arc").value=adh.arc||"NON";
   document.getElementById("edit-adh-overlay").classList.add("open");
   document.body.style.overflow="hidden";
@@ -1850,8 +1856,12 @@ function editAdhSave(){
     nom:document.getElementById("ea-nom").value.trim(),
     tel:document.getElementById("ea-tel").value.trim(),
     em: document.getElementById("ea-em").value.trim(),
-    arc:document.getElementById("ea-arc").value,
-    cp:"",vil:"",adh:""
+    adr:document.getElementById("ea-adr").value.trim(),
+    adr2:document.getElementById("ea-adr2").value.trim(),
+    cp: document.getElementById("ea-cp").value.trim(),
+    vil:document.getElementById("ea-vil").value.trim(),
+    adh:document.getElementById("ea-adh").value.trim(),
+    arc:document.getElementById("ea-arc").value
   };
   if(!person.nom){showEditToast("\u26a0 Nom obligatoire","#E24B4A");return;}
   if(!ADHERENTS[siret])ADHERENTS[siret]=[];
@@ -1893,14 +1903,8 @@ function editsReset(){
   showEditToast("\u2705 Modifications supprimées — rechargez la page","#EF9F27");
 }
 function editStructFromFiche(){
-  var body=document.getElementById("fiche-body");
-  var monoEl=body?body.querySelector("span[style*='monospace']"):null;
-  var si=monoEl?monoEl.textContent.trim():"";
-  if(!si){
-    var nom=(document.getElementById("fiche-title")||{}).textContent||"";
-    for(var i=0;i<STRUCTS.length;i++){if(STRUCTS[i].n===nom){si=STRUCTS[i].si;break;}}
-  }
-  if(!si){showEditToast("⚠ Structure introuvable","#E24B4A");return;}
+  var si = FICHE_CURRENT_SIRET;
+  if(!si){showEditToast("\u26a0 Structure introuvable","#E24B4A");return;}
   document.getElementById("es-title").textContent="Modifier la structure";
   document.getElementById("es-save-btn").setAttribute("onclick","editStructSave()");
   for(var i=0;i<STRUCTS.length;i++){
@@ -1975,6 +1979,11 @@ function newAdhGlobal(){
   document.getElementById("ea-nom").value="";
   document.getElementById("ea-tel").value="";
   document.getElementById("ea-em").value="";
+  document.getElementById("ea-adr").value="";
+  document.getElementById("ea-adr2").value="";
+  document.getElementById("ea-cp").value="";
+  document.getElementById("ea-vil").value="";
+  document.getElementById("ea-adh").value="";
   document.getElementById("ea-arc").value="NON";
   var mb=document.getElementById("edit-adh-overlay").querySelector(".edit-modal-body");
   if(mb&&!document.getElementById("ea-struct-row")){
@@ -2406,6 +2415,7 @@ function renderConquete(){
   filtersSave();
 }
 var DOC_CURRENT_ID = '';
+var FICHE_CURRENT_SIRET = '';
 var DOCS = {
   'tract-zero': {
     icon:'\u{1F4C4}', categorie:'Sp\u00e9cial Administrateurs',
@@ -4404,10 +4414,13 @@ if(GS_URL) gsLoad();
     <div class="edit-modal-hdr"><span class="edit-modal-title">Adh&eacute;rent</span><button class="btn-cancel" onclick="editAdhClose(null)">&#10005;</button></div>
     <div class="edit-modal-body">
       <input type="hidden" id="ea-siret"><input type="hidden" id="ea-idx">
-      <div class="edit-field-row"><div class="edit-field"><label>Civilit&eacute;</label><select id="ea-civ"><option value="">-</option><option value="M.">M.</option><option value="Mme">Mme</option></select></div><div class="edit-field"><label>Pr&eacute;nom</label><input id="ea-pre" type="text"></div></div>
+      <div class="edit-field-row"><div class="edit-field"><label>Civilit&eacute;</label><select id="ea-civ"><option value="">-</option><option value="M.">M.</option><option value="Mme">Mme</option><option value="MME">MME</option></select></div><div class="edit-field"><label>Pr&eacute;nom</label><input id="ea-pre" type="text"></div></div>
       <div class="edit-field"><label>Nom</label><input id="ea-nom" type="text"></div>
       <div class="edit-field-row"><div class="edit-field"><label>T&eacute;l</label><input id="ea-tel" type="tel"></div><div class="edit-field"><label>Email</label><input id="ea-em" type="email"></div></div>
-      <div class="edit-field"><label>Statut</label><select id="ea-arc"><option value="NON">Actif</option><option value="OUI">Archiv&eacute;</option></select></div>
+      <div class="edit-field"><label>Adresse</label><input id="ea-adr" type="text" placeholder="N° et rue"></div>
+      <div class="edit-field"><label>Compl&eacute;ment</label><input id="ea-adr2" type="text" placeholder="B&acirc;timent, appartement..."></div>
+      <div class="edit-field-row"><div class="edit-field"><label>CP</label><input id="ea-cp" type="text" maxlength="5"></div><div class="edit-field"><label>Ville</label><input id="ea-vil" type="text"></div></div>
+      <div class="edit-field-row"><div class="edit-field"><label>Date d'adh&eacute;sion</label><input id="ea-adh" type="text" placeholder="jj/mm/aaaa"></div><div class="edit-field"><label>Statut</label><select id="ea-arc"><option value="NON">Actif</option><option value="OUI">Archiv&eacute;</option></select></div></div>
       <div class="edit-actions"><button class="btn-cancel" onclick="editAdhClose(null)">Annuler</button><button class="btn-save" onclick="editAdhSave()">Enregistrer</button></div>
     </div>
   </div>
