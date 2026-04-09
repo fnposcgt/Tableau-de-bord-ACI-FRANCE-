@@ -1060,11 +1060,15 @@ function openFiche(siret) {
   h += field("Taille", g(s,"nb") || "\u2014");
   var _fcqSt=conqueteStatus[siret]||0;
   var _fcqCol=['#aaa','#EF9F27','#185fa5','#1D9E75','#9B59B6'];
-  var _fcqLbl=['\u2014','Approche','Constitution','Implantation','UD/UL contact\u00e9es'];
-  var _fcqIco=['\u26ab','&#128992;','&#128309;','&#128994;','&#128995;'];
-  var _fcqVal=_fcqSt===0
-    ? '<span style="color:#aaa">\u26ab N\u00e9ant</span>'
-    : '<span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;color:#fff;background:'+_fcqCol[_fcqSt]+'">'+_fcqIco[_fcqSt]+' '+_fcqLbl[_fcqSt]+'</span>';
+  var _fcqOpts='<option value="0"'+(_fcqSt===0?' selected':'')+'>\u26ab N\u00e9ant</option>'
+    +'<option value="1"'+(_fcqSt===1?' selected':'')+'>&#128992; Approche</option>'
+    +'<option value="2"'+(_fcqSt===2?' selected':'')+'>&#128309; Constitution</option>'
+    +'<option value="3"'+(_fcqSt===3?' selected':'')+'>&#128994; Implantation</option>'
+    +'<option value="4"'+(_fcqSt===4?' selected':'')+'>&#128995; UD/UL contact\u00e9es</option>';
+  var _fcqVal='<select onchange="updateStatus(\''+siret+'\',this.value);buildTable();renderConquete();" '
+    +'style="font-size:12px;font-weight:700;padding:3px 8px;border-radius:10px;border:none;cursor:pointer;'
+    +'color:#fff;background:'+_fcqCol[_fcqSt]+'" '
+    +'id="fiche-cq-select">'+_fcqOpts+'</select>';
   h += field("Statut conqu\u00eate", _fcqVal);
   h += '</div></div>';
   var hasCo = g(s,"tl") || g(s,"em");
@@ -2294,8 +2298,10 @@ function updateStatus(siret, val){
   var ea=document.getElementById('kpi-approche');
   if(eb) eb.textContent=kpiB;
   if(ea) ea.textContent=kpiA;
-  conqueteSave();
-}
+  var _fcqCols=['#aaa','#EF9F27','#185fa5','#1D9E75','#9B59B6'];
+  var _fsel=document.getElementById('fiche-cq-select');
+  if(_fsel) _fsel.style.background=_fcqCols[parseInt(val)]||'#aaa';
+  conqueteSave();}
 function saveNote(siret, val){
   conqueteNotes[siret] = val;
   conqueteSave();
@@ -3467,10 +3473,15 @@ function buildTable(){
     h+='<td class="td-ud" onclick="event.stopPropagation()">'+renderUDBlock(g(s,"cp"))+'</td>';
     var _cqSt=conqueteStatus[g(s,"si")]||0;
     var _cqCol=['#aaa','#EF9F27','#185fa5','#1D9E75','#9B59B6'];
-    var _cqLbl=['','Approche','Constitution','Implantation','UD/UL'];
-    var _cqIco=['&#9899;','&#128992;','&#128309;','&#128994;','&#128995;'];
-    if(_cqSt===0){h+='<td style="text-align:center;color:#aaa;font-size:11px" onclick="event.stopPropagation()"><span title="N&eacute;ant">&#9899;</span></td>';}
-    else{h+='<td style="text-align:center" onclick="event.stopPropagation()" title="'+_cqLbl[_cqSt]+'">'+'<span style="display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;background:'+_cqCol[_cqSt]+';cursor:pointer" onclick="goTab(\'conquete\')">'+'<span style="font-size:9px">'+_cqIco[_cqSt]+'</span> '+_cqLbl[_cqSt]+'</span></td>';}
+    var _cqOpts='<option value="0"'+(_cqSt===0?' selected':'')+'>\u26ab</option>'
+      +'<option value="1"'+(_cqSt===1?' selected':'')+'>\ud83d\udfe0 Approche</option>'
+      +'<option value="2"'+(_cqSt===2?' selected':'')+'>\ud83d\udd35 Constitution</option>'
+      +'<option value="3"'+(_cqSt===3?' selected':'')+'>\ud83d\udfe2 Implantation</option>'
+      +'<option value="4"'+(_cqSt===4?' selected':'')+'>\ud83d\udfe3 UD/UL</option>';
+    h+='<td style="text-align:center" onclick="event.stopPropagation()">'
+      +'<select onchange="updateStatus(\''+g(s,"si")+'\',this.value);buildTable();renderConquete();" '
+      +'style="font-size:10px;font-weight:700;padding:2px 4px;border-radius:8px;border:none;cursor:pointer;color:#fff;background:'+_cqCol[_cqSt]+'">'
+      +_cqOpts+'</select></td>';
     h+='</tr>';
   }
   document.getElementById("tbody").innerHTML=h;
