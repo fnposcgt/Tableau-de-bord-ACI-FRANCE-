@@ -4673,7 +4673,7 @@ function doManualSync() {
 <!-- LOCK SCREEN -->
 <div id="lock-screen">
   <div id="lock-box">
-    <img id="lock-logo" src="" alt="CGT ACI" style="display:none">
+    <img id="lock-logo" src="" alt="CGT ACI" style="height:70px;width:auto;border-radius:10px;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,.4)">
     <div id="lock-title">Tableau de bord ACI &mdash; France</div>
     <div id="lock-sub">FNPOS-CGT &bull; Ateliers Chantiers d&rsquo;Insertion<br>Acc&egrave;s s&eacute;curis&eacute;</div>
     <!-- Bouton biométrique (affiché uniquement si biométrie enregistrée) -->
@@ -4790,7 +4790,7 @@ function biometricUnlock() {
   // Copier le logo dans le lock screen
   var appLogo  = document.querySelector('#wrap img');
   var lockLogo = document.getElementById('lock-logo');
-  if(appLogo && lockLogo) { lockLogo.src = appLogo.src; lockLogo.style.display = ''; }
+  if(appLogo && lockLogo) { lockLogo.src = appLogo.src; }
 
   // Session déjà active dans cet onglet ?
   try {
