@@ -1823,6 +1823,28 @@ function deleteContact(reg, role, idx2){
   showEditToast("\u2705 Contact supprimé");
   buildContacts();
 }
+function editAdhFromBtn(btn){
+  var raw=btn?btn.getAttribute('data-adh'):'';
+  if(!raw){return;}
+  var row;
+  try{row=JSON.parse(raw.replace(/&quot;/g,'"').replace(/&#39;/g,"'"));}catch(e){return;}
+  var adh=row.adh||{};
+  document.getElementById("ea-siret").value=row.si||"";
+  document.getElementById("ea-idx").value=row.ai!=null?row.ai:-1;
+  document.getElementById("ea-civ").value=adh.civ||"";
+  document.getElementById("ea-pre").value=adh.pre||"";
+  document.getElementById("ea-nom").value=adh.nom||"";
+  document.getElementById("ea-tel").value=adh.tel||"";
+  document.getElementById("ea-em").value=adh.em||"";
+  document.getElementById("ea-adr").value=adh.adr||"";
+  document.getElementById("ea-adr2").value=adh.adr2||"";
+  document.getElementById("ea-cp").value=adh.cp||"";
+  document.getElementById("ea-vil").value=adh.vil||"";
+  document.getElementById("ea-adh").value=adh.adh||"";
+  document.getElementById("ea-arc").value=adh.arc||"NON";
+  document.getElementById("edit-adh-overlay").classList.add("open");
+  document.body.style.overflow="hidden";
+}
 function editAdhFromCache(cacheKey){
   var row=ADH_ROW_CACHE[cacheKey];
   if(!row){return;}
@@ -1970,6 +1992,7 @@ function buildAdherents(){
     var a=r.adh;
     var cacheKey='adh_'+ri;
     ADH_ROW_CACHE[cacheKey]={adh:a,si:r.si,ai:r.ai};
+    var adhJson=JSON.stringify({adh:a,si:r.si,ai:r.ai}).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
     var fullNom2=(a.civ?a.civ+" ":"")+a.pre+" "+a.nom;
     h+='<div style="background:var(--bg);border:1px solid var(--bd);border-radius:var(--rl);padding:12px;'+(a.arc==="OUI"?"opacity:.6;":"")+'cursor:pointer" onclick="openFiche(\''+r.si+'\')">';
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start">';
@@ -1979,7 +2002,7 @@ function buildAdherents(){
     h+='<div style="font-size:10px;color:var(--tx3)">'+( r.s.r||"")+'</div>';
     h+='</div>';
     h+='<div style="display:flex;gap:4px">';
-    h+='<button class="btn-edit-icon" onclick="event.stopPropagation();editAdhFromCache(\''+cacheKey+'\')">&#9998;</button>';
+    h+='<button class="btn-edit-icon" data-adh="'+adhJson+'" onclick="event.stopPropagation();editAdhFromBtn(this)">&#9998;</button>';
     h+='<button class="btn-del-icon" onclick="event.stopPropagation();deleteAdh(\''+r.si+'\','+r.ai+')">&#128465;</button>';
     h+='</div></div>';
     if(a.tel||a.em){
