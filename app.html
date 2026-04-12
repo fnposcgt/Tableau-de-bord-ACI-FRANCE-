@@ -1095,7 +1095,7 @@ function openFiche(siret) {
     h += '<div class="fiche-section-title">Coordonn\u00e9es</div>';
     h += '<div class="fiche-grid">';
     if(g(s,"tl")) h += field("T\u00e9l\u00e9phone", '<a href="tel:' + g(s,"tl").replace(/\s/g,"") + '">' + g(s,"tl") + "</a>");
-    if(g(s,"em")) h += field("Email", '<a href="/cdn-cgi/l/email-protection#1a3d3a313a7d326936" em") + '">' + g(s,"em") + "</a>");
+    if(g(s,"em")) h += field("Email", '<a href="mailto:' + g(s,"em") + '">' + g(s,"em") + "</a>");
     h += '</div></div>';
   }
   if(g(s,"de") || g(s,"pr") || gi(s,"in") > 0) {
@@ -1166,7 +1166,7 @@ function openFiche(siret) {
         cntH+='<span class="fiche-badge" style="background:'+fRoles[fr].color+'">'+ fRoles[fr].label+'</span>';
         cntH+='<span style="font-weight:600">'+p.nom+'</span>';
         if(pTel)cntH+='<a href="tel:'+pTel.replace(/\s/g,"")+'" style="color:var(--tx3);font-size:10px">&#9990; '+pTel+'</a>';
-        if(pEmail)cntH+='<a href="/cdn-cgi/l/email-protection#e6c1cd96a38b878f8acdc1" style="color:var(--tx2);font-size:10px">&#9993; '+pEmail+'</a>';
+        if(pEmail)cntH+='<a href="mailto:'+pEmail+'" style="color:var(--tx2);font-size:10px">&#9993; '+pEmail+'</a>';
         cntH+='</div>';
       }
     }
@@ -1193,7 +1193,7 @@ function openFiche(siret) {
       cntH+='<span class="fiche-badge" style="background:#0f6e56">Resp.</span>';
       cntH+='<span style="font-weight:600">'+p3.nom+'</span>';
       if(p3.tel)cntH+='<a href="tel:'+p3.tel.replace(/\s/g,"")+'" style="color:var(--tx3);font-size:10px">&#9990; '+p3.tel+'</a>';
-      if(p3.email)cntH+='<a href="/cdn-cgi/l/email-protection#4a6d613a79642f272b2326616d" style="color:var(--tx2);font-size:10px">&#9993; '+p3.email+'</a>';
+      if(p3.email)cntH+='<a href="mailto:'+p3.email+'" style="color:var(--tx2);font-size:10px">&#9993; '+p3.email+'</a>';
       cntH+='</div>';
     }
     cntH+='</div>';
@@ -1217,7 +1217,7 @@ function openFiche(siret) {
       h += '<span style="font-weight:600">' + fullNom + '</span>';
       if(adh.arc==="OUI") h += '<span style="font-size:9px;color:var(--tx3);margin-left:4px">(archiv\u00e9)</span>';
       if(adh.tel) h += '<a href="tel:' + adh.tel.replace(/\\s/g,"") + '" style="color:var(--tx3);font-size:10px">&#9990; ' + adh.tel + '</a>';
-      if(adh.em)  h += '<a href="/cdn-cgi/l/email-protection#e8cfc3898c80c68d85c3cf" style="color:var(--tx2);font-size:10px">&#9993; ' + adh.em + '</a>';
+      if(adh.em)  h += '<a href="mailto:'+adh.em+'" style="color:var(--tx2);font-size:10px">&#9993; ' + adh.em + '</a>';
       if(adh.vil) h += '<span style="font-size:9px;color:var(--tx3)">' + (adh.cp?adh.cp+" ":"") + adh.vil + '</span>';
       h += '</div>';
     }
@@ -1298,7 +1298,7 @@ function getCoords(nom){
   });
   return GLOBAL_COORDS[key] || {tel:"",email:""};
 }
-var ADHERENTS={"43832146500025":[{"civ":"Mme","nom":"KHIROUNI","pre":"CHAYNESSE","adr":"9 RUE BERGNIER","adr2":"","cp":"54000","vil":"NANCY","tel":"06 14 11 14 78","em":"","adh":"01/03/2011","arc":"NON"}],"38841034200041":[{"civ":"M.","pre":"LUCIEN","nom":"PIAZZA","tel":"03 28 24 09 58","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"41147627800030":[{"civ":"M.","nom":"EIGELTHINGER","pre":"ANTHONY","adr":"52 AVENUE THIERS","adr2":"","cp":"54220","vil":"MALZEVILLE","tel":"06 50 64 79 47","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0baa5bcb9b5beb1bea4bfb9beb5e1e9e8e490b7bdb1b9bcfeb3bfbd">[email&#160;protected]</a>","adh":"01/05/2025","arc":"NON"},{"civ":"M.","nom":"DUPONT","pre":"JULIEN","adr":"15 RUE DE SAVERNE","adr2":"","cp":"54000","vil":"NANCY","tel":"06 73 51 33 07","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fe948b92979b909f908a9197909bcfc7c6cabe99939f9792d09d9193">[email&#160;protected]</a>","adh":"01/05/2025","arc":"NON"}],"40024577500020":[{"civ":"M.","pre":"LEO","nom":"POISSON","tel":"","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b4d8d1db9ac4dbddc7c7dbda84858383f4dbc6d5dad3d19ad2c6">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"40116107000032":[{"civ":"M.","nom":"AVRIL","pre":"PATRICE","adr":"10 RUE DE LA CHAUMIERE","adr2":"","cp":"94360","vil":"BRY SUR MARNE","tel":"06 82 23 80 38","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cebeafbabca7adab8ea3afa7a2a1e0a8bc">[email&#160;protected]</a>","adh":"01/01/2024","arc":"NON"},{"civ":"M.","nom":"PEILLON","pre":"FLORIAN","adr":"9 PLACE DE LA RESISTANCE","adr2":"","cp":"93200","vil":"ST DENIS","tel":"06 22 25 56 46","em":"florian.peillon,@lilo.org","adh":"01/04/2024","arc":"NON","eluCSE":"NON","finMandat":"2024","ds":"NON"},{"civ":"Mme","nom":"BERNARD","pre":"AUDREY","adr":"5 COUR DE L EGLISE","adr2":"","cp":"77165","vil":"GESVRES LE CHAPITRE","tel":"06 85 24 20 00","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ff9e8a9b8d9a869e9d9abf908d9e91989ad1998d">[email&#160;protected]</a>","adh":"01/04/2024","arc":"NON","eluCSE":"OUI","finMandat":"2024"},{"civ":"M.","nom":"GARNIER","pre":"PIERRE EMMANUEL","adr":"24 RUE BAPAUME","adr2":"","cp":"94120","vil":"FONTENAY SOUS BOIS","tel":"06 17 95 13 27","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="99e9f0fcebebfcb4fcf4f4f8f7ecfcf5fef8ebf7f0fcebd9f6ebf8f7fefcb7ffeb">[email&#160;protected]</a>","adh":"01/05/2024","arc":"NON","eluCSE":"OUI","finMandat":"2024","ds":"NON"},{"civ":"Mme","pre":"SORAYA","nom":"KHIMOUN","tel":"06 61 40 01 20","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0c7f637e6d756d676465616379613e384c6b616d6560226f6361">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"NON","finMandat":"2023","ds":"NON"}],"39081876300026":[{"civ":"M.","nom":"HATEM","pre":"TARIK","adr":"31 RUE JEAN MONNET","adr2":"","cp":"59100","vil":"ROUBAIX","tel":"06 13 34 87 38","em":"","adh":"01/03/2023","arc":"NON"}],"80472537200036":[{"civ":"M.","pre":"KAMEL","nom":"BOUHARATI","tel":"06 63 69 91 09","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d0b5bcbdb1bbbfe1e290b8bfa4bdb1b9bcfeb6a2">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"M.","pre":"ABDELHAK","nom":"CHARABI","tel":"07 48 59 39 67","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="94e6e5e1f5e0e6f1a7a3d4f3f9f5fdf8baf7fbf9">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"38393256300034":[{"civ":"Mme","nom":"PETIT","pre":"ALEXANDRA","adr":"4 RUE DES CYSTES MAUVES","adr2":"","cp":"34370","vil":"CAZOULS LES BEZIERS","tel":"06 11 71 12 68","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="24455441504d5064495416414a524d564b4a4a4149414a500a474b49">[email&#160;protected]</a>","adh":"01/06/2022","arc":"NON","eluCSE":"NON","ds":"NON"},{"civ":"Mme","nom":"BRAVO","pre":"MELISSA","adr":"4BIS AVENUE DES ROSIERS","adr2":"","cp":"11700","vil":"MOUX","tel":"06 60 38 05 68","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1d707f6f7c6b725d706d2f78736b746f7273737870787369337e7270">[email&#160;protected]</a>","adh":"05/12/2022","arc":"OUI","eluCSE":"NON","ds":"NON"}],"37832362000021":[{"civ":"Mme","nom":"WATTIER","pre":"LAURENCE","adr":"106 RUE DES ARCHES","adr2":"","cp":"02270","vil":"MONTIGNY SUR CRECY","tel":"06 32 66 42 31","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0b676a7e796e65686e6364696e7c6a7f7f626e794b6c666a626725686466">[email&#160;protected]</a>","adh":"01/05/2025","arc":"NON"}],"37828969800037":[{"civ":"M.","pre":"MAXENCE","nom":"SÉBERT","tel":"07 89 61 99 22","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="711c1009141f12145f021413140305311d10011e0205145f1f1405">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"89758419900011":[{"civ":"MME","pre":"STEPHANIE","nom":"CHALU","tel":"06 72 92 87 11","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"MME","pre":"MARIE","nom":"CHANTEREAU","tel":"06 59 01 58 99","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","ds":"OUI"},{"civ":"MME","pre":"ANA-LUIZA","nom":"EL BARNOUSSI","tel":"07 88 77 60 26","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"MME","pre":"LYDIA","nom":"LEQUETTE","tel":"06 19 02 80 40","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"43782982300032":[{"civ":"M.","nom":"BLOND","pre":"RICHARD","adr":"10 LES COUDRAIS","adr2":"","cp":"44390","vil":"SAFFRE","tel":"06 70 78 91 61","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c1b3a8a2a9a0b3a5a3adaeafa581a6aca0a8adefa2aeac">[email&#160;protected]</a>","adh":"01/03/2024","arc":"NON"}],"44066842400052":[{"civ":"M.","pre":"STEPHANE","nom":"LEDUC","tel":"06 51 75 42 87","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="394a5c5817555c5d4c5a795e54585055175a5654">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2027","ds":"OUI"}],"79926815600046":[{"civ":"MME","pre":"CAROLINE","nom":"ETHEVE","tel":"07 82 79 15 58","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ee8b9a868b988b8d8f9c818287808bdbae89838f8782c08d8183">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"33927699000035":[{"civ":"Mme","nom":"AUZERAS","pre":"PERRINE","adr":"27 RUE EUGENE GILBERT","adr2":"","cp":"63000","vil":"CLERMONT FERRAND","tel":"06 45 75 32 42","em":"","adh":"01/10/2025","arc":"NON"}],"43413516600057":[{"civ":"Mme","pre":"ALINE","nom":"CAMBIER HOSATE","tel":"06 58 31 80 15","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4c2d62242d3f2d3838290c233e2d222b29622a3e">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"FRANCOIS","nom":"DARTEVELLE","tel":"06 25 37 74 62","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d2b3f2c232e22243e292c3f39283b282121280d223f2c232a28632b3f">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"BENJAMIN","nom":"DURY","tel":"06 85 34 06 78","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="84e6e0f1f6fdaae7e3f0c4e6f6ede3e5e0e1f7eae5f0f1f6e1aaebf6e3">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"NOUREDINE","nom":"MERZOUGUI","tel":"","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="630e0611190c1604160a525a5555230b0c170e020a0f4d000c0e">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"MICHEL","nom":"ROLIN","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"GHISLAIN","nom":"ROUSSET","tel":"06 25 13 66 75","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="dabdb2b3a9b6bbb3b4f7a8b5afa9a9bfae9ab5a8bbb4bdbff4bca8">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M","pre":"SYLVAIN","nom":"SPEYER","tel":"06 50 87 80 41","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0172786d7760686f2f72716478647341666c60686d2f626e6c">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"35358198600034":[{"civ":"M.","pre":"DENIS","nom":"PERREUX","tel":"06 64 30 49 42","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7511101b1c065b0510070710000d3514051c1041415b1307">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2026","ds":"OUI"}],"44066204700016":[{"civ":"Mme","nom":"BAH","pre":"KADIDIA","adr":"18 RUE DES COLCHIQUES","adr2":"","cp":"91540","vil":"ORMOY","tel":"06 09 14 36 34","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3f545e5b565b565e115d5e570f0e7f58525e5653115c5052">[email&#160;protected]</a>","adh":"01/07/2023","arc":"NON","eluCSE":"OUI","finMandat":"2027"}],"41141502900015":[{"civ":"M.","pre":"MICKAEL","nom":"JULIART","tel":"","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b8d2cdd4d1d9cacc96cbd9d5cbcdd6dff8dfd5d9d1d496dbd7d5">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"32589466500141":[{"civ":"MME","pre":"JEANNE","nom":"COUVREUR RENARD","tel":"06 47 26 14 04","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="573d323639393279343822212532222525323936253317303a363e3b7934383a">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"THIBAULT","nom":"DELAUNAY","tel":"06 52 30 42 10","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e3978b8a8182968f97cd87868f82968d829aa3848e9bcd8591">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"33958630700052":[{"civ":"M.","nom":"PERREUX","pre":"DENIS","adr":"9 BOULEVARD GUY DE CHAMPSAVIN","adr2":"BATIMENT F","cp":"44500","vil":"LA BAULE","tel":"06 64 30 49 42","em":"","adh":"01/12/2021","arc":"NON"}],"50882247500036":[{"civ":"M.","nom":"NONNOTTE","pre":"NICOLAS","adr":"46 RUE DIDEROT","adr2":"","cp":"93100","vil":"MONTREUIL","tel":"06 25 78 53 80","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="deb0b1b0b0b1aaaabbf0b09eb9b3bfb7b2f0bdb1b3">[email&#160;protected]</a>","adh":"01/01/2025","arc":"NON"},{"civ":"Mme","nom":"LAFARGE","pre":"NATHALIE","adr":"132 RUE DE PICPUS","adr2":"","cp":"75012","vil":"PARIS","tel":"06 61 94 51 87","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a2ccc3d68ccec3c4c3d0c5c7e2c4d0c7c78cc4d0">[email&#160;protected]</a>","adh":"01/01/2025","arc":"NON"},{"civ":"Mme","nom":"DUPREZ","pre":"VALERIE","adr":"52 RUE JEAN PIERRE TIMBAUD","adr2":"","cp":"75011","vil":"PARIS","tel":"06 13 03 23 02","em":"","adh":"01/06/2025","arc":"NON"},{"civ":"Mme","nom":"FOURDRINOY","pre":"CECILE","adr":"VILLA SAINT FARGEAU","adr2":"","cp":"75020","vil":"PARIS","tel":"06 80 53 76 91","em":"","adh":"01/08/2025","arc":"NON"},{"civ":"M.","nom":"BOURGHIS","pre":"STEPHANE","adr":"26 RUE MADAME DE SEVIGNE","adr2":"","cp":"75004","vil":"PARIS","tel":"06 62 16 84 28","em":"","adh":"01/03/2026","arc":"NON"},{"civ":"MME","pre":"LORENE","nom":"BUCHER","tel":"06 89 45 73 99","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="90fcffe2f5fef5fdffe5f3f8f5e4a3d0f7fdf1f9fcbef3fffd">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"PAULINE","nom":"INGLADA","tel":"06 62 40 43 32","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="532332263f3a3d367d3a3d343f32373213343e323a3f7d303c3e">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"Mme","pre":"CÉCILE","nom":"FOURDRINOY","tel":"","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="72011f1d071e1714001b061732151f131b1e5c111d1f">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"39858631300056":[{"civ":"M.","pre":"MICHEL","nom":"POUGET","tel":"06 85 76 06 51","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4d20242e2528217c3d22382a28390d342c252222632e22633826">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"NON"}],"79459171900032":[{"civ":"MME","pre":"JEANNE","nom":"VOIRY","tel":"07 83 83 40 91","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f39996929d9d96dd859c9a818ab3949e929a9fdd909c9e">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"42258998600013":[{"civ":"Mme","nom":"BORDON","pre":"GABRIELE","adr":"LIEU DIT KERFERON","adr2":"","cp":"29380","vil":"BANNALEC","tel":"07 80 44 81 87","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b707e697d7e6974755b777a6b74686f7e35757e6f">[email&#160;protected]</a>","adh":"11/09/2023","arc":"NON","eluCSE":"NON","ds":"NON"},{"civ":"Mme","nom":"LEBLOIS","pre":"DEBORAH","adr":"8 RUE JULES FERRY","adr2":"","cp":"29390","vil":"SCAER","tel":"06 74 17 70 23","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="92ded7d0dedddbc1d6a4d2daddc6dfd3dbdebcd4c0">[email&#160;protected]</a>","adh":"01/11/2023","arc":"NON"}],"47999898100027":[{"civ":"Mme","nom":"FLUSIN","pre":"CECILLIA","adr":"1 LIEU DIT LE CHATEAU FORT","adr2":"","cp":"86230","vil":"LEIGNE SUR USSEAU","tel":"06 79 08 21 93","em":"","adh":"01/02/2025","arc":"NON"}],"41904026600035":[{"civ":"MME","pre":"CAROLE","nom":"BUSIER","tel":"06 15 91 81 44","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="690a081b06050c470b1c1a000c1b290e04080005470a0604">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"40874140300039":[{"civ":"Mme","pre":"CECILIA","nom":"FLUSIN","tel":"06 79 08 21 93","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8cefa2e2e3f9fee9edf9ccebe1ede5e0a2efe3e1">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2027","ds":"NON"}],"42180451900039":[{"civ":"MME","pre":"RADIA","nom":"ZEGHDANE","tel":"07 83 79 74 65","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddafbcb9b4bca7b8bab5b9bcb3b89dbab0bcb4b1f3beb2b0">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"39924109000063":[{"civ":"M.","nom":"TREBOIT","pre":"ALEXIS","adr":"4 RUE DE MORAINVILLIERS","adr2":"","cp":"78920","vil":"ECQUEVILLY","tel":"06 45 43 14 16","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="46272a233e2f356832342324292f320627353529252f27322f29286b2335362725233568293421">[email&#160;protected]</a>","adh":"01/04/2022","arc":"NON","eluCSE":"OUI","finMandat":"2025","ds":"OUI"}],"44781464100026":[{"civ":"Mme","pre":"NOEMIE","nom":"GUERIN","tel":"06 63 25 16 22","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c380332333931351c343328313d3530723f3331">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON"}],"41978262800020":[{"civ":"M.","pre":"TARIK","nom":"HATEM","tel":"06 13 34 87 38","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="620a0316070f1603100b09220a0d160f030b0e4c0410">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2025","ds":"NON"}],"49811077400011":[{"civ":"M.","pre":"KOUCEILA","nom":"LATBI","tel":"06 84 31 58 55","em":"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="deb5b2bfaabcb79ea7bfb6b1b1f0b8ac">[email&#160;protected]</a>","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"MME","pre":"MATHILDE","nom":"AMOROSO","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"SANDRINE","nom":"MARIN","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"NATHALIE","nom":"GUIBERT","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"CHRISTOPHE","nom":"WYNANTS","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"LAETITIA","nom":"SAHER","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"}]};
+var ADHERENTS={"43832146500025":[{"civ":"Mme","nom":"KHIROUNI","pre":"CHAYNESSE","adr":"9 RUE BERGNIER","adr2":"","cp":"54000","vil":"NANCY","tel":"06 14 11 14 78","em":"","adh":"01/03/2011","arc":"NON"}],"38841034200041":[{"civ":"M.","pre":"LUCIEN","nom":"PIAZZA","tel":"03 28 24 09 58","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"41147627800030":[{"civ":"M.","nom":"EIGELTHINGER","pre":"ANTHONY","adr":"52 AVENUE THIERS","adr2":"","cp":"54220","vil":"MALZEVILLE","tel":"06 50 64 79 47","em":"julienantoine1984@gmail.com","adh":"01/05/2025","arc":"NON"},{"civ":"M.","nom":"DUPONT","pre":"JULIEN","adr":"15 RUE DE SAVERNE","adr2":"","cp":"54000","vil":"NANCY","tel":"06 73 51 33 07","em":"julienantoine1984@gmail.com","adh":"01/05/2025","arc":"NON"}],"40024577500020":[{"civ":"M.","pre":"LEO","nom":"POISSON","tel":"","em":"leo.poisson0177@orange.fr","cp":"","vil":"","adh":"","arc":"NON"}],"40116107000032":[{"civ":"M.","nom":"AVRIL","pre":"PATRICE","adr":"10 RUE DE LA CHAUMIERE","adr2":"","cp":"94360","vil":"BRY SUR MARNE","tel":"06 82 23 80 38","em":"patrice@mailo.fr","adh":"01/01/2024","arc":"NON"},{"civ":"M.","nom":"PEILLON","pre":"FLORIAN","adr":"9 PLACE DE LA RESISTANCE","adr2":"","cp":"93200","vil":"ST DENIS","tel":"06 22 25 56 46","em":"florian.peillon,@lilo.org","adh":"01/04/2024","arc":"NON","eluCSE":"NON","finMandat":"2024","ds":"NON"},{"civ":"Mme","nom":"BERNARD","pre":"AUDREY","adr":"5 COUR DE L EGLISE","adr2":"","cp":"77165","vil":"GESVRES LE CHAPITRE","tel":"06 85 24 20 00","em":"audreyabe@orange.fr","adh":"01/04/2024","arc":"NON","eluCSE":"OUI","finMandat":"2024"},{"civ":"M.","nom":"GARNIER","pre":"PIERRE EMMANUEL","adr":"24 RUE BAPAUME","adr2":"","cp":"94120","vil":"FONTENAY SOUS BOIS","tel":"06 17 95 13 27","em":"pierre-emmanuelgarnier@orange.fr","adh":"01/05/2024","arc":"NON","eluCSE":"OUI","finMandat":"2024","ds":"NON"},{"civ":"Mme","pre":"SORAYA","nom":"KHIMOUN","tel":"06 61 40 01 20","em":"sorayakhimoum24@gmail.com","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"NON","finMandat":"2023","ds":"NON"}],"39081876300026":[{"civ":"M.","nom":"HATEM","pre":"TARIK","adr":"31 RUE JEAN MONNET","adr2":"","cp":"59100","vil":"ROUBAIX","tel":"06 13 34 87 38","em":"","adh":"01/03/2023","arc":"NON"}],"80472537200036":[{"civ":"M.","pre":"KAMEL","nom":"BOUHARATI","tel":"06 63 69 91 09","em":"elmako12@hotmail.fr","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"M.","pre":"ABDELHAK","nom":"CHARABI","tel":"07 48 59 39 67","em":"rquatre37@gmail.com","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"38393256300034":[{"civ":"Mme","nom":"PETIT","pre":"ALEXANDRA","adr":"4 RUE DES CYSTES MAUVES","adr2":"","cp":"34370","vil":"CAZOULS LES BEZIERS","tel":"06 11 71 12 68","em":"apetit@mp2environnement.com","adh":"01/06/2022","arc":"NON","eluCSE":"NON","ds":"NON"},{"civ":"Mme","nom":"BRAVO","pre":"MELISSA","adr":"4BIS AVENUE DES ROSIERS","adr2":"","cp":"11700","vil":"MOUX","tel":"06 60 38 05 68","em":"mbravo@mp2environnement.com","adh":"05/12/2022","arc":"OUI","eluCSE":"NON","ds":"NON"}],"37832362000021":[{"civ":"Mme","nom":"WATTIER","pre":"LAURENCE","adr":"106 RUE DES ARCHES","adr2":"","cp":"02270","vil":"MONTIGNY SUR CRECY","tel":"06 32 66 42 31","em":"laurencehobewattier@gmail.com","adh":"01/05/2025","arc":"NON"}],"37828969800037":[{"civ":"M.","pre":"MAXENCE","nom":"SÉBERT","tel":"07 89 61 99 22","em":"maxence.sebert@laposte.net","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"89758419900011":[{"civ":"MME","pre":"STEPHANIE","nom":"CHALU","tel":"06 72 92 87 11","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"MME","pre":"MARIE","nom":"CHANTEREAU","tel":"06 59 01 58 99","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","ds":"OUI"},{"civ":"MME","pre":"ANA-LUIZA","nom":"EL BARNOUSSI","tel":"07 88 77 60 26","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"MME","pre":"LYDIA","nom":"LEQUETTE","tel":"06 19 02 80 40","em":"","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"}],"43782982300032":[{"civ":"M.","nom":"BLOND","pre":"RICHARD","adr":"10 LES COUDRAIS","adr2":"","cp":"44390","vil":"SAFFRE","tel":"06 70 78 91 61","em":"richardblond@gmail.com","adh":"01/03/2024","arc":"NON"}],"44066842400052":[{"civ":"M.","pre":"STEPHANE","nom":"LEDUC","tel":"06 51 75 42 87","em":"sea.leduc@gmail.com","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2027","ds":"OUI"}],"79926815600046":[{"civ":"MME","pre":"CAROLINE","nom":"ETHEVE","tel":"07 82 79 15 58","em":"ethevecaroline5@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"33927699000035":[{"civ":"Mme","nom":"AUZERAS","pre":"PERRINE","adr":"27 RUE EUGENE GILBERT","adr2":"","cp":"63000","vil":"CLERMONT FERRAND","tel":"06 45 75 32 42","em":"","adh":"01/10/2025","arc":"NON"}],"43413516600057":[{"civ":"Mme","pre":"ALINE","nom":"CAMBIER HOSATE","tel":"06 58 31 80 15","em":"a.hasatte@orange.fr","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"FRANCOIS","nom":"DARTEVELLE","tel":"06 25 37 74 62","em":"francoisdartevelle@orange.fr","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"BENJAMIN","nom":"DURY","tel":"06 85 34 06 78","em":"bdury.cgt@brigadesnature.org","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"NOUREDINE","nom":"MERZOUGUI","tel":"","em":"merzougui1966@hotmail.com","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"MICHEL","nom":"ROLIN","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"GHISLAIN","nom":"ROUSSET","tel":"06 25 13 66 75","em":"ghislain-rousset@orange.fr","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M","pre":"SYLVAIN","nom":"SPEYER","tel":"06 50 87 80 41","em":"sylvain.speyer@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"35358198600034":[{"civ":"M.","pre":"DENIS","nom":"PERREUX","tel":"06 64 30 49 42","em":"denis.perreux@apie44.fr","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2026","ds":"OUI"}],"44066204700016":[{"civ":"Mme","nom":"BAH","pre":"KADIDIA","adr":"18 RUE DES COLCHIQUES","adr2":"","cp":"91540","vil":"ORMOY","tel":"06 09 14 36 34","em":"kadidia.bah01@gmail.com","adh":"01/07/2023","arc":"NON","eluCSE":"OUI","finMandat":"2027"}],"41141502900015":[{"civ":"M.","pre":"MICKAEL","nom":"JULIART","tel":"","em":"juliart.samsung@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"32589466500141":[{"civ":"MME","pre":"JEANNE","nom":"COUVREUR RENARD","tel":"06 47 26 14 04","em":"jeanne.couvreurrenard@gmail.com","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"THIBAULT","nom":"DELAUNAY","tel":"06 52 30 42 10","em":"thibault.delaunay@gmx.fr","cp":"","vil":"","adh":"","arc":"NON"}],"33958630700052":[{"civ":"M.","nom":"PERREUX","pre":"DENIS","adr":"9 BOULEVARD GUY DE CHAMPSAVIN","adr2":"BATIMENT F","cp":"44500","vil":"LA BAULE","tel":"06 64 30 49 42","em":"","adh":"01/12/2021","arc":"NON"}],"50882247500036":[{"civ":"M.","nom":"NONNOTTE","pre":"NICOLAS","adr":"46 RUE DIDEROT","adr2":"","cp":"93100","vil":"MONTREUIL","tel":"06 25 78 53 80","em":"nonnotte.n@gmail.com","adh":"01/01/2025","arc":"NON"},{"civ":"Mme","nom":"LAFARGE","pre":"NATHALIE","adr":"132 RUE DE PICPUS","adr2":"","cp":"75012","vil":"PARIS","tel":"06 61 94 51 87","em":"nat.lafarge@free.fr","adh":"01/01/2025","arc":"NON"},{"civ":"Mme","nom":"DUPREZ","pre":"VALERIE","adr":"52 RUE JEAN PIERRE TIMBAUD","adr2":"","cp":"75011","vil":"PARIS","tel":"06 13 03 23 02","em":"","adh":"01/06/2025","arc":"NON"},{"civ":"Mme","nom":"FOURDRINOY","pre":"CECILE","adr":"VILLA SAINT FARGEAU","adr2":"","cp":"75020","vil":"PARIS","tel":"06 80 53 76 91","em":"","adh":"01/08/2025","arc":"NON"},{"civ":"M.","nom":"BOURGHIS","pre":"STEPHANE","adr":"26 RUE MADAME DE SEVIGNE","adr2":"","cp":"75004","vil":"PARIS","tel":"06 62 16 84 28","em":"","adh":"01/03/2026","arc":"NON"},{"civ":"MME","pre":"LORENE","nom":"BUCHER","tel":"06 89 45 73 99","em":"lorenemouchet3@gmail.com","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"PAULINE","nom":"INGLADA","tel":"06 62 40 43 32","em":"pauline.inglada@gmail.com","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"Mme","pre":"CÉCILE","nom":"FOURDRINOY","tel":"","em":"smoulefrite@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"39858631300056":[{"civ":"M.","pre":"MICHEL","nom":"POUGET","tel":"06 85 76 06 51","em":"michel1pouget@yahoo.co.uk","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"NON"}],"79459171900032":[{"civ":"MME","pre":"JEANNE","nom":"VOIRY","tel":"07 83 83 40 91","em":"jeanne.voiry@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"42258998600013":[{"civ":"Mme","nom":"BORDON","pre":"GABRIELE","adr":"LIEU DIT KERFERON","adr2":"","cp":"29380","vil":"BANNALEC","tel":"07 80 44 81 87","em":"kerferon@laposte.net","adh":"11/09/2023","arc":"NON","eluCSE":"NON","ds":"NON"},{"civ":"Mme","nom":"LEBLOIS","pre":"DEBORAH","adr":"8 RUE JULES FERRY","adr2":"","cp":"29390","vil":"SCAER","tel":"06 74 17 70 23","em":"LEBLOISD6@HOTMAIL.FR","adh":"01/11/2023","arc":"NON"}],"47999898100027":[{"civ":"Mme","nom":"FLUSIN","pre":"CECILLIA","adr":"1 LIEU DIT LE CHATEAU FORT","adr2":"","cp":"86230","vil":"LEIGNE SUR USSEAU","tel":"06 79 08 21 93","em":"","adh":"01/02/2025","arc":"NON"}],"41904026600035":[{"civ":"MME","pre":"CAROLE","nom":"BUSIER","tel":"06 15 91 81 44","em":"carole.busier@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"40874140300039":[{"civ":"Mme","pre":"CECILIA","nom":"FLUSIN","tel":"06 79 08 21 93","em":"c.noureau@gmail.com","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2027","ds":"NON"}],"42180451900039":[{"civ":"MME","pre":"RADIA","nom":"ZEGHDANE","tel":"07 83 79 74 65","em":"radiazeghdane@gmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"39924109000063":[{"civ":"M.","nom":"TREBOIT","pre":"ALEXIS","adr":"4 RUE DE MORAINVILLIERS","adr2":"","cp":"78920","vil":"ECQUEVILLY","tel":"06 45 43 14 16","em":"alexis.treboit@association-espaces.org","adh":"01/04/2022","arc":"NON","eluCSE":"OUI","finMandat":"2025","ds":"OUI"}],"44781464100026":[{"civ":"Mme","pre":"NOEMIE","nom":"GUERIN","tel":"06 63 25 16 22","em":"d_noemi@hotmail.com","cp":"","vil":"","adh":"","arc":"NON"}],"41978262800020":[{"civ":"M.","pre":"TARIK","nom":"HATEM","tel":"06 13 34 87 38","em":"hatemtarik@hotmail.fr","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI","finMandat":"2025","ds":"NON"}],"49811077400011":[{"civ":"M.","pre":"KOUCEILA","nom":"LATBI","tel":"06 84 31 58 55","em":"klatbi@yahoo.fr","cp":"","vil":"","adh":"","arc":"NON","eluCSE":"OUI"},{"civ":"MME","pre":"MATHILDE","nom":"AMOROSO","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"SANDRINE","nom":"MARIN","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"NATHALIE","nom":"GUIBERT","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"M.","pre":"CHRISTOPHE","nom":"WYNANTS","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"},{"civ":"MME","pre":"LAETITIA","nom":"SAHER","tel":"","em":"","cp":"","vil":"","adh":"","arc":"NON"}]};
 var GS_URL = "";          
 var GS_DATA = null;       
 var GS_LOADING = false;
@@ -2143,8 +2143,8 @@ function buildAdherents(){
       h+='<div style="margin-top:8px;font-size:10px;color:var(--tx3);display:flex;gap:10px;flex-wrap:wrap">';
       if(a.tel)h+='<a href="tel:'+a.tel.replace(/\s/g,"")+'">&#9990; '+a.tel+'</a>';
       if(a.tel2)h+='<a href="tel:'+a.tel2.replace(/\s/g,"")+'"> / '+a.tel2+'</a>';
-      if(a.em)h+='<a href="/cdn-cgi/l/email-protection#27000c4609424a0c00">&#9993; '+a.em+'</a>';
-      if(a.em2)h+='<a href="/cdn-cgi/l/email-protection#9eb9b5ffb0fbf3acb5b9"> / '+a.em2+'</a>';
+      if(a.em)h+='<a href="mailto:'+a.em+'">&#9993; '+a.em+'</a>';
+      if(a.em2)h+='<a href="mailto:'+a.em2+'"> / '+a.em2+'</a>';
       h+='</div>';
     }
     if(a.arc==="OUI")h+='<div style="margin-top:4px"><span style="font-size:9px;background:#888;color:#fff;padding:1px 6px;border-radius:8px">Archiv\u00e9</span></div>';
@@ -2421,7 +2421,7 @@ function renderUDBlock(cp){
     h+='<div class="ud-block-title">&#127970; '+ud.n+'</div>';
     var meta=[];
     if(ud.t&&ud.t!=="00 00 00 00 00")meta.push('<a href="tel:'+ud.t.replace(/\s/g,"")+ '" class="ud-link">&#128222; '+ud.t+'</a>');
-    if(ud.e)meta.push('<a href="/cdn-cgi/l/email-protection#13343866773d763834" class="ud-link">&#9993; '+ud.e+'</a>');
+    if(ud.e)meta.push('<a href="mailto:'+ud.e+'" class="ud-link">&#9993; '+ud.e+'</a>');
     if(meta.length)h+='<div class="ud-block-meta">'+meta.join(' &nbsp; ')+'</div>';
   }
   if(ulCodes.length>0){
@@ -2434,7 +2434,7 @@ function renderUDBlock(cp){
       h+='<span class="ud-ul-nom">'+(ul.n||"")+'</span>';
       if(ul.v)h+='<span class="ud-ul-ville">'+ul.v+'</span>';
       if(ul.t&&ul.t!=="00 00 00 00 00")h+='<a href="tel:'+ul.t.replace(/\s/g,"")+ '" class="ud-link" style="font-size:9px">'+ul.t+'</a>';
-      if(ul.e)h+='<a href="/cdn-cgi/l/email-protection#0e29257b62206b2529" class="ud-link" style="font-size:9px">'+ul.e+'</a>';
+      if(ul.e)h+='<a href="mailto:'+ul.e+'" class="ud-link" style="font-size:9px">'+ul.e+'</a>';
       h+='</div>';
     }
     h+='</div>';
@@ -2630,7 +2630,7 @@ var DOCS = {
       '</ul>'+
       '<div class="doc-highlight">La CGT est pr\u00e9sente dans plus de 200 ACI. Rejoignez-nous\u00a0!</div>'+
       '<h3>Contact F\u00e9d\u00e9ral</h3>'+
-      '<p>F\u00e9d\u00e9ration CGT des Travailleurs de l\u2019IAE \u2014 <a href="/cdn-cgi/l/email-protection#46202836293506252132682034"><span class="__cf_email__" data-cfemail="13757d637c60537074673d7561">[email&#160;protected]</span></a></p>'
+      '<p>F\u00e9d\u00e9ration CGT des Travailleurs de l\u2019IAE \u2014 <a href="mailto:fnpos@cgt.fr">fnpos@cgt.fr</a></p>'
   },
   'guide-harcelement': {
     icon:'\u2696\uFE0F', categorie:'Strat\u00e9gie Institutionnelle',
@@ -3094,7 +3094,7 @@ function printDoc(){
   document.body.appendChild(iframe);
   var iDoc=iframe.contentDocument||iframe.contentWindow.document;
   iDoc.open();
-  iDoc.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>'+doc.titre+'</title><style>'+css+'</style></head><body>'+content+'<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body></html>');
+  iDoc.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>'+doc.titre+'</title><style>'+css+'</style></head><body>'+content+'</body></html>');
   iDoc.close();
   iframe.onload=function(){
     iframe.contentWindow.focus();
@@ -3672,7 +3672,7 @@ function buildTable(){
       h+='<span class="adh-name" style="'+(_adh.arc==='OUI'?'opacity:.5;text-decoration:line-through;':'')+'">'+_anom+'</span>';
       h+='<span class="adh-coords">';
       if(_adh.tel)h+='<a href="tel:'+_adh.tel.replace(/\s/g,'')+'">&#9990; '+_adh.tel+'</a>';
-      if(_adh.em)h+=(_adh.tel?' &bull; ':'')+' <a href="/cdn-cgi/l/email-protection#0b2c20546a6f63256e66202c">&#9993; '+_adh.em+'</a>';
+      if(_adh.em)h+=(_adh.tel?' &bull; ':'')+' <a href="mailto:'+_adh.em+'">&#9993; '+_adh.em+'</a>';
       h+='</span></div>'; }}
     h+='</td>';
     h+='<td class="td-ud" onclick="event.stopPropagation()">'+renderUDBlock(g(s,"cp"))+'</td>';
@@ -3870,7 +3870,7 @@ function buildCal(){
       if(adLine||cpv||ville){addrHtml='<div style="font-size:10px;color:var(--tx3);margin-top:4px">'+(adLine?adLine+"<br>":"")+(cpv?cpv+" ":"")+ville+'</div>';}
       var structContact="";
       var stl=g(s,"tl"),sem=g(s,"em");
-      if(stl||sem){structContact='<div style="font-size:10px;color:var(--tx3);margin-top:4px">'+(stl?'<span>&#128222; '+stl+'</span>':"")+((stl&&sem)?" &nbsp; ":"")+(sem?'<a href="/cdn-cgi/l/email-protection#65424e1600084e42" style="color:var(--tx2)">&#9993; '+sem+'</a>':"")+'</div>';}
+      if(stl||sem){structContact='<div style="font-size:10px;color:var(--tx3);margin-top:4px">'+(stl?'<span>&#128222; '+stl+'</span>':"")+((stl&&sem)?" &nbsp; ":"")+(sem?'<a href="mailto:'+sem+'" style="color:var(--tx2)">&#9993; '+sem+'</a>':"")+'</div>';}
       h+='<div class="ccard '+urg+'" style="cursor:pointer;display:flex;gap:12px;align-items:flex-start" onclick="openFiche(\''+g(s,"si")+'\')">'
         +'<div style="min-width:44px;text-align:center;flex-shrink:0;padding-top:2px">'
         +'<div style="font-size:22px;font-weight:900;color:var(--tx);line-height:1">'+( dayNum||"")+'</div>'
@@ -3910,7 +3910,7 @@ function renderContact(person, badge){
   var h='<div style="padding:3px 0;font-size:10px">';
   h+='<span style="font-weight:600">'+person.nom+'</span>'+(badge?badge:'');
   if(person.tel)h+='<br><a href="tel:'+person.tel.replace(/\s/g,"")+'" style="color:var(--tx3)">&#128222; '+person.tel+'</a>';
-  if(person.email)h+='<br><a href="/cdn-cgi/l/email-protection#e0c7cb908592938f8ece858d81898ccbc7" style="color:var(--tx2)">&#9993; '+person.email+'</a>';
+  if(person.email)h+='<br><a href="mailto:'+person.email+'" style="color:var(--tx2)">&#9993; '+person.email+'</a>';
   h+='</div>';
   return h;
 }
@@ -4011,7 +4011,7 @@ function buildContacts(){
         h+='<div class="cnt-ud-info">';
         if(ud.ville)h+='<span>'+ud.ville+'</span><br>';
         if(ud.tel)h+='<a href="tel:'+ud.tel.replace(/\s/g,"")+'" >&#128222; '+ud.tel+'</a><br>';
-        if(ud.email)h+='<a href="/cdn-cgi/l/email-protection#3f18144a5b115a525e56531418">&#9993; '+ud.email+'</a>';
+        if(ud.email)h+='<a href="mailto:'+ud.email+'">&#9993; '+ud.email+'</a>';
         h+='</div>';
         if(ulCount>0){h+='<div class="cnt-ud-uls" data-code="'+String(ud.code)+'" data-loaded="0"></div>';}
         else{h+='<div style="font-size:9px;color:var(--tx3);margin-top:4px;font-style:italic">Aucune UL enregistr\u00e9e</div>';}
@@ -4045,8 +4045,8 @@ function buildContacts(){
         h+='<div class="cnt-info">';
         if(ap.tel)h+='<a href="tel:'+ap.tel.replace(/\s/g,"")+'">&#9990; '+ap.tel+'</a>';
         if(ap.tel2)h+='<a href="tel:'+ap.tel2.replace(/\s/g,"")+'"> / '+ap.tel2+'</a>';
-        if(ap.em){if(ap.tel||ap.tel2)h+='<br>';h+='<a href="/cdn-cgi/l/email-protection#07202c667729626a2c20">&#9993; '+ap.em+'</a>';}
-        if(ap.em2)h+='<br><a href="/cdn-cgi/l/email-protection#f7d0dc9687d9929ac5dcd0">&#9993; '+ap.em2+'</a>';
+        if(ap.em){if(ap.tel||ap.tel2)h+='<br>';h+='<a href="mailto:'+ap.em+'">&#9993; '+ap.em+'</a>';}
+        if(ap.em2)h+='<br><a href="mailto:'+ap.em2+'">&#9993; '+ap.em2+'</a>';
         if(!ap.tel&&!ap.em)h+='<span style="color:var(--tx3)">Pas de coordonnées</span>';
         h+='</div>';
         if(ap.notes)h+='<div style="margin-top:3px;font-size:10px;color:var(--tx3);font-style:italic">'+ap.notes+'</div>';
@@ -4083,7 +4083,7 @@ function renderContactCard(person, reg, role, idx2){
   if(tel || email){
     h += '<div class="cnt-info" style="margin-top:3px">';
     if(tel)   h += '<a href="tel:'+tel.replace(/\s/g,'')+'">&#9990; '+tel+'</a>';
-    if(email){ if(tel) h += '<br>'; h += '<a href="/cdn-cgi/l/email-protection#def9f5bbb3bfb7b2f5f9">&#9993; '+email+'</a>'; }
+    if(email){ if(tel) h += '<br>'; h += '<a href="mailto:'+email+'">&#9993; '+email+'</a>'; }
     h += '</div>';
   }
   h += '</div>';
@@ -4114,7 +4114,7 @@ function cntUDToggle(hdr,udCode){
       ulHtml+='<div class="cnt-ul-meta">';
       if(ul.ville)ulHtml+=(ul.cp?ul.cp+' ':'')+ul.ville;
       if(ul.tel&&ul.tel!=='00 00 00 00 00'){if(ul.ville)ulHtml+=' &mdash; ';ulHtml+='<a href="tel:'+ul.tel.replace(/\s/g,'')+'" >&#128222; '+ul.tel+'</a>';}
-      if(ul.email){if(ul.ville||ul.tel)ulHtml+='<br>';ulHtml+='<a href="/cdn-cgi/l/email-protection#91b6bae4fdbff4fcf0f8fdbab6">&#9993; '+ul.email+'</a>';}
+      if(ul.email){if(ul.ville||ul.tel)ulHtml+='<br>';ulHtml+='<a href="mailto:'+ul.email+'">&#9993; '+ul.email+'</a>';}
       ulHtml+='</div>';
       ulHtml+='<button class="btn-edit-icon" onclick="editULOpen('+udCode+','+uli+')" title="Modifier l\'UL">&#9998;</button>';
       ulHtml+='</div>';
@@ -4236,7 +4236,7 @@ function buildUDUL(){
     var metaParts=[];
     if(ud.adr)metaParts.push('<span>&#128205; '+ud.adr+(ud.cp?" "+ud.cp:"")+(ud.ville?" "+ud.ville:"")+'</span>');
     if(ud.tel&&ud.tel!=="00 00 00 00 00")metaParts.push('<a href="tel:'+ud.tel.replace(/\s/g,"")+'">&#128222; '+ud.tel+'</a>');
-    if(ud.email)metaParts.push('<a href="/cdn-cgi/l/email-protection#7b5c500e1f551e161a1217505c">&#9993; '+ud.email+'</a>');
+    if(ud.email)metaParts.push('<a href="mailto:'+ud.email+'">&#9993; '+ud.email+'</a>');
     if(ud.site)metaParts.push('<a href="'+ud.site+'" target="_blank">&#127760; Site web</a>');
     if(metaParts.length>0)html+='<div class="ud-meta">'+metaParts.join('')+'</div>';
     var udAdh=[];
@@ -4282,7 +4282,7 @@ function buildUDUL(){
           html+='<span style="flex:1;font-size:11px;font-weight:600">'+_fullNom4+'</span>';
           html+='<span style="font-size:9px;color:var(--tx3)">'+_item.struct.n+'</span>';
           if(_a4.tel)html+='<a href="tel:'+_a4.tel.replace(/\s/g,'')+'">&#9990;</a>';
-          if(_a4.em)html+='<a href="/cdn-cgi/l/email-protection#edcac6b28cd9c38880c6ca">&#9993;</a>';
+          if(_a4.em)html+='<a href="mailto:'+_a4.em+'">&#9993;</a>';
           html+='<button class="btn-edit-icon" onclick="event.stopPropagation();editAdhOpen(\''+_item.si+'\','+_item.ai+')">&#9998;</button>';
           html+='<button class="btn-del-icon" onclick="event.stopPropagation();deleteAdh(\''+_item.si+'\','+_item.ai+')">&#128465;</button>';
           html+='</div>';
@@ -4300,7 +4300,7 @@ function buildUDUL(){
         html+='<div class="ul-cell ul-nom" title="'+ul.nom+'">'+ul.nom+'</div>';
         html+='<div class="ul-cell" title="'+ul.ville+'">'+(ul.cp?ul.cp+" ":"")+ul.ville+'</div>';
         html+='<div class="ul-cell">'+(ul.tel&&ul.tel!=="00 00 00 00 00"?'<a href="tel:'+ul.tel.replace(/\s/g,"")+'">'+ul.tel+'</a>':'')+'</div>';
-        html+='<div class="ul-cell" style="white-space:normal">'+(ul.email?'<a href="/cdn-cgi/l/email-protection#3c1b1749501259515d5550171b">' +ul.email+'</a>':'')+'</div>';
+        html+='<div class="ul-cell" style="white-space:normal">'+(ul.email?'<a href="mailto:'+ul.email+'">' +ul.email+'</a>':'')+'</div>';
         html+='<div class="ul-cell" style="text-align:right">';
         html+='<button class="btn-edit-icon" onclick="event.stopPropagation();editULOpen('+ud.code+','+j+')" title="Modifier l\'UL">&#9998;</button>';
         html+='</div>';
@@ -4520,7 +4520,7 @@ if(GS_URL) gsLoad();
   <button id="pwa-install-btn">Installer</button>
   <button id="pwa-dismiss-btn" title="Fermer">&#10005;</button>
 </div>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 (function(){
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').catch(function(){});
@@ -4983,109 +4983,165 @@ function biometricRegister(pwd, token) {
       publicKey: {
         challenge:              challenge,
         rp:                     { name: 'ACI France', id: location.hostname },
-        user:                   { id: userId, name: 'utilisateur', displayName: 'ACI User' },
+        user:                   { id: userId, name: 'utilisateur', displayName: 'ACI France' },
         pubKeyCredParams:       [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-        authenticatorSelection: { userVerification: 'required', authenticatorAttachment: 'platform' },
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
         timeout:                60000
       }
-    }).then(function(credential) {
+    }).then(function(cred) {
       try {
-        localStorage.setItem('aci_bio_cred_id', btoa(String.fromCharCode.apply(null, new Uint8Array(credential.rawId))));
-        localStorage.setItem('aci_bio_token',   btoa(token));
-        localStorage.setItem('aci_bio_pwd',     btoa(pwd));
-        var bioBtn = document.getElementById('lock-bio-btn');
-        var bioSep = document.getElementById('lock-bio-sep');
-        if(bioBtn) bioBtn.style.display = 'block';
-        if(bioSep) bioSep.style.display = 'block';
-      } catch(e) { console.log('[Bio] Enregistrement échoué', e); }
-    }).catch(function(e) { console.log('[Bio] Create échoué', e); });
+        localStorage.setItem('aci_bio_cred_id', btoa(String.fromCharCode.apply(null, new Uint8Array(cred.rawId))));
+        localStorage.setItem('aci_bio_pwd',     pwd);
+        localStorage.setItem('aci_bio_token',   token);
+        console.log('[Bio] Biométrie enregistrée avec succès');
+        var err = document.getElementById('lock-err');
+        if(err) { err.style.color = '#1D9E75'; err.textContent = '\u2705 Biométrie enregistrée pour les prochaines connexions'; }
+      } catch(e) {}
+    }).catch(function(e) {
+      console.log('[Bio] Enregistrement annulé ou non supporté : ' + e.message);
+    });
   });
 }
 
-// Déverrouille via biométrie (WebAuthn assertion)
+// Déverrouille via biométrie
 function biometricUnlock() {
+  var err    = document.getElementById('lock-err');
+  var bioBtn = document.getElementById('lock-bio-btn');
   if(!window.PublicKeyCredential) return;
-  var storedId = localStorage.getItem('aci_bio_cred_id');
-  if(!storedId) return;
-  var credId;
   try {
-    var raw = atob(storedId);
-    credId = new Uint8Array(raw.length);
-    for(var i = 0; i < raw.length; i++) credId[i] = raw.charCodeAt(i);
-  } catch(e) { return; }
-  var challenge = new Uint8Array(32);
-  window.crypto.getRandomValues(challenge);
-  navigator.credentials.get({
-    publicKey: {
-      challenge:        challenge,
-      rpId:             location.hostname,
-      allowCredentials: [{ type: 'public-key', id: credId }],
-      userVerification: 'required',
-      timeout:          60000
-    }
-  }).then(function() {
-    try {
-      var token = atob(localStorage.getItem('aci_bio_token') || '');
-      if(token) lockUnlockApp(token);
-    } catch(e) { console.log('[Bio] Récupération token échouée', e); }
-  }).catch(function(e) { console.log('[Bio] Assertion échouée', e); });
+    var credIdB64 = localStorage.getItem('aci_bio_cred_id');
+    var pwd       = localStorage.getItem('aci_bio_pwd');
+    var token     = localStorage.getItem('aci_bio_token');
+    if(!credIdB64 || !pwd || !token) return;
+    var credIdBytes = atob(credIdB64);
+    var credId = new Uint8Array(credIdBytes.length);
+    for(var i = 0; i < credIdBytes.length; i++) credId[i] = credIdBytes.charCodeAt(i);
+    var challenge = new Uint8Array(32);
+    window.crypto.getRandomValues(challenge);
+    if(bioBtn) { bioBtn.textContent = '\u23F3 Vérification...'; bioBtn.disabled = true; }
+    navigator.credentials.get({
+      publicKey: {
+        challenge:        challenge,
+        rpId:             location.hostname,
+        allowCredentials: [{ type: 'public-key', id: credId }],
+        userVerification: 'required',
+        timeout:          60000
+      }
+    }).then(function() {
+      // Biométrie validée → déverrouiller
+      lockUnlockApp(token);
+    }).catch(function(e) {
+      if(bioBtn) { bioBtn.textContent = '\u{1F50E} Déverrouiller avec empreinte / visage'; bioBtn.disabled = false; }
+      if(err) { err.style.color = '#E24B4A'; err.textContent = 'Biométrie échouée, saisissez manuellement.'; }
+      setTimeout(function() { if(err) { err.textContent = ''; err.style.color = '#E24B4A'; } }, 3000);
+    });
+  } catch(e) {
+    if(bioBtn) { bioBtn.textContent = '\u{1F50E} Déverrouiller avec empreinte / visage'; bioBtn.disabled = false; }
+  }
 }
 
-// Vérifie le mot de passe et le token GitHub à la connexion manuelle
+(function() {
+  // Session déjà active dans cet onglet ?
+  try {
+    if(sessionStorage.getItem('aci_unlocked') === '1') {
+      var t = sessionStorage.getItem('aci_gh_token');
+      if(t) GITHUB_TOKEN = t;
+      var ls = document.getElementById('lock-screen');
+      if(ls) ls.style.display = 'none';
+      return;
+    }
+  } catch(e) {}
+
+  // Biométrie disponible et enregistrée sur cet appareil ?
+  try {
+    var hasBio = localStorage.getItem('aci_bio_cred_id') && localStorage.getItem('aci_bio_token');
+    if(hasBio && window.PublicKeyCredential) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
+        if(available) {
+          var bioBtn = document.getElementById('lock-bio-btn');
+          var bioSep = document.getElementById('lock-bio-sep');
+          if(bioBtn) bioBtn.style.display = 'block';
+          if(bioSep) bioSep.style.display = 'block';
+          // Lancer la biométrie automatiquement après 500ms
+          setTimeout(function() { biometricUnlock(); }, 500);
+        }
+      });
+    }
+  } catch(e) {}
+
+  // Pré-remplir champs si "Se souvenir" était coché
+  try {
+    var savedPwd   = localStorage.getItem('aci_lock_pwd');
+    var savedToken = localStorage.getItem('aci_lock_token');
+    if(savedPwd)   document.getElementById('lock-inp').value   = savedPwd;
+    if(savedToken) document.getElementById('lock-token').value = savedToken;
+    if(savedPwd && savedToken) {
+      document.getElementById('lock-remember').checked = true;
+      // Connexion auto uniquement si pas de biométrie
+      if(!localStorage.getItem('aci_bio_cred_id')) {
+        setTimeout(function() {
+          // Connexion auto + proposition biométrie si disponible
+          if(window.PublicKeyCredential) {
+            PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
+              if(available) {
+                biometricRegister(savedPwd, savedToken);
+              }
+            });
+          }
+          checkLockPwd();
+        }, 300);
+      }
+    }
+  } catch(e) {}
+})();
+
 function checkLockPwd() {
-  var PWD_HASH = 'T3JnQHNvYzkzMTAw'; // base64 de "Org@soc93100"
-  var inp = document.getElementById('lock-inp');
-  var tok = document.getElementById('lock-token');
-  var err = document.getElementById('lock-err');
+  var inp      = document.getElementById('lock-inp');
+  var tok      = document.getElementById('lock-token');
+  var err      = document.getElementById('lock-err');
+  var btn      = document.getElementById('lock-btn');
+  var remember = document.getElementById('lock-remember');
   if(!inp || !tok) return;
   var pwd   = inp.value;
   var token = tok.value.trim();
-  // Vérification mot de passe (comparaison base64 pour éviter stockage en clair)
-  var ok = (btoa(pwd) === PWD_HASH);
-  if(!ok) {
-    if(err) { err.textContent = 'Mot de passe incorrect.'; err.style.color = '#E24B4A'; }
-    inp.style.borderColor = '#E24B4A';
-    return;
-  }
-  if(!token || !token.startsWith('ghp_')) {
-    if(err) { err.textContent = 'Token GitHub invalide (doit commencer par ghp_).'; err.style.color = '#E24B4A'; }
-    tok.style.borderColor = '#E24B4A';
-    return;
-  }
-  if(err) err.textContent = '';
-  // Mémoriser si coché
-  var remember = document.getElementById('lock-remember');
-  if(remember && remember.checked) {
-    try { localStorage.setItem('aci_access_token', token); } catch(e) {}
-  }
-  // Proposer l'enregistrement biométrique si disponible
-  biometricRegister(pwd, token);
-  lockUnlockApp(token);
-}
 
-// Pré-remplir le token si mémorisé + afficher bouton bio si dispo
-(function() {
-  var savedToken = '';
-  try { savedToken = localStorage.getItem('aci_access_token') || ''; } catch(e) {}
-  if(savedToken) {
-    var tokInp = document.getElementById('lock-token');
-    var remInp = document.getElementById('lock-remember');
-    if(tokInp) tokInp.value = savedToken;
-    if(remInp) remInp.checked = true;
+  if(pwd !== 'Org@soc93100') {
+    if(err) { err.style.color = '#E24B4A'; err.textContent = 'Mot de passe incorrect.'; }
+    inp.value = '';
+    inp.style.borderColor = '#E24B4A';
+    inp.focus();
+    setTimeout(function() { inp.style.borderColor = ''; if(err) err.textContent = ''; }, 2000);
+    return;
   }
-  var credId = '';
-  try { credId = localStorage.getItem('aci_bio_cred_id') || ''; } catch(e) {}
-  if(credId && window.PublicKeyCredential) {
+  if(!token || token.indexOf('ghp_') !== 0) {
+    if(err) { err.style.color = '#E24B4A'; err.textContent = 'Token GitHub invalide (doit commencer par ghp_).'; }
+    tok.style.borderColor = '#E24B4A';
+    tok.focus();
+    setTimeout(function() { tok.style.borderColor = ''; if(err) err.textContent = ''; }, 2000);
+    return;
+  }
+
+  // Mémoriser ou effacer selon la case
+  try {
+    if(remember && remember.checked) {
+      localStorage.setItem('aci_lock_pwd',   pwd);
+      localStorage.setItem('aci_lock_token', token);
+    } else {
+      localStorage.removeItem('aci_lock_pwd');
+      localStorage.removeItem('aci_lock_token');
+    }
+  } catch(e) {}
+
+  // Proposer l'enregistrement biométrique si pas encore fait
+  if(window.PublicKeyCredential && !localStorage.getItem('aci_bio_cred_id')) {
     PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-      if(available) {
-        var bioBtn = document.getElementById('lock-bio-btn');
-        var bioSep = document.getElementById('lock-bio-sep');
-        if(bioBtn) bioBtn.style.display = 'block';
-        if(bioSep) bioSep.style.display = 'block';
-      }
+      if(available) { biometricRegister(pwd, token); }
     });
   }
-})();
+
+  lockUnlockApp(token);
+}
 </script>
+
 </body>
 </html>
