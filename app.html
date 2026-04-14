@@ -73,11 +73,7 @@ h1{font-size:18px;font-weight:700;margin-bottom:2px}
 .fbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;padding:8px 10px;background:var(--bg2);border-radius:var(--r)}
 .fbar label{font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:4px}
 select,input[type=text]{font-size:11px;padding:3px 7px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none}
-.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.tscroll::-webkit-scrollbar{height:6px}
-.tscroll::-webkit-scrollbar-track{background:var(--bg2);border-radius:3px}
-.tscroll::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
-.tscroll::-webkit-scrollbar-thumb:hover{background:var(--tx3)}
+.tscroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:11px}
 th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--tx2);font-weight:600;cursor:pointer;white-space:nowrap;user-select:none}
 th:hover{color:var(--tx)}td{padding:5px 8px;border-bottom:1px solid var(--bd);color:var(--tx)}
@@ -560,7 +556,6 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
       <th>T&eacute;l / Email</th>
       <th class="th-adh" onclick="tsort('_adh')">Adh&eacute;rents <span class="sa" id="sa-_adh">&#8597;</span></th>
       <th class="th-ud">UD &amp; UL rattach&eacute;es</th>
-      <th style="white-space:nowrap;min-width:90px" onclick="tsort('_cq')">Conqu&ecirc;te <span class="sa" id="sa-_cq">&#8597;</span></th>
     </tr>
     <tr class="tf-row">
       <th><input class="tf" id="tf-n"  type="text" placeholder="Nom..." oninput="buildTable()"></th>
@@ -577,7 +572,6 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
       <th><input class="tf" id="tf-tl" type="text" placeholder="T&eacute;l/Email..." oninput="buildTable()"></th>
       <th><select class="tf" id="tf-adh" onchange="buildTable()"><option value="">Tous</option><option value="oui">Oui</option><option value="non">Non</option></select></th>
       <th></th>
-      <th><select class="tf" id="tf-cq" onchange="buildTable()"><option value="">Tous</option><option value="0">&#9899; N&eacute;ant</option><option value="1">&#128992; Approche</option><option value="2">&#128309; Constitution</option><option value="3">&#128994; Implantation</option><option value="4">&#128995; UD/UL</option></select></th>
     </tr>
     </thead><tbody id="tbody"></tbody></table>
   </div>
@@ -1046,7 +1040,6 @@ function openFiche(siret) {
   var vil = g(s, "v");
   var tv  = 0;
   document.getElementById("fiche-title").textContent = nom;
-  FICHE_CURRENT_SIRET = siret;
   document.getElementById("fiche-sub").textContent =
     vil + (reg ? " \u2014 " + reg : "") + (g(s,"d") ? " (d\u00e9pt. " + g(s,"d") + ")" : "");
   var h = "";
@@ -1059,18 +1052,6 @@ function openFiche(siret) {
     : "\u2014");
   h += field("Adresse", (g(s,"ad")||"") + (g(s,"cp")?" "+g(s,"cp"):"") + (g(s,"v")?" "+g(s,"v"):"") || "\u2014");
   h += field("Taille", g(s,"nb") || "\u2014");
-  var _fcqSt=conqueteStatus[siret]||0;
-  var _fcqCol=['#aaa','#EF9F27','#185fa5','#1D9E75','#9B59B6'];
-  var _fcqOpts='<option value="0"'+(_fcqSt===0?' selected':'')+'>\u26ab N\u00e9ant</option>'
-    +'<option value="1"'+(_fcqSt===1?' selected':'')+'>&#128992; Approche</option>'
-    +'<option value="2"'+(_fcqSt===2?' selected':'')+'>&#128309; Constitution</option>'
-    +'<option value="3"'+(_fcqSt===3?' selected':'')+'>&#128994; Implantation</option>'
-    +'<option value="4"'+(_fcqSt===4?' selected':'')+'>&#128995; UD/UL contact\u00e9es</option>';
-  var _fcqVal='<select onchange="updateStatus(\''+siret+'\',this.value);buildTable();renderConquete();" '
-    +'style="font-size:12px;font-weight:700;padding:3px 8px;border-radius:10px;border:none;cursor:pointer;'
-    +'color:#fff;background:'+_fcqCol[_fcqSt]+'" '
-    +'id="fiche-cq-select">'+_fcqOpts+'</select>';
-  h += field("Statut conqu\u00eate", _fcqVal);
   h += '</div></div>';
   var hasCo = g(s,"tl") || g(s,"em");
   if(hasCo) {
@@ -1445,7 +1426,7 @@ function editsSave(){
   catch(e){ showEditToast("\u26a0 Impossible de sauvegarder (stockage plein ?)", "#E24B4A"); }
 }
 var FILTER_KEY='aci_filters_v1';
-var FILTER_IDS=['fsearch','freg','fccn','fsyn','fpar','tf-n','tf-r','tf-cp','tf-v','tf-si','tf-cc','tf-in-min','tf-in-max','tf-pa-min','tf-pa-max','tf-ga','tf-de','tf-pr','tf-tl','tf-adh','tf-cq','cq-search','cq-reg-filter','cq-aci-filter','cq-st-filter'];
+var FILTER_IDS=['fsearch','freg','fccn','fsyn','fpar','tf-n','tf-r','tf-cp','tf-v','tf-si','tf-cc','tf-in-min','tf-in-max','tf-pa-min','tf-pa-max','tf-ga','tf-de','tf-pr','tf-tl','tf-adh','cq-search','cq-reg-filter','cq-aci-filter','cq-st-filter'];
 function filtersSave(){
   var state={};
   for(var _fi=0;_fi<FILTER_IDS.length;_fi++){
@@ -1823,48 +1804,6 @@ function deleteContact(reg, role, idx2){
   showEditToast("\u2705 Contact supprimé");
   buildContacts();
 }
-function editAdhFromBtn(btn){
-  var raw=btn?btn.getAttribute('data-adh'):'';
-  if(!raw){return;}
-  var row;
-  try{row=JSON.parse(raw.replace(/&quot;/g,'"').replace(/&#39;/g,"'"));}catch(e){return;}
-  var adh=row.adh||{};
-  document.getElementById("ea-siret").value=row.si||"";
-  document.getElementById("ea-idx").value=row.ai!=null?row.ai:-1;
-  document.getElementById("ea-civ").value=adh.civ||"";
-  document.getElementById("ea-pre").value=adh.pre||"";
-  document.getElementById("ea-nom").value=adh.nom||"";
-  document.getElementById("ea-tel").value=adh.tel||"";
-  document.getElementById("ea-em").value=adh.em||"";
-  document.getElementById("ea-adr").value=adh.adr||"";
-  document.getElementById("ea-adr2").value=adh.adr2||"";
-  document.getElementById("ea-cp").value=adh.cp||"";
-  document.getElementById("ea-vil").value=adh.vil||"";
-  document.getElementById("ea-adh").value=adh.adh||"";
-  document.getElementById("ea-arc").value=adh.arc||"NON";
-  document.getElementById("edit-adh-overlay").classList.add("open");
-  document.body.style.overflow="hidden";
-}
-function editAdhFromCache(cacheKey){
-  var row=ADH_ROW_CACHE[cacheKey];
-  if(!row){return;}
-  var adh=row.adh;
-  document.getElementById("ea-siret").value=row.si;
-  document.getElementById("ea-idx").value=row.ai;
-  document.getElementById("ea-civ").value=adh.civ||"";
-  document.getElementById("ea-pre").value=adh.pre||"";
-  document.getElementById("ea-nom").value=adh.nom||"";
-  document.getElementById("ea-tel").value=adh.tel||"";
-  document.getElementById("ea-em").value=adh.em||"";
-  document.getElementById("ea-adr").value=adh.adr||"";
-  document.getElementById("ea-adr2").value=adh.adr2||"";
-  document.getElementById("ea-cp").value=adh.cp||"";
-  document.getElementById("ea-vil").value=adh.vil||"";
-  document.getElementById("ea-adh").value=adh.adh||"";
-  document.getElementById("ea-arc").value=adh.arc||"NON";
-  document.getElementById("edit-adh-overlay").classList.add("open");
-  document.body.style.overflow="hidden";
-}
 function editAdhOpen(siret, idx2){
   var lst=ADHERENTS[siret]||[];
   var adh=lst[idx2]||{};
@@ -1875,11 +1814,6 @@ function editAdhOpen(siret, idx2){
   document.getElementById("ea-nom").value=adh.nom||"";
   document.getElementById("ea-tel").value=adh.tel||"";
   document.getElementById("ea-em").value=adh.em||"";
-  document.getElementById("ea-adr").value=adh.adr||"";
-  document.getElementById("ea-adr2").value=adh.adr2||"";
-  document.getElementById("ea-cp").value=adh.cp||"";
-  document.getElementById("ea-vil").value=adh.vil||"";
-  document.getElementById("ea-adh").value=adh.adh||"";
   document.getElementById("ea-arc").value=adh.arc||"NON";
   document.getElementById("edit-adh-overlay").classList.add("open");
   document.body.style.overflow="hidden";
@@ -1898,12 +1832,8 @@ function editAdhSave(){
     nom:document.getElementById("ea-nom").value.trim(),
     tel:document.getElementById("ea-tel").value.trim(),
     em: document.getElementById("ea-em").value.trim(),
-    adr:document.getElementById("ea-adr").value.trim(),
-    adr2:document.getElementById("ea-adr2").value.trim(),
-    cp: document.getElementById("ea-cp").value.trim(),
-    vil:document.getElementById("ea-vil").value.trim(),
-    adh:document.getElementById("ea-adh").value.trim(),
-    arc:document.getElementById("ea-arc").value
+    arc:document.getElementById("ea-arc").value,
+    cp:"",vil:"",adh:""
   };
   if(!person.nom){showEditToast("\u26a0 Nom obligatoire","#E24B4A");return;}
   if(!ADHERENTS[siret])ADHERENTS[siret]=[];
@@ -1945,8 +1875,14 @@ function editsReset(){
   showEditToast("\u2705 Modifications supprimées — rechargez la page","#EF9F27");
 }
 function editStructFromFiche(){
-  var si = FICHE_CURRENT_SIRET;
-  if(!si){showEditToast("\u26a0 Structure introuvable","#E24B4A");return;}
+  var body=document.getElementById("fiche-body");
+  var monoEl=body?body.querySelector("span[style*='monospace']"):null;
+  var si=monoEl?monoEl.textContent.trim():"";
+  if(!si){
+    var nom=(document.getElementById("fiche-title")||{}).textContent||"";
+    for(var i=0;i<STRUCTS.length;i++){if(STRUCTS[i].n===nom){si=STRUCTS[i].si;break;}}
+  }
+  if(!si){showEditToast("⚠ Structure introuvable","#E24B4A");return;}
   document.getElementById("es-title").textContent="Modifier la structure";
   document.getElementById("es-save-btn").setAttribute("onclick","editStructSave()");
   for(var i=0;i<STRUCTS.length;i++){
@@ -1985,14 +1921,10 @@ function buildAdherents(){
     }
   }
   document.getElementById("adh-count").textContent=rows.length+" adh\u00e9rent"+(rows.length>1?"s":"");
-  ADH_ROW_CACHE = {};
   var h="";
   for(var ri=0;ri<rows.length;ri++){
     var r=rows[ri];
     var a=r.adh;
-    var cacheKey='adh_'+ri;
-    ADH_ROW_CACHE[cacheKey]={adh:a,si:r.si,ai:r.ai};
-    var adhJson=JSON.stringify({adh:a,si:r.si,ai:r.ai}).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
     var fullNom2=(a.civ?a.civ+" ":"")+a.pre+" "+a.nom;
     h+='<div style="background:var(--bg);border:1px solid var(--bd);border-radius:var(--rl);padding:12px;'+(a.arc==="OUI"?"opacity:.6;":"")+'cursor:pointer" onclick="openFiche(\''+r.si+'\')">';
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start">';
@@ -2002,7 +1934,7 @@ function buildAdherents(){
     h+='<div style="font-size:10px;color:var(--tx3)">'+( r.s.r||"")+'</div>';
     h+='</div>';
     h+='<div style="display:flex;gap:4px">';
-    h+='<button class="btn-edit-icon" data-adh="'+adhJson+'" onclick="event.stopPropagation();editAdhFromBtn(this)">&#9998;</button>';
+    h+='<button class="btn-edit-icon" onclick="event.stopPropagation();editAdhOpen(\''+r.si+'\','+r.ai+')">&#9998;</button>';
     h+='<button class="btn-del-icon" onclick="event.stopPropagation();deleteAdh(\''+r.si+'\','+r.ai+')">&#128465;</button>';
     h+='</div></div>';
     if(a.tel||a.em){
@@ -2025,11 +1957,6 @@ function newAdhGlobal(){
   document.getElementById("ea-nom").value="";
   document.getElementById("ea-tel").value="";
   document.getElementById("ea-em").value="";
-  document.getElementById("ea-adr").value="";
-  document.getElementById("ea-adr2").value="";
-  document.getElementById("ea-cp").value="";
-  document.getElementById("ea-vil").value="";
-  document.getElementById("ea-adh").value="";
   document.getElementById("ea-arc").value="NON";
   var mb=document.getElementById("edit-adh-overlay").querySelector(".edit-modal-body");
   if(mb&&!document.getElementById("ea-struct-row")){
@@ -2353,10 +2280,8 @@ function updateStatus(siret, val){
   var ea=document.getElementById('kpi-approche');
   if(eb) eb.textContent=kpiB;
   if(ea) ea.textContent=kpiA;
-  var _fcqCols=['#aaa','#EF9F27','#185fa5','#1D9E75','#9B59B6'];
-  var _fsel=document.getElementById('fiche-cq-select');
-  if(_fsel) _fsel.style.background=_fcqCols[parseInt(val)]||'#aaa';
-  conqueteSave();}
+  conqueteSave();
+}
 function saveNote(siret, val){
   conqueteNotes[siret] = val;
   conqueteSave();
@@ -2461,8 +2386,6 @@ function renderConquete(){
   filtersSave();
 }
 var DOC_CURRENT_ID = '';
-var FICHE_CURRENT_SIRET = '';
-var ADH_ROW_CACHE = {};
 var DOCS = {
   'tract-zero': {
     icon:'\u{1F4C4}', categorie:'Sp\u00e9cial Administrateurs',
@@ -3479,7 +3402,6 @@ function getFiltered(){
     if(tfDe&&de.indexOf(tfDe)===-1)continue;
     if(tfPr&&pr.indexOf(tfPr)===-1)continue;
     if(tfTl&&tl.indexOf(tfTl)===-1&&em.indexOf(tfTl)===-1)continue;
-    var _tfCq=gcf("tf-cq");if(_tfCq!==''){var _cqSt2=conqueteStatus[siret]||0;if(parseInt(_tfCq)!==_cqSt2)continue;}
     out.push(s);
   }
   return out;
@@ -3528,17 +3450,6 @@ function buildTable(){
       h+='</span></div>'; }}
     h+='</td>';
     h+='<td class="td-ud" onclick="event.stopPropagation()">'+renderUDBlock(g(s,"cp"))+'</td>';
-    var _cqSt=conqueteStatus[g(s,"si")]||0;
-    var _cqCol=['#aaa','#EF9F27','#185fa5','#1D9E75','#9B59B6'];
-    var _cqOpts='<option value="0"'+(_cqSt===0?' selected':'')+'>\u26ab</option>'
-      +'<option value="1"'+(_cqSt===1?' selected':'')+'>\ud83d\udfe0 Approche</option>'
-      +'<option value="2"'+(_cqSt===2?' selected':'')+'>\ud83d\udd35 Constitution</option>'
-      +'<option value="3"'+(_cqSt===3?' selected':'')+'>\ud83d\udfe2 Implantation</option>'
-      +'<option value="4"'+(_cqSt===4?' selected':'')+'>\ud83d\udfe3 UD/UL</option>';
-    h+='<td style="text-align:center" onclick="event.stopPropagation()">'
-      +'<select onchange="updateStatus(\''+g(s,"si")+'\',this.value);buildTable();renderConquete();" '
-      +'style="font-size:10px;font-weight:700;padding:2px 4px;border-radius:8px;border:none;cursor:pointer;color:#fff;background:'+_cqCol[_cqSt]+'">'
-      +_cqOpts+'</select></td>';
     h+='</tr>';
   }
   document.getElementById("tbody").innerHTML=h;
@@ -4234,15 +4145,6 @@ if(GS_URL) gsLoad();
   addWheel('cal-grid-body', function(){ calNav(1); },  function(){ calNav(-1); });
   addSwipe('cib-grid-body', function(){ cibNav(1); }, function(){ cibNav(-1); });
   addWheel('cib-grid-body', function(){ cibNav(1); }, function(){ cibNav(-1); });
-
-  // Molette → scroll horizontal sur tous les tableaux
-  document.querySelectorAll('.tscroll').forEach(function(el) {
-    el.addEventListener('wheel', function(e) {
-      if(e.deltaY === 0) return;
-      e.preventDefault();
-      el.scrollLeft += e.deltaY * 1.5;
-    }, { passive: false });
-  });
 })();</script>
 
 <!-- ONGLET CONQUÊTE TERRAIN -->
@@ -4461,13 +4363,10 @@ if(GS_URL) gsLoad();
     <div class="edit-modal-hdr"><span class="edit-modal-title">Adh&eacute;rent</span><button class="btn-cancel" onclick="editAdhClose(null)">&#10005;</button></div>
     <div class="edit-modal-body">
       <input type="hidden" id="ea-siret"><input type="hidden" id="ea-idx">
-      <div class="edit-field-row"><div class="edit-field"><label>Civilit&eacute;</label><select id="ea-civ"><option value="">-</option><option value="M.">M.</option><option value="Mme">Mme</option><option value="MME">MME</option></select></div><div class="edit-field"><label>Pr&eacute;nom</label><input id="ea-pre" type="text"></div></div>
+      <div class="edit-field-row"><div class="edit-field"><label>Civilit&eacute;</label><select id="ea-civ"><option value="">-</option><option value="M.">M.</option><option value="Mme">Mme</option></select></div><div class="edit-field"><label>Pr&eacute;nom</label><input id="ea-pre" type="text"></div></div>
       <div class="edit-field"><label>Nom</label><input id="ea-nom" type="text"></div>
       <div class="edit-field-row"><div class="edit-field"><label>T&eacute;l</label><input id="ea-tel" type="tel"></div><div class="edit-field"><label>Email</label><input id="ea-em" type="email"></div></div>
-      <div class="edit-field"><label>Adresse</label><input id="ea-adr" type="text" placeholder="N° et rue"></div>
-      <div class="edit-field"><label>Compl&eacute;ment</label><input id="ea-adr2" type="text" placeholder="B&acirc;timent, appartement..."></div>
-      <div class="edit-field-row"><div class="edit-field"><label>CP</label><input id="ea-cp" type="text" maxlength="5"></div><div class="edit-field"><label>Ville</label><input id="ea-vil" type="text"></div></div>
-      <div class="edit-field-row"><div class="edit-field"><label>Date d'adh&eacute;sion</label><input id="ea-adh" type="text" placeholder="jj/mm/aaaa"></div><div class="edit-field"><label>Statut</label><select id="ea-arc"><option value="NON">Actif</option><option value="OUI">Archiv&eacute;</option></select></div></div>
+      <div class="edit-field"><label>Statut</label><select id="ea-arc"><option value="NON">Actif</option><option value="OUI">Archiv&eacute;</option></select></div>
       <div class="edit-actions"><button class="btn-cancel" onclick="editAdhClose(null)">Annuler</button><button class="btn-save" onclick="editAdhSave()">Enregistrer</button></div>
     </div>
   </div>
@@ -4524,9 +4423,9 @@ if(GS_URL) gsLoad();
 
 <script>
 // ============================================================================
-// GITHUB SYNC SYSTEM — repo: dperreux-hue/admirable-jelly-9874f7
+// GITHUB SYNC SYSTEM — repo: fnposcgt/Tableau-de-bord-ACI-FRANCE-
 // ============================================================================
-var GITHUB_REPO  = 'dperreux-hue/admirable-jelly-9874f7';
+var GITHUB_REPO  = 'fnposcgt/Tableau-de-bord-ACI-FRANCE-';
 var GITHUB_TOKEN = (function(){ try { return sessionStorage.getItem('aci_gh_token') || ''; } catch(e){ return ''; } })();
 var GITHUB_FILE  = 'aci_sync.json';
 var GITHUB_API   = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE;
@@ -4761,12 +4660,9 @@ function doManualSync() {
 <!-- LOCK SCREEN -->
 <div id="lock-screen">
   <div id="lock-box">
-    <img id="lock-logo" src="data:image/jpeg;base64,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" alt="CGT ACI" style="height:70px;width:auto;border-radius:10px;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,.4)">
+    <img id="lock-logo" src="" alt="CGT ACI" style="display:none">
     <div id="lock-title">Tableau de bord ACI &mdash; France</div>
     <div id="lock-sub">FNPOS-CGT &bull; Ateliers Chantiers d&rsquo;Insertion<br>Acc&egrave;s s&eacute;curis&eacute;</div>
-    <!-- Bouton biométrique (affiché uniquement si biométrie enregistrée) -->
-    <button id="lock-bio-btn" onclick="biometricUnlock()" style="display:none;width:100%;padding:13px;background:#185fa5;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px">&#128274; Déverrouiller avec empreinte / visage</button>
-    <div id="lock-bio-sep" style="display:none;font-size:10px;color:#73726c;text-align:center;margin-bottom:10px">— ou saisir manuellement —</div>
     <input id="lock-inp" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')document.getElementById('lock-token').focus();" autocomplete="current-password">
     <input id="lock-token" type="password" placeholder="Token GitHub (ghp_...)" onkeydown="if(event.key==='Enter')checkLockPwd();" autocomplete="off" style="margin-top:8px;width:100%;padding:11px 14px;font-size:12px;border:2px solid rgba(255,255,255,.15);border-radius:8px;background:#1e1e1c;color:#e8e6df;outline:none;text-align:left;letter-spacing:1px;box-sizing:border-box;margin-bottom:8px">
     <label style="display:flex;align-items:center;gap:8px;font-size:11px;color:#73726c;cursor:pointer;margin-bottom:14px;justify-content:center">
@@ -4779,168 +4675,48 @@ function doManualSync() {
 </div>
 
 <script>
-// ============================================================================
-// LOCK SCREEN + WEBAUTHN
-// ============================================================================
-
-function lockUnlockApp(token) {
-  try {
-    sessionStorage.setItem('aci_unlocked', '1');
-    sessionStorage.setItem('aci_gh_token', token);
-  } catch(e) {}
-  GITHUB_TOKEN = token;
-  var btn = document.getElementById('lock-btn');
-  if(btn) { btn.textContent = '\u2713 Bienvenue'; btn.style.background = '#1D9E75'; }
-  setTimeout(function() {
-    var ls = document.getElementById('lock-screen');
-    if(ls) ls.style.display = 'none';
-    SyncManager.pull();
-  }, 400);
-}
-
-// Convertit une string en Uint8Array pour WebAuthn
-function strToUint8(str) {
-  var arr = new Uint8Array(str.length);
-  for(var i = 0; i < str.length; i++) arr[i] = str.charCodeAt(i);
-  return arr;
-}
-
-// Enregistre la biométrie après une connexion manuelle réussie
-function biometricRegister(pwd, token) {
-  if(!window.PublicKeyCredential) return;
-  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-    if(!available) return;
-    var challenge = new Uint8Array(32);
-    window.crypto.getRandomValues(challenge);
-    var userId = strToUint8('aci-user-' + (Date.now() % 99999));
-    navigator.credentials.create({
-      publicKey: {
-        challenge:              challenge,
-        rp:                     { name: 'ACI France', id: location.hostname },
-        user:                   { id: userId, name: 'utilisateur', displayName: 'ACI France' },
-        pubKeyCredParams:       [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-        timeout:                60000
-      }
-    }).then(function(cred) {
-      try {
-        localStorage.setItem('aci_bio_cred_id', btoa(String.fromCharCode.apply(null, new Uint8Array(cred.rawId))));
-        localStorage.setItem('aci_bio_pwd',     pwd);
-        localStorage.setItem('aci_bio_token',   token);
-        console.log('[Bio] Biométrie enregistrée avec succès');
-        var err = document.getElementById('lock-err');
-        if(err) { err.style.color = '#1D9E75'; err.textContent = '\u2705 Biométrie enregistrée pour les prochaines connexions'; }
-      } catch(e) {}
-    }).catch(function(e) {
-      console.log('[Bio] Enregistrement annulé ou non supporté : ' + e.message);
-    });
-  });
-}
-
-// Déverrouille via biométrie
-function biometricUnlock() {
-  var err    = document.getElementById('lock-err');
-  var bioBtn = document.getElementById('lock-bio-btn');
-  if(!window.PublicKeyCredential) return;
-  try {
-    var credIdB64 = localStorage.getItem('aci_bio_cred_id');
-    var pwd       = localStorage.getItem('aci_bio_pwd');
-    var token     = localStorage.getItem('aci_bio_token');
-    if(!credIdB64 || !pwd || !token) return;
-    var credIdBytes = atob(credIdB64);
-    var credId = new Uint8Array(credIdBytes.length);
-    for(var i = 0; i < credIdBytes.length; i++) credId[i] = credIdBytes.charCodeAt(i);
-    var challenge = new Uint8Array(32);
-    window.crypto.getRandomValues(challenge);
-    if(bioBtn) { bioBtn.textContent = '\u23F3 Vérification...'; bioBtn.disabled = true; }
-    navigator.credentials.get({
-      publicKey: {
-        challenge:        challenge,
-        rpId:             location.hostname,
-        allowCredentials: [{ type: 'public-key', id: credId }],
-        userVerification: 'required',
-        timeout:          60000
-      }
-    }).then(function() {
-      // Biométrie validée → déverrouiller
-      lockUnlockApp(token);
-    }).catch(function(e) {
-      if(bioBtn) { bioBtn.textContent = '\u{1F50E} Déverrouiller avec empreinte / visage'; bioBtn.disabled = false; }
-      if(err) { err.style.color = '#E24B4A'; err.textContent = 'Biométrie échouée, saisissez manuellement.'; }
-      setTimeout(function() { if(err) { err.textContent = ''; err.style.color = '#E24B4A'; } }, 3000);
-    });
-  } catch(e) {
-    if(bioBtn) { bioBtn.textContent = '\u{1F50E} Déverrouiller avec empreinte / visage'; bioBtn.disabled = false; }
-  }
-}
-
 (function() {
-  // Session déjà active dans cet onglet ?
+  // Copier le logo de l'app dans le lock screen
+  var appLogo = document.querySelector('#wrap img');
+  var lockLogo = document.getElementById('lock-logo');
+  if(appLogo && lockLogo) { lockLogo.src = appLogo.src; lockLogo.style.display = ''; }
+
+  // Pré-remplir si identifiants mémorisés
+  try {
+    var savedPwd   = localStorage.getItem('aci_lock_pwd');
+    var savedToken = localStorage.getItem('aci_lock_token');
+    if(savedPwd)   { document.getElementById('lock-inp').value   = savedPwd;   }
+    if(savedToken) { document.getElementById('lock-token').value = savedToken; }
+    if(savedPwd && savedToken) {
+      document.getElementById('lock-remember').checked = true;
+      // Connexion automatique si les deux sont mémorisés
+      setTimeout(function() { checkLockPwd(); }, 300);
+    }
+  } catch(e) {}
+
+  // Session déjà déverrouillée dans cet onglet ?
   try {
     if(sessionStorage.getItem('aci_unlocked') === '1') {
       var t = sessionStorage.getItem('aci_gh_token');
       if(t) GITHUB_TOKEN = t;
       var ls = document.getElementById('lock-screen');
       if(ls) ls.style.display = 'none';
-      return;
-    }
-  } catch(e) {}
-
-  // Biométrie disponible et enregistrée sur cet appareil ?
-  try {
-    var hasBio = localStorage.getItem('aci_bio_cred_id') && localStorage.getItem('aci_bio_token');
-    if(hasBio && window.PublicKeyCredential) {
-      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-        if(available) {
-          var bioBtn = document.getElementById('lock-bio-btn');
-          var bioSep = document.getElementById('lock-bio-sep');
-          if(bioBtn) bioBtn.style.display = 'block';
-          if(bioSep) bioSep.style.display = 'block';
-          // Lancer la biométrie automatiquement après 500ms
-          setTimeout(function() { biometricUnlock(); }, 500);
-        }
-      });
-    }
-  } catch(e) {}
-
-  // Pré-remplir champs si "Se souvenir" était coché
-  try {
-    var savedPwd   = localStorage.getItem('aci_lock_pwd');
-    var savedToken = localStorage.getItem('aci_lock_token');
-    if(savedPwd)   document.getElementById('lock-inp').value   = savedPwd;
-    if(savedToken) document.getElementById('lock-token').value = savedToken;
-    if(savedPwd && savedToken) {
-      document.getElementById('lock-remember').checked = true;
-      // Connexion auto uniquement si pas de biométrie
-      if(!localStorage.getItem('aci_bio_cred_id')) {
-        setTimeout(function() {
-          // Connexion auto + proposition biométrie si disponible
-          if(window.PublicKeyCredential) {
-            PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-              if(available) {
-                biometricRegister(savedPwd, savedToken);
-              }
-            });
-          }
-          checkLockPwd();
-        }, 300);
-      }
     }
   } catch(e) {}
 })();
 
 function checkLockPwd() {
-  var inp      = document.getElementById('lock-inp');
-  var tok      = document.getElementById('lock-token');
-  var err      = document.getElementById('lock-err');
-  var btn      = document.getElementById('lock-btn');
-  var remember = document.getElementById('lock-remember');
+  var inp       = document.getElementById('lock-inp');
+  var tok       = document.getElementById('lock-token');
+  var err       = document.getElementById('lock-err');
+  var btn       = document.getElementById('lock-btn');
+  var remember  = document.getElementById('lock-remember');
   if(!inp || !tok) return;
   var pwd   = inp.value;
   var token = tok.value.trim();
 
   if(pwd !== 'Org@soc93100') {
-    if(err) { err.style.color = '#E24B4A'; err.textContent = 'Mot de passe incorrect.'; }
+    if(err) err.textContent = 'Mot de passe incorrect.';
     inp.value = '';
     inp.style.borderColor = '#E24B4A';
     inp.focus();
@@ -4948,7 +4724,7 @@ function checkLockPwd() {
     return;
   }
   if(!token || token.indexOf('ghp_') !== 0) {
-    if(err) { err.style.color = '#E24B4A'; err.textContent = 'Token GitHub invalide (doit commencer par ghp_).'; }
+    if(err) err.textContent = 'Token GitHub invalide (doit commencer par ghp_).';
     tok.style.borderColor = '#E24B4A';
     tok.focus();
     setTimeout(function() { tok.style.borderColor = ''; if(err) err.textContent = ''; }, 2000);
@@ -4964,16 +4740,17 @@ function checkLockPwd() {
       localStorage.removeItem('aci_lock_pwd');
       localStorage.removeItem('aci_lock_token');
     }
+    sessionStorage.setItem('aci_unlocked', '1');
+    sessionStorage.setItem('aci_gh_token', token);
   } catch(e) {}
 
-  // Proposer l'enregistrement biométrique si pas encore fait
-  if(window.PublicKeyCredential && !localStorage.getItem('aci_bio_cred_id')) {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-      if(available) { biometricRegister(pwd, token); }
-    });
-  }
-
-  lockUnlockApp(token);
+  GITHUB_TOKEN = token;
+  if(btn) { btn.textContent = '\u2713 Bienvenue'; btn.style.background = '#1D9E75'; }
+  setTimeout(function() {
+    var ls = document.getElementById('lock-screen');
+    if(ls) ls.style.display = 'none';
+    SyncManager.pull();
+  }, 400);
 }
 </script>
 
