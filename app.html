@@ -474,7 +474,8 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
     <p class="sub" id="subtitle">Ateliers Chantiers d&rsquo;Insertion &bull; Base nationale &bull; Carte 100% hors-ligne</p>
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0">
-    <button id="sync-btn" class="sync-hdr-btn" onclick="doManualSync()" title="Synchroniser les donn&#233;es maintenant">&#8635; Sync</button>
+    <button id="sync-btn" class="sync-hdr-btn" onclick="doManualSync()" title="Synchroniser les données maintenant">&#8635; Sync</button>
+    <button class="sync-hdr-btn" onclick="forcePushFromPhone()" title="Forcer ce téléphone comme source unique" style="background:#c0392b;color:#fff;border-color:#c0392b;font-size:10px;padding:3px 8px;">&#128247; Maître</button>
   </div>
 </div>
 <div class="nav">
@@ -4551,18 +4552,20 @@ var SyncManager = {
   },
 
   // Construit le payload à envoyer sur GitHub
-  getPayload: function() {
+  getPayload: function(isMasterPush) {
     var raw      = localStorage.getItem('aci_edits_v1');
     var edits    = raw ? JSON.parse(raw) : {};
     var cq       = localStorage.getItem('aci_conquete_v1');
     var conquete = cq ? JSON.parse(cq) : {};
-    return {
+    var p = {
       version:   2,
       timestamp: Date.now(),
       device:    (navigator.userAgent.indexOf('Mobile') > -1) ? 'mobile' : 'desktop',
       edits:     edits,
       conquete:  conquete
     };
+    if(isMasterPush) { p._masterTs = p.timestamp; }
+    return p;
   },
 
   // Applique les données reçues de GitHub si plus récentes
@@ -4571,9 +4574,16 @@ var SyncManager = {
     var raw     = localStorage.getItem('aci_edits_v1');
     var local   = raw ? JSON.parse(raw) : {};
     var localTs = local._syncTs || 0;
-    if(data.timestamp <= localTs) {
-      console.log('[Sync] Données locales déjà à jour');
+    var localMasterTs = parseInt(localStorage.getItem('aci_master_ts') || '0');
+    // Si le payload distant est un push maître plus récent → s'applique toujours
+    var isForcedMaster = data._masterTs && data._masterTs > localMasterTs;
+    if(!isForcedMaster && data.timestamp <= localTs) {
+      console.log('[Sync] Données locales déjà à jour (ts local=' + localTs + ', distant=' + data.timestamp + ')');
       return false;
+    }
+    if(isForcedMaster) {
+      localStorage.setItem('aci_master_ts', String(data._masterTs));
+      console.log('[Sync] Données maître appliquées depuis ' + (data.device || '?') + ' (masterTs=' + data._masterTs + ')');
     }
     if(data.edits) {
       data.edits._syncTs = data.timestamp;
@@ -4582,7 +4592,7 @@ var SyncManager = {
     if(data.conquete) {
       localStorage.setItem('aci_conquete_v1', JSON.stringify(data.conquete));
     }
-    console.log('[Sync] Données appliquées depuis GitHub (' + new Date(data.timestamp).toLocaleTimeString() + ')');
+    console.log('[Sync] Données appliquées depuis GitHub (' + new Date(data.timestamp).toLocaleTimeString() + ') — device: ' + (data.device || '?'));
     return true;
   },
 
@@ -4634,11 +4644,11 @@ var SyncManager = {
   },
 
   // Envoie les données vers GitHub — pull du SHA frais à chaque fois pour éviter les conflits
-  push: function() {
+  push: function(isMasterPush) {
     if(this.syncing) return;
     this.syncing = true;
     var self    = this;
-    var payload = this.getPayload();
+    var payload = this.getPayload(isMasterPush);
     var content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
     console.log('[Sync] Push GitHub...');
     updateSyncStatus('syncing');
@@ -4697,6 +4707,13 @@ var SyncManager = {
       self.syncing = false;
       if(xhr.status === 200 || xhr.status === 201) {
         try { self.fileSha = JSON.parse(xhr.responseText).content.sha; } catch(e) {}
+        // ★ Mettre à jour _syncTs local pour éviter qu'un autre appareil plus lent efface ce push
+        try {
+          var localEdits = JSON.parse(localStorage.getItem('aci_edits_v1') || '{}');
+          localEdits._syncTs = payload.timestamp;
+          localStorage.setItem('aci_edits_v1', JSON.stringify(localEdits));
+          if(payload._masterTs) localStorage.setItem('aci_master_ts', String(payload._masterTs));
+        } catch(e) {}
         self.lastSyncTime = Date.now();
         console.log('[Sync] Push OK — ' + new Date().toLocaleTimeString());
         updateSyncStatus('ok');
@@ -4717,7 +4734,8 @@ var SyncManager = {
   },
 
   saveAllData: function() { this.push(); },
-  syncAllData: function() { this.pull(); }
+  syncAllData: function() { this.pull(); },
+  forcePush:   function() { this.push(true); }
 };
 
 function updateSyncStatus(status) {
@@ -4763,6 +4781,19 @@ function doManualSync() {
   // Pull d'abord pour récupérer les données distantes, puis push
   SyncManager.pull(function() {
     SyncManager.push();
+  });
+}
+
+// ★ Force ce téléphone comme source unique — écrase toutes les données distantes
+function forcePushFromPhone() {
+  if(!GITHUB_TOKEN) { alert('Non connecté (token GitHub manquant)'); return; }
+  if(!confirm('⚠️ Ce téléphone deviendra la seule source de référence.\n\nTous les autres appareils téléchargeront ces données au prochain Sync.\n\nContinuer ?')) return;
+  editsSave();
+  conqueteSave();
+  updateSyncStatus('syncing');
+  // On tire le SHA frais puis on pousse avec marqueur maître
+  SyncManager.pull(function() {
+    SyncManager.forcePush();
   });
 }
 </script>
