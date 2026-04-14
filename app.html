@@ -475,7 +475,7 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0">
     <button id="sync-btn" class="sync-hdr-btn" onclick="doManualSync()" title="Synchroniser les données maintenant">&#8635; Sync</button>
-    <button class="sync-hdr-btn" onclick="forcePushFromPhone()" title="Forcer ce téléphone comme source unique" style="background:#c0392b;color:#fff;border-color:#c0392b;font-size:10px;padding:3px 8px;">&#128247; Maître</button>
+
   </div>
 </div>
 <div class="nav">
@@ -4525,217 +4525,159 @@ if(GS_URL) gsLoad();
 
 <script>
 // ============================================================================
-// GITHUB SYNC SYSTEM — repo: dperreux-hue/admirable-jelly-9874f7
+// GITHUB SYNC — sauvegarde automatique toutes les 30s
+// Principe : last write wins. Le dernier appareil qui a utilisé l'app est la source.
 // ============================================================================
 var GITHUB_REPO  = 'dperreux-hue/admirable-jelly-9874f7';
 var GITHUB_TOKEN = (function(){ try { return sessionStorage.getItem('aci_gh_token') || ''; } catch(e){ return ''; } })();
 var GITHUB_FILE  = 'aci_sync.json';
 var GITHUB_API   = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + GITHUB_FILE;
 
-var SyncManager = {
-  fileSha:      null,
-  syncing:      false,
-  lastSyncTime: null,
+// ─── Sync simple : last write wins ──────────────────────────────────────────
 
-  init: function() {
-    console.log('[Sync] GitHub sync prêt — ' + GITHUB_REPO);
-    var self = this;
-    // Pull automatique 1 s après connexion (déclenché par checkLockPwd si token présent)
-    // ou au rechargement si session déjà active
-    if(GITHUB_TOKEN) { setTimeout(function() { self.pull(); }, 2000); }
-    // Push automatique toutes les 2 minutes
-    setInterval(function() { if(GITHUB_TOKEN) self.push(); }, 120000);
-    // Push avant fermeture de page
-    window.addEventListener('beforeunload', function() { try { editsSave(); } catch(e) {} });
-    // Pull au retour sur l'onglet
-    window.addEventListener('focus', function() { if(GITHUB_TOKEN) self.pull(); });
-  },
+var _syncFileSha  = null;
+var _syncBusy     = false;
+var _syncInterval = null;
 
-  // Construit le payload à envoyer sur GitHub
-  getPayload: function(isMasterPush) {
-    var raw      = localStorage.getItem('aci_edits_v1');
-    var edits    = raw ? JSON.parse(raw) : {};
-    var cq       = localStorage.getItem('aci_conquete_v1');
-    var conquete = cq ? JSON.parse(cq) : {};
-    var p = {
-      version:   2,
-      timestamp: Date.now(),
-      device:    (navigator.userAgent.indexOf('Mobile') > -1) ? 'mobile' : 'desktop',
-      edits:     edits,
-      conquete:  conquete
-    };
-    if(isMasterPush) { p._masterTs = p.timestamp; }
-    return p;
-  },
+// Sauvegarde TOUT le localStorage pertinent vers GitHub
+function syncPush(onDone) {
+  if(_syncBusy) { if(onDone) onDone(); return; }
+  if(!GITHUB_TOKEN) { if(onDone) onDone(); return; }
+  _syncBusy = true;
+  updateSyncStatus('syncing');
 
-  // Applique les données reçues de GitHub si plus récentes
-  applyPayload: function(data) {
-    if(!data || !data.timestamp) return false;
-    var raw     = localStorage.getItem('aci_edits_v1');
-    var local   = raw ? JSON.parse(raw) : {};
-    var localTs = local._syncTs || 0;
-    var localMasterTs = parseInt(localStorage.getItem('aci_master_ts') || '0');
-    // Si le payload distant est un push maître plus récent → s'applique toujours
-    var isForcedMaster = data._masterTs && data._masterTs > localMasterTs;
-    if(!isForcedMaster && data.timestamp <= localTs) {
-      console.log('[Sync] Données locales déjà à jour (ts local=' + localTs + ', distant=' + data.timestamp + ')');
-      return false;
+  var payload = {
+    ts:       Date.now(),
+    device:   navigator.userAgent.indexOf('Mobile') > -1 ? 'mobile' : 'desktop',
+    edits:    _lsGet('aci_edits_v1'),
+    conquete: _lsGet('aci_conquete_v1')
+  };
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+
+  // Récupère le SHA courant puis pousse
+  var xhrGet = new XMLHttpRequest();
+  xhrGet.open('GET', GITHUB_API, true);
+  xhrGet.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
+  xhrGet.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+  xhrGet.timeout = 8000;
+  xhrGet.onload = function() {
+    if(xhrGet.status === 200) {
+      try { _syncFileSha = JSON.parse(xhrGet.responseText).sha; } catch(e) {}
     }
-    if(isForcedMaster) {
-      localStorage.setItem('aci_master_ts', String(data._masterTs));
-      console.log('[Sync] Données maître appliquées depuis ' + (data.device || '?') + ' (masterTs=' + data._masterTs + ')');
-    }
-    if(data.edits) {
-      data.edits._syncTs = data.timestamp;
-      localStorage.setItem('aci_edits_v1', JSON.stringify(data.edits));
-    }
-    if(data.conquete) {
-      localStorage.setItem('aci_conquete_v1', JSON.stringify(data.conquete));
-    }
-    console.log('[Sync] Données appliquées depuis GitHub (' + new Date(data.timestamp).toLocaleTimeString() + ') — device: ' + (data.device || '?'));
-    return true;
-  },
+    _doPut(content, onDone);
+  };
+  xhrGet.onerror = xhrGet.ontimeout = function() { _doPut(content, onDone); };
+  xhrGet.send();
+}
 
-  // Télécharge les données depuis GitHub
-  pull: function(onDone) {
-    if(this.syncing) return;
-    var self = this;
-    console.log('[Sync] Pull GitHub...');
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', GITHUB_API, true);
-    xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-    xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
-    xhr.timeout = 8000;
-    xhr.onload = function() {
-      if(xhr.status === 200) {
-        try {
-          var resp    = JSON.parse(xhr.responseText);
-          self.fileSha = resp.sha;
-          var content = JSON.parse(atob(resp.content.replace(/\n/g, '')));
-          var applied = self.applyPayload(content);
-          if(applied) {
-            editsLoad();
-            conqueteLoad();
-            buildTable();
-            buildKPIs();
-            console.log('[Sync] Pull OK — données rechargées');
-          } else {
-            console.log('[Sync] Pull OK — aucun changement');
-          }
-          self.lastSyncTime = Date.now();
-          updateSyncStatus('ok');
-        } catch(e) {
-          console.log('[Sync] Erreur parsing pull : ' + e.message);
-          updateSyncStatus('error');
-        }
-      } else if(xhr.status === 404) {
-        console.log('[Sync] Fichier absent sur GitHub — création au prochain push');
-        self.push();
-        if(onDone) onDone(); return;
-      } else {
-        console.log('[Sync] Pull HTTP ' + xhr.status);
-        updateSyncStatus('error');
-      }
-      if(onDone) onDone();
-    };
-    xhr.onerror   = function() { console.log('[Sync] Pull — erreur réseau'); updateSyncStatus('offline'); if(onDone) onDone(); };
-    xhr.ontimeout = function() { console.log('[Sync] Pull — timeout');        updateSyncStatus('offline'); if(onDone) onDone(); };
-    xhr.send();
-  },
+function _doPut(content, onDone) {
+  var body = { message: 'ACI sync ' + new Date().toISOString(), content: content };
+  if(_syncFileSha) body.sha = _syncFileSha;
+  var xhr = new XMLHttpRequest();
+  xhr.open('PUT', GITHUB_API, true);
+  xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
+  xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 10000;
+  xhr.onload = function() {
+    _syncBusy = false;
+    if(xhr.status === 200 || xhr.status === 201) {
+      try { _syncFileSha = JSON.parse(xhr.responseText).content.sha; } catch(e) {}
+      console.log('[Sync] Push OK ' + new Date().toLocaleTimeString());
+      updateSyncStatus('ok');
+    } else if(xhr.status === 409 || xhr.status === 422) {
+      // Conflit SHA — invalider et réessayer une fois
+      console.log('[Sync] Conflit SHA, retry...');
+      _syncFileSha = null;
+      setTimeout(function() { syncPush(onDone); return; }, 1500);
+      return;
+    } else {
+      console.log('[Sync] Push erreur HTTP ' + xhr.status);
+      updateSyncStatus('error');
+    }
+    if(onDone) onDone();
+  };
+  xhr.onerror   = function() { _syncBusy = false; updateSyncStatus('offline'); if(onDone) onDone(); };
+  xhr.ontimeout = function() { _syncBusy = false; updateSyncStatus('offline'); if(onDone) onDone(); };
+  xhr.send(JSON.stringify(body));
+}
 
-  // Envoie les données vers GitHub — pull du SHA frais à chaque fois pour éviter les conflits
-  push: function(isMasterPush) {
-    if(this.syncing) return;
-    this.syncing = true;
-    var self    = this;
-    var payload = this.getPayload(isMasterPush);
-    var content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-    console.log('[Sync] Push GitHub...');
-    updateSyncStatus('syncing');
-    // Toujours récupérer le SHA le plus récent avant de pousser
-    var xhrGet = new XMLHttpRequest();
-    xhrGet.open('GET', GITHUB_API, true);
-    xhrGet.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-    xhrGet.setRequestHeader('Accept', 'application/vnd.github.v3+json');
-    xhrGet.timeout = 8000;
-    xhrGet.onload = function() {
-      if(xhrGet.status === 200) {
-        try {
-          var resp = JSON.parse(xhrGet.responseText);
-          self.fileSha = resp.sha;
-          // Comparer timestamps : si GitHub est plus récent, merger d'abord
-          try {
-            var remote = JSON.parse(atob(resp.content.replace(/\n/g, '')));
-            var local  = self.getPayload();
-            if(remote.timestamp && remote.timestamp > (local.timestamp - 5000)) {
-              // Merger les edits distants avec les locaux (locaux prioritaires)
-              if(remote.edits && remote.edits.structs) {
-                var localEdits = JSON.parse(localStorage.getItem('aci_edits_v1') || '{}');
-                for(var si in remote.edits.structs) {
-                  if(!localEdits.structs) localEdits.structs = {};
-                  if(!localEdits.structs[si]) {
-                    localEdits.structs[si] = remote.edits.structs[si];
-                  }
-                }
-                localStorage.setItem('aci_edits_v1', JSON.stringify(localEdits));
-                payload = self.getPayload();
-                content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-              }
-            }
-          } catch(mergeErr) {}
-        } catch(e) {}
-      }
-      self._doPut(content);
-    };
-    xhrGet.onerror   = function() { self._doPut(content); };
-    xhrGet.ontimeout = function() { self._doPut(content); };
-    xhrGet.send();
-  },
-
-  // Effectue le PUT vers l'API GitHub
-  _doPut: function(content) {
-    var self = this;
-    var body = { message: 'ACI sync ' + new Date().toISOString(), content: content };
-    if(this.fileSha) body.sha = this.fileSha;
-    var xhr = new XMLHttpRequest();
-    xhr.open('PUT', GITHUB_API, true);
-    xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
-    xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.timeout = 10000;
-    xhr.onload = function() {
-      self.syncing = false;
-      if(xhr.status === 200 || xhr.status === 201) {
-        try { self.fileSha = JSON.parse(xhr.responseText).content.sha; } catch(e) {}
-        // ★ Mettre à jour _syncTs local pour éviter qu'un autre appareil plus lent efface ce push
-        try {
-          var localEdits = JSON.parse(localStorage.getItem('aci_edits_v1') || '{}');
-          localEdits._syncTs = payload.timestamp;
-          localStorage.setItem('aci_edits_v1', JSON.stringify(localEdits));
-          if(payload._masterTs) localStorage.setItem('aci_master_ts', String(payload._masterTs));
-        } catch(e) {}
-        self.lastSyncTime = Date.now();
-        console.log('[Sync] Push OK — ' + new Date().toLocaleTimeString());
+// Télécharge depuis GitHub et écrase le localStorage — sans condition
+function syncPull(onDone) {
+  if(!GITHUB_TOKEN) { if(onDone) onDone(); return; }
+  console.log('[Sync] Pull...');
+  updateSyncStatus('syncing');
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', GITHUB_API, true);
+  xhr.setRequestHeader('Authorization', 'token ' + GITHUB_TOKEN);
+  xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+  xhr.timeout = 8000;
+  xhr.onload = function() {
+    if(xhr.status === 200) {
+      try {
+        var resp    = JSON.parse(xhr.responseText);
+        _syncFileSha = resp.sha;
+        var payload = JSON.parse(atob(resp.content.replace(/\n/g, '')));
+        if(payload.edits)    _lsSet('aci_edits_v1',    payload.edits);
+        if(payload.conquete) _lsSet('aci_conquete_v1', payload.conquete);
+        editsLoad();
+        conqueteLoad();
+        buildTable();
+        buildKPIs();
+        console.log('[Sync] Pull OK — device distant: ' + (payload.device || '?') + ' ts: ' + new Date(payload.ts||0).toLocaleTimeString());
         updateSyncStatus('ok');
-      } else if(xhr.status === 409 || xhr.status === 422) {
-        // Conflit SHA — on invalide le SHA et on réessaie une fois
-        console.log('[Sync] Conflit SHA — récupération du SHA frais et retry...');
-        self.fileSha = null;
-        self.syncing = false;
-        setTimeout(function() { self.push(); }, 1500);
-      } else {
-        console.log('[Sync] Push HTTP ' + xhr.status);
+      } catch(e) {
+        console.log('[Sync] Pull erreur parsing: ' + e.message);
         updateSyncStatus('error');
       }
-    };
-    xhr.onerror   = function() { self.syncing = false; console.log('[Sync] Push — erreur réseau'); updateSyncStatus('offline'); };
-    xhr.ontimeout = function() { self.syncing = false; console.log('[Sync] Push — timeout');        updateSyncStatus('offline'); };
-    xhr.send(JSON.stringify(body));
-  },
+    } else if(xhr.status === 404) {
+      console.log('[Sync] Pas encore de fichier distant, premier push...');
+      syncPush(onDone);
+      return;
+    } else {
+      console.log('[Sync] Pull erreur HTTP ' + xhr.status);
+      updateSyncStatus('error');
+    }
+    if(onDone) onDone();
+  };
+  xhr.onerror   = function() { console.log('[Sync] Pull hors ligne'); updateSyncStatus('offline'); if(onDone) onDone(); };
+  xhr.ontimeout = function() { console.log('[Sync] Pull timeout');    updateSyncStatus('offline'); if(onDone) onDone(); };
+  xhr.send();
+}
 
-  saveAllData: function() { this.push(); },
-  syncAllData: function() { this.pull(); },
-  forcePush:   function() { this.push(true); }
+function _lsGet(key) {
+  try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch(e) { return null; }
+}
+function _lsSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {}
+}
+
+// Démarre le sync automatique toutes les 30s
+function syncStart() {
+  if(!GITHUB_TOKEN) return;
+  if(_syncInterval) clearInterval(_syncInterval);
+  // Pull immédiat au démarrage
+  syncPull();
+  // Push toutes les 30s
+  _syncInterval = setInterval(function() {
+    editsSave();
+    conqueteSave();
+    syncPush();
+  }, 30000);
+  // Push avant fermeture
+  window.addEventListener('beforeunload', function() {
+    try { editsSave(); conqueteSave(); } catch(e) {}
+  });
+  console.log('[Sync] Démarré — push auto toutes les 30s');
+}
+
+// Expose pour compatibilité avec le reste du code
+var SyncManager = {
+  init:        function() { syncStart(); },
+  pull:        function(cb) { syncPull(cb); },
+  push:        function()   { syncPush(); },
+  saveAllData: function()   { syncPush(); },
+  syncAllData: function()   { syncPull(); }
 };
 
 function updateSyncStatus(status) {
@@ -4746,8 +4688,8 @@ function updateSyncStatus(status) {
   btn.style.color      = '';
   btn.classList.remove('active');
   if(status === 'syncing') {
-    btn.disabled     = true;
-    btn.textContent  = '\u21bb Sync\u2026';
+    btn.disabled    = true;
+    btn.textContent = '\u21bb Sync\u2026';
   } else if(status === 'ok') {
     btn.textContent = '\u2713 Sync\u00e9';
     btn.classList.add('active');
@@ -4763,38 +4705,17 @@ function updateSyncStatus(status) {
   }
 }
 
-// Démarrage
 if(document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() { SyncManager.init(); });
 } else {
   SyncManager.init();
 }
 
-// ============================================================================
-// ============================================================================
-// SYNC MANUEL
-// ============================================================================
 function doManualSync() {
   if(!GITHUB_TOKEN) { updateSyncStatus('error'); return; }
   editsSave();
   conqueteSave();
-  // Pull d'abord pour récupérer les données distantes, puis push
-  SyncManager.pull(function() {
-    SyncManager.push();
-  });
-}
-
-// ★ Force ce téléphone comme source unique — écrase toutes les données distantes
-function forcePushFromPhone() {
-  if(!GITHUB_TOKEN) { alert('Non connecté (token GitHub manquant)'); return; }
-  if(!confirm('⚠️ Ce téléphone deviendra la seule source de référence.\n\nTous les autres appareils téléchargeront ces données au prochain Sync.\n\nContinuer ?')) return;
-  editsSave();
-  conqueteSave();
-  updateSyncStatus('syncing');
-  // On tire le SHA frais puis on pousse avec marqueur maître
-  SyncManager.pull(function() {
-    SyncManager.forcePush();
-  });
+  syncPull(function() { syncPush(); });
 }
 </script>
 
