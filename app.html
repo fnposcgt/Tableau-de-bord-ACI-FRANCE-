@@ -2,38 +2,178 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E24B4A">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tableau de bord ACI France - v2.18</title>
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#E24B4A">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="ACI France">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Tableau de bord ACI France</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#fff;--bg2:#f5f4f0;--bg3:#eceae3;--tx:#1a1a18;--tx2:#5f5e5a;--tx3:#888780;--bd:rgba(0,0,0,.12);--bd2:rgba(0,0,0,.22);--r:8px;--rl:12px;--nd:#d4d1cb}
-@media(prefers-color-scheme:dark){:root{--bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;--tx:#e8e6df;--tx2:#b4b2a9;--tx3:#73726c;--bd:rgba(255,255,255,.12);--bd2:rgba(255,255,255,.25);--nd:#3a3836}}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13px;background:var(--bg);color:var(--tx)}
-#wrap{max-width:1150px;margin:0 auto;padding:16px}
-h1{font-size:18px;font-weight:700;margin-bottom:2px}
-.sub{font-size:11px;color:var(--tx3);margin-bottom:14px}
-.nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--bd);padding-bottom:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;scrollbar-width:none}
-.nav::-webkit-scrollbar{display:none}
-.nb{font-size:12px;padding:5px 13px;border:1px solid var(--bd2);border-radius:20px;cursor:pointer;background:transparent;color:var(--tx2);white-space:nowrap;flex-shrink:0}
-.nb.on{background:var(--tx);color:var(--bg);border-color:transparent}
-.tp{display:none}.tp.on{display:block;animation:fadeTab .18s ease}
-@keyframes fadeTab{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}
-.kpi{background:var(--bg2);border-radius:var(--r);padding:10px 12px}
-.kl{font-size:10px;color:var(--tx3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
-.kv{font-size:20px;font-weight:700}.ks{font-size:10px;color:var(--tx3);margin-top:1px}
-.mlay{display:grid;grid-template-columns:1fr 295px;gap:10px;align-items:start}
-@media(max-width:720px){.mlay{grid-template-columns:1fr}}
-.mwrap{background:var(--bg2);border-radius:var(--rl);padding:10px;border:1px solid var(--bd)}
-.mctrl{display:flex;align-items:center;gap:5px;margin-bottom:8px;flex-wrap:wrap}
-.mctrl span{font-size:11px;color:var(--tx3)}
+:root{--bg:#fff;--bg2:#f5f4f0;--bg3:#eceae3;--tx:#1a1a18;--tx2:#5f5e5a;--tx3:#888780;--bd:rgba(0,0,0,.12);--bd2:rgba(0,0,0,.22);--r:8px;--rl:12px;--nd:#d4d1cb;--accent:#E24B4A}
+@media(prefers-color-scheme:dark){:root{--bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;--tx:#e8e6df;--tx2:#b4b2a9;--tx3:#848279;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.2);--nd:#44423e}}
+
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;overflow:hidden}
+
+/* Styles de votre application existante */
+.nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--bd);padding:4px;gap:4px;overflow-x:auto;user-select:none;position:sticky;top:0;z-index:100}
+.nb{padding:8px 16px;border-radius:var(--r);cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap;color:var(--tx2);transition:0.2s}
+.nb:hover{background:var(--bg3);color:var(--tx)}
+.nb.on{background:var(--bg);color:var(--accent);box-shadow:0 2px 4px rgba(0,0,0,.05)}
+
+.tp{display:none;height:calc(100vh - 49px);overflow-y:auto;padding:20px}
+.tp.on{display:block}
+
+/* Patch pour Tailwind pour ne pas casser vos styles globaux */
+.dashboard-content { color: var(--tx) !important; }
+</style>
+</head>
+<body>
+
+<div class="nav" id="main-nav">
+    <div class="nb on" onclick="st(this,'tab-dash')">📊 Synthèse</div>
+    <div class="nb" onclick="st(this,'tab-aci')">🏠 ACI</div>
+    <div class="nb" onclick="st(this,'tab-ul')">📍 UL</div>
+    <div class="nb" onclick="st(this,'tab-admin')">⚙️ Admin</div>
+</div>
+
+<div id="tab-dash" class="tp on dashboard-content">
+    <div class="max-w-6xl mx-auto space-y-8 py-4">
+        <div class="flex justify-between items-end">
+            <div>
+                <h2 class="text-3xl font-black italic text-red-600">DASHBOARD DE PILOTAGE</h2>
+                <p class="text-gray-500 font-medium uppercase text-xs tracking-widest">FNPOS CGT - ACI France</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] font-bold py-1 px-3 bg-green-100 text-green-700 rounded-full">DONNÉES À JOUR</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-zinc-800 p-6 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm">
+                <p class="text-xs font-bold text-gray-400 uppercase">Salariés Gérés</p>
+                <p class="text-3xl font-black mt-1">1 248</p>
+                <p class="text-xs text-blue-500 mt-2 font-bold">Total Réseau France</p>
+            </div>
+            <div class="bg-white dark:bg-zinc-800 p-6 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm">
+                <p class="text-xs font-bold text-gray-400 uppercase">Utilisation Budget</p>
+                <p class="text-3xl font-black mt-1 text-orange-500">74%</p>
+                <div class="w-full bg-gray-100 dark:bg-zinc-700 h-1.5 mt-3 rounded-full overflow-hidden">
+                    <div class="bg-orange-500 h-full" style="width: 74%"></div>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-zinc-800 p-6 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm">
+                <p class="text-xs font-bold text-gray-400 uppercase">Mandats Actifs</p>
+                <p class="text-3xl font-black mt-1 text-red-600">156</p>
+                <p class="text-xs text-gray-400 mt-2 italic">Administrateurs & Élus</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-200 dark:border-zinc-700">
+                <h3 class="font-bold mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-red-600 rounded-full mr-2"></span>
+                    Évolution budgétaire (ACI)
+                </h3>
+                <canvas id="dashChart" height="180"></canvas>
+            </div>
+            <div class="bg-red-600 p-8 rounded-2xl shadow-xl text-white flex flex-col justify-center relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-black italic mb-4">NOTE DE VEILLE</h3>
+                    <p class="text-sm opacity-90 leading-relaxed mb-6">
+                        Attention : L'analyse des données actuelles montre une tension sur les frais de déplacement en zone AURA. Une vérification des justificatifs est conseillée avant le prochain Conseil.
+                    </p>
+                    <button class="bg-white text-red-600 px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">
+                        Télécharger le rapport détaillé
+                    </button>
+                </div>
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-[120px] font-black italic select-none">CGT</div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 overflow-hidden">
+            <div class="p-4 bg-gray-50 dark:bg-zinc-900/50 border-b border-gray-200 dark:border-zinc-700 font-bold text-sm italic">
+                Points de vigilance immédiats
+            </div>
+            <div class="divide-y divide-gray-100 dark:divide-zinc-700">
+                <div class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-zinc-700/30 transition-colors">
+                    <span class="font-medium">ACI IDF - Union Locale 93</span>
+                    <span class="text-xs py-1 px-2 bg-red-100 text-red-600 rounded font-bold italic">DÉPASSEMENT QUOTA</span>
+                </div>
+                <div class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-zinc-700/30 transition-colors">
+                    <span class="font-medium">Révision Valeur du Point (Avril 2026)</span>
+                    <span class="text-xs py-1 px-2 bg-blue-100 text-blue-600 rounded font-bold italic">À CALCULER</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tab-aci" class="tp">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-xl font-bold mb-4 italic">Liste des ACI</h2>
+        <p class="text-sm text-gray-500 italic mb-6">Sélectionnez une structure pour voir les détails...</p>
+        <div class="grid gap-2" id="aci-list">
+             </div>
+    </div>
+</div>
+
+<div id="tab-ul" class="tp">
+    <div class="p-4 text-center text-gray-400 italic">Section Unions Locales en cours de chargement...</div>
+</div>
+
+<div id="tab-admin" class="tp">
+    <div class="max-w-xl mx-auto bg-gray-100 dark:bg-zinc-800 p-8 rounded-2xl border-2 border-dashed border-gray-300">
+        <h3 class="font-bold text-center">MODE ADMINISTRATION</h3>
+        <p class="text-xs text-center text-gray-500 mt-2">Accès restreint aux administrateurs fédéraux.</p>
+    </div>
+</div>
+
+<script>
+// Logique de navigation (Simple et robuste)
+function st(el, tabId) {
+    // Désactiver tous les onglets
+    document.querySelectorAll('.tp').forEach(t => t.classList.remove('on'));
+    document.querySelectorAll('.nb').forEach(n => n.classList.remove('on'));
+    
+    // Activer l'onglet choisi
+    document.getElementById(tabId).classList.add('on');
+    el.classList.add('on');
+}
+
+// Initialisation du Graphique Dashboard
+window.addEventListener('load', () => {
+    const ctx = document.getElementById('dashChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+            datasets: [{
+                label: 'Dépenses Réelles (€)',
+                data: [4200, 3800, 5100, 4900, 6200, 5800],
+                borderColor: '#E24B4A',
+                backgroundColor: 'rgba(226, 75, 74, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+
+</body>
+</html>
 .vb{font-size:11px;padding:3px 8px;border:1px solid var(--bd2);border-radius:4px;cursor:pointer;background:transparent;color:var(--tx2)}
 .vb.on{background:var(--tx);color:var(--bg);border-color:transparent}
 #leaflet-map{height:460px;border-radius:8px;z-index:0;overflow:hidden}.map-count-label{background:rgba(0,0,0,.62);color:#fff;border-radius:4px;padding:1px 5px;font-size:11px;font-weight:700;text-align:center;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35);pointer-events:none}
