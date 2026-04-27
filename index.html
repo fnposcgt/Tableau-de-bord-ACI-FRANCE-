@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNPOS-CGT — Portail Fédéral</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rouge: #E24B4A;
+  --rouge-dark: #c03535;
+  --noir: #111;
+  --gris: #1e1e1e;
+  --gris2: #2a2a2a;
+  --tx: #f0f0f0;
+  --tx2: #aaa;
+  --accent: #f5c518;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--noir);
+  color: var(--tx);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  padding: 36px 24px 28px;
+  text-align: center;
+  border-bottom: 3px solid var(--rouge);
+  background: linear-gradient(180deg, #1a0000 0%, var(--noir) 100%);
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 200px;
+  background: radial-gradient(ellipse, rgba(226,75,74,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.logo-circle {
+  width: 52px; height: 52px;
+  background: var(--rouge);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(226,75,74,0.5);
+}
+header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(26px, 6vw, 44px);
+  letter-spacing: 3px;
+  color: #fff;
+  line-height: 1;
+}
+header h1 span { color: var(--rouge); }
+header p {
+  font-size: 12px;
+  color: var(--tx2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ── INTRO ── */
+.intro {
+  text-align: center;
+  padding: 28px 20px 12px;
+  font-size: 13px;
+  color: var(--tx2);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+.intro strong { color: var(--tx); }
+
+/* ── GRILLE SECTEURS ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  padding: 20px 16px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── CARTE SECTEUR ── */
+.sector-card {
+  background: var(--gris);
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  text-decoration: none;
+  display: block;
+  position: relative;
+}
+.sector-card:active { transform: scale(0.97); }
+.sector-card:hover {
+  border-color: var(--rouge);
+  box-shadow: 0 4px 24px rgba(226,75,74,0.18);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 16px 18px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border-bottom: 1px solid #333;
+}
+.card-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1.5px;
+  color: #fff;
+  line-height: 1.1;
+}
+.card-subtitle {
+  font-size: 11px;
+  color: var(--tx2);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* Sous-secteurs */
+.subsectors {
+  padding: 10px 18px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sub-tag {
+  font-size: 10px;
+  background: var(--gris2);
+  border: 1px solid #3a3a3a;
+  border-radius: 20px;
+  padding: 3px 10px;
+  color: var(--tx2);
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+.sector-card:hover .sub-tag {
+  background: rgba(226,75,74,0.1);
+  border-color: rgba(226,75,74,0.3);
+  color: #f09;
+}
+
+/* Badge "bientôt" */
+.badge-soon {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 9px;
+  background: #333;
+  color: var(--tx2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Carte ACI — mise en avant */
+.sector-card.featured {
+  border-color: var(--rouge);
+  background: linear-gradient(135deg, #1e0000 0%, var(--gris) 60%);
+}
+.sector-card.featured .card-title { color: var(--rouge); }
+.sector-card.featured .badge-active {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 9px;
+  background: var(--rouge);
+  color: #fff;
+  border-radius: 20px;
+  padding: 2px 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 11px;
+  color: #444;
+  border-top: 1px solid #222;
+  letter-spacing: 1px;
+}
+footer span { color: var(--rouge); }
+
+.cgt-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 84px;
+  flex-shrink: 0;
+}
+.cgt-logo-img {
+  width: 84px;
+  border-radius: 6px 6px 0 0;
+  display: block;
+}
+.cgt-logo-band {
+  background: #f5c518;
+  width: 84px;
+  border-radius: 0 0 5px 5px;
+  padding: 3px 4px;
+  text-align: center;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 14px;
+}
+.btn-admin, .btn-consult {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+  transition: opacity 0.15s, transform 0.1s;
+  text-decoration: none;
+  display: block;
+}
+.btn-admin:active, .btn-consult:active { transform: scale(0.96); }
+.btn-admin {
+  background: var(--rouge);
+  color: #fff;
+}
+.btn-admin:hover { opacity: 0.85; }
+.btn-consult {
+  background: #2e2e2e;
+  color: var(--tx2);
+  border: 1px solid #444;
+}
+.btn-consult:hover { border-color: #888; color: var(--tx); }
+.btn-soon {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: default;
+  background: #222;
+  color: #444;
+  border: 1px solid #2a2a2a;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── ONGLETS NAVIGATION ── */
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  background: #111;
+  border-bottom: 2px solid var(--rouge);
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-tab {
+  padding: 12px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--tx2);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.nav-tab.active {
+  color: #fff;
+  border-bottom-color: var(--rouge);
+}
+.nav-tab:hover { color: #fff; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── FÉDÉRATION ── */
+.fed-header {
+  padding: 24px 16px 12px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.fed-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.fed-title span { color: var(--rouge); }
+.fed-subtitle {
+  font-size: 11px;
+  color: var(--tx2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* KPIs fédération */
+.fed-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 12px 16px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.fed-kpi {
+  background: var(--gris);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.fed-kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--rouge);
+}
+.fed-kpi-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  line-height: 1;
+}
+.fed-kpi-lbl {
+  font-size: 10px;
+  color: var(--tx2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 4px;
+}
+.fed-kpi-sector {
+  font-size: 9px;
+  color: var(--rouge);
+  margin-top: 2px;
+  font-weight: 600;
+}
+.fed-kpi-soon {
+  opacity: 0.35;
+}
+
+/* Tableau secteurs */
+.fed-sectors {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
+.fed-sector-row {
+  background: var(--gris);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fed-sector-row.active-sector { border-color: var(--rouge); }
+.fed-sector-name {
+  font-weight: 600;
+  font-size: 13px;
+  flex: 1;
+}
+.fed-sector-stat {
+  font-size: 12px;
+  color: var(--tx2);
+  text-align: right;
+  min-width: 80px;
+}
+.fed-sector-stat strong { color: #fff; display: block; font-size: 18px; font-family: 'Bebas Neue', sans-serif; }
+.badge-active-sm {
+  font-size: 9px;
+  background: var(--rouge);
+  color: #fff;
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+.badge-soon-sm {
+  font-size: 9px;
+  background: #333;
+  color: #555;
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+/* Carte fédération */
+#fed-map {
+  height: 420px;
+  border-radius: 10px;
+  margin: 0 16px 24px;
+  max-width: calc(960px - 32px);
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  border: 1px solid #333;
+}
+.fed-map-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:#fff;">FNPOS<span style="color:#E24B4A">-</span>CGT<br><span style="font-size:13px;letter-spacing:1px;color:#aaa;font-family:'DM Sans',sans-serif;font-weight:400;">Fédération des Organismes Sociaux</span></div>
+  </div>
+  <p>Portail fédéral multisectoriel &mdash; Sélectionnez votre secteur</p>
+</header>
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('portail', this)">&#127968; Portail</button>
+  <button class="nav-tab" onclick="switchTab('fed', this)">&#127987;&#65039; Fédération</button>
+</nav>
+
+<div id="panel-portail" class="tab-panel active">
+
+<div class="intro">
+  Sélectionnez votre <strong>secteur professionnel</strong> pour accéder à votre tableau de bord fédéral.
+</div>
+
+<div class="grid">
+
+  <!-- 1. ACI — mis en avant -->
+  <div class="sector-card featured">
+    <div class="card-header">
+      <div class="cgt-logo-wrap" style="width:auto">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:#fff;">FNPOS<span style="color:#E24B4A">-</span>CGT<br><span style="font-size:13px;letter-spacing:1px;color:#aaa;font-family:'DM Sans',sans-serif;font-weight:400;">Fédération des Organismes Sociaux</span></div>
+    </div>
+      <div>
+        <div class="card-title">ACI</div>
+        <div class="card-subtitle">Ateliers et Chantiers d'Insertion · +2 000 structures</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">Tableau de bord</span>
+      <span class="sub-tag">Carte nationale</span>
+      <span class="sub-tag">Élections</span>
+      <span class="sub-tag">Emailing</span>
+    </div>
+    <div class="card-actions">
+      <a href="app.html" class="btn-admin" onclick="event.stopPropagation()">🔐 Admin</a>
+      <a href="app.html?readonly" class="btn-consult" onclick="event.stopPropagation()">👁 Consultation</a>
+    </div>
+  </div>
+
+  <!-- 2. Missions Locales -->
+  <div class="sector-card" onclick="openSector('missions-locales')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">Missions<br>Locales</div>
+    </div>
+      <div>
+        <div class="card-title">Missions Locales</div>
+        <div class="card-subtitle">Jeunesse · Accompagnement · Emploi</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">UNML</span>
+      <span class="sub-tag">Jeunes 16-25 ans</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 1. Sécurité Sociale (groupe) -->
+  <div class="sector-card" onclick="openSector('secu')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">Sécurité<br>Sociale</div>
+    </div>
+      <div>
+        <div class="card-title">Sécurité Sociale</div>
+        <div class="card-subtitle">Protection sociale · Organismes nationaux</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">CPAM</span>
+      <span class="sub-tag">CARSAT</span>
+      <span class="sub-tag">CAF</span>
+      <span class="sub-tag">URSSAF</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 2. Aides à domicile -->
+  <div class="sector-card" onclick="openSector('aide-domicile')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">Aides<br>à Domicile</div>
+    </div>
+      <div>
+        <div class="card-title">Aides à Domicile</div>
+        <div class="card-subtitle">Services à la personne · Maintien à domicile</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">SAAD</span>
+      <span class="sub-tag">SSIAD</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 3. Régies de quartier -->
+  <div class="sector-card" onclick="openSector('regie')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">Régies<br>de Quartier</div>
+    </div>
+      <div>
+        <div class="card-title">Régies de Quartier</div>
+        <div class="card-subtitle">Développement local · Cohésion sociale</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">CNLRQ</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 4. Mutualité -->
+  <div class="sector-card" onclick="openSector('mutualite')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">Mutualité</div>
+    </div>
+      <div>
+        <div class="card-title">Mutualité</div>
+        <div class="card-subtitle">Mutuelles · Protection complémentaire</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">MFP</span>
+      <span class="sub-tag">FNMF</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 5. GPS -->
+  <div class="sector-card" onclick="openSector('gps')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">GPS</div>
+    </div>
+      <div>
+        <div class="card-title">GPS</div>
+        <div class="card-subtitle">Groupements · Prévoyance · Solidarité</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">Prévoyance</span>
+      <span class="sub-tag">Solidarité</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 6. MSA -->
+  <div class="sector-card" onclick="openSector('msa')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">MSA</div>
+    </div>
+      <div>
+        <div class="card-title">MSA</div>
+        <div class="card-subtitle">Mutualité Sociale Agricole</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">Agricole</span>
+      <span class="sub-tag">Rural</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+  <!-- 7. France Travail -->
+  <div class="sector-card" onclick="openSector('france-travail')">
+    <div class="card-header">
+      <div class="cgt-logo-wrap">
+      <div class="cgt-logo-img" style="background:#E30613;border-radius:6px 6px 0 0;width:84px;height:70px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:#fff;font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;">cgt</span>
+      </div>
+      <div class="cgt-logo-band">France<br>Travail</div>
+    </div>
+      <div>
+        <div class="card-title">France Travail</div>
+        <div class="card-subtitle">Emploi · Insertion professionnelle</div>
+      </div>
+    </div>
+    <div class="subsectors">
+      <span class="sub-tag">Ex-Pôle Emploi</span>
+    </div>
+    <div class="card-actions">
+      <span class="btn-soon">🔐 Admin</span>
+      <span class="btn-soon">👁 Consultation</span>
+    </div>
+  </div>
+
+
+
+</div>
+
+<footer>
+  <span>FNPOS-CGT</span> &mdash; Portail fédéral multisectoriel &mdash; Usage strictement interne
+</footer>
+</div>
+
+<div id="panel-fed" class="tab-panel">
+
+  <!-- Sélecteur de secteur -->
+  <div style="display:flex;gap:8px;padding:16px 16px 0;flex-wrap:wrap;max-width:960px;margin:0 auto;">
+    <button onclick="fedShowSector('aci')" id="fed-btn-aci" class="fed-sec-btn active" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #E24B4A;background:#E24B4A;color:#fff;font-weight:600;">ACI</button>
+    <button onclick="fedShowSector('ml')"  id="fed-btn-ml"  class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">Missions Locales</button>
+    <button onclick="fedShowSector('ss')"  id="fed-btn-ss"  class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">Sécurité Sociale</button>
+    <button onclick="fedShowSector('ad')"  id="fed-btn-ad"  class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">Aides à Domicile</button>
+    <button onclick="fedShowSector('rq')"  id="fed-btn-rq"  class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">Régies de Quartier</button>
+    <button onclick="fedShowSector('mu')"  id="fed-btn-mu"  class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">Mutualité</button>
+    <button onclick="fedShowSector('gps')" id="fed-btn-gps" class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">GPS</button>
+    <button onclick="fedShowSector('msa')" id="fed-btn-msa" class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">MSA</button>
+    <button onclick="fedShowSector('ft')"  id="fed-btn-ft"  class="fed-sec-btn" style="font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid #333;background:#222;color:#666;">France Travail</button>
+  </div>
+
+  <!-- Contenu secteur ACI -->
+  <div id="fed-sector-aci" style="max-width:960px;margin:0 auto;padding:16px;">
+
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+      <div style="background:#1e1e1e;border:1px solid #333;border-left:3px solid #E24B4A;border-radius:8px;padding:12px 14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:#fff;line-height:1;">2 168</div>
+        <div style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Structures</div>
+      </div>
+      <div style="background:#1e1e1e;border:1px solid #333;border-left:3px solid #E24B4A;border-radius:8px;padding:12px 14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:#fff;line-height:1;">60</div>
+        <div style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Adhérents CGT</div>
+        <div style="font-size:9px;color:#666;margin-top:2px;">après dédoublonnage</div>
+      </div>
+      <div style="background:#1e1e1e;border:1px solid #333;border-left:3px solid #E24B4A;border-radius:8px;padding:12px 14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:#fff;line-height:1;">12</div>
+        <div style="font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;">Régions actives</div>
+      </div>
+    </div>
+
+    <!-- Carte -->
+    <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">&#128205; Carte régions ACI — Présence CGT</div>
+    <div id="fed-map" style="height:420px;border-radius:8px;border:1px solid #333;margin-bottom:8px;background:#1a1a2e;"></div>
+    <div id="fed-map-legend" style="margin-bottom:16px;font-size:10px;color:#aaa;"></div>
+
+    <div style="background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:14px;font-size:12px;color:#aaa;">&#127988;&#65039; Données de représentativité disponibles dans le dashboard ACI.</div>
+    <div style="background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:14px;">
+<!-- Repr&eacute;sentativit&eacute; nationale 2024 (source: FNPOS-CGT IDCC 3016) -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px 2px">Repr&eacute;sentativit&eacute; nationale 2024 &mdash; toucher pour filtrer</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+      <div class="kpi" onclick="reprFilter('cfdt')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#378ADD;display:inline-block"></span>CFDT</div>
+        <div style="font-size:20px;font-weight:700;line-height:1.1">44,43&nbsp;%</div>
+        <div style="font-size:9px;color:var(--tx3);margin-top:2px">1<sup>re</sup> organisation</div>
+      </div>
+      <div class="kpi" onclick="reprFilter('cgt')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#E24B4A;display:inline-block"></span>CGT</div>
+        <div style="font-size:20px;font-weight:700;line-height:1.1;color:#E24B4A">34,59&nbsp;%</div>
+        <div style="font-size:9px;color:var(--tx3);margin-top:2px">2<sup>e</sup> organisation</div>
+      </div>
+      <div class="kpi" onclick="reprFilter('fo')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#EF9F27;display:inline-block"></span>FO</div>
+        <div style="font-size:20px;font-weight:700;line-height:1.1">11,81&nbsp;%</div>
+        <div style="font-size:9px;color:var(--tx3);margin-top:2px">3<sup>e</sup> organisation</div>
+      </div>
+      <div class="kpi" onclick="reprFilter('solidaires')" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#639922;display:inline-block"></span>Solidaires</div>
+        <div style="font-size:20px;font-weight:700;line-height:1.1">9,17&nbsp;%</div>
+        <div style="font-size:9px;color:var(--tx3);margin-top:2px">4<sup>e</sup> organisation</div>
+      </div>
+    </div>
+
+    <!-- &Eacute;volution + Coll&egrave;ges -->
+    <div class="cgrid" style="margin-bottom:12px">
+      <div class="cc"><div class="ct">&Eacute;volution 2021-2024</div><div style="position:relative;height:210px"><canvas id="ch-evol" style="cursor:pointer"></canvas></div></div>
+      <div class="cc"><div class="ct">R&eacute;partition par coll&egrave;ge (1<sup>er</sup>, 2<sup>e</sup>, 5<sup>e</sup>)</div><div style="position:relative;height:210px"><canvas id="ch-college" style="cursor:pointer"></canvas></div></div>
+    </div>
+
+    <!-- Pr&eacute;sence CGT par coll&egrave;ge -->
+    <div class="cc" style="margin-bottom:12px">
+      <div class="ct">Taux de pr&eacute;sence CGT aux &eacute;lections par coll&egrave;ge &mdash; toucher pour voir les structures sans CGT</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+        <div onclick="reprPresenceFilter(1)" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px"><span>1<sup>er</sup> coll&egrave;ge</span><span style="color:var(--tx2)"><strong style="color:#E24B4A">53&nbsp;%</strong> pr&eacute;sente &middot; absente 47&nbsp;%</span></div>
+          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:53%;background:#E24B4A"></div></div>
+        </div>
+        <div onclick="reprPresenceFilter(2)" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px"><span>2<sup>e</sup> coll&egrave;ge</span><span style="color:var(--tx2)"><strong style="color:#E24B4A">43&nbsp;%</strong> pr&eacute;sente &middot; absente 57&nbsp;%</span></div>
+          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:43%;background:#E24B4A"></div></div>
+        </div>
+        <div onclick="reprPresenceFilter(5)" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px"><span>5<sup>e</sup> coll&egrave;ge</span><span style="color:var(--tx2)"><strong style="color:#E24B4A">47&nbsp;%</strong> pr&eacute;sente &middot; absente 53&nbsp;%</span></div>
+          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:47%;background:#E24B4A"></div></div>
+        </div>
+      </div>
+      <div style="font-size:9px;color:var(--tx3);margin-top:8px;font-style:italic">Source : FNPOS-CGT &middot; Repr&eacute;sentativit&eacute; ACI &middot; IDCC 3016</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CALENDRIER --
+    </div>
+  </div>
+
+  <!-- Autres secteurs : en construction -->
+  <div id="fed-sector-soon" style="display:none;max-width:960px;margin:0 auto;padding:40px 20px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">🚧</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:#fff;margin-bottom:8px;">Secteur en cours de déploiement</div>
+    <div style="font-size:12px;color:#aaa;">Ce tableau de bord sera disponible prochainement.</div>
+  
+
+
+
+
+<script>
+
+
+
+
+
+var chartCache = {};
+function killChart(id){if(chartCache[id]){chartCache[id].destroy();delete chartCache[id];}}
+
+
+
+
+
+/* RS supprimé */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function getDeptDk(code){
+  var deptList=[];
+  var cp2=code.length===1?"0"+code:code;
+  for(var i=0;i<STRUCTS.length;i++){
+    var cp=String(STRUCTS[i].cp||"").replace(/[^0-9]/g,"").padStart(5,"0");
+    var match=false;
+    if(code==="2A"){match=(cp.substring(0,3)==="200"||cp.substring(0,3)==="201");}
+    else if(code==="2B"){match=(cp.substring(0,3)==="202"||cp.substring(0,3)==="203"||cp.substring(0,3)==="204"||cp.substring(0,3)==="205"||cp.substring(0,3)==="206");}
+    else{match=(cp.substring(0,2)===cp2||cp.substring(0,2)===code);}
+    if(match)deptList.push(STRUCTS[i]);
+  }
+  if(!deptList.length)return null;
+  var dk={count:deptList.length,insc:0,votants:0,part:0};
+  for(var j=0;j<UK.length;j++)dk[UK[j]]=0;
+  var tp=0;
+  for(var i=0;i<deptList.length;i++){
+    var s=deptList[i];
+    dk.insc+=gi(s,"in");dk.votants+=gi(s,"vo");tp+=gf(s,"pa");
+    for(var j=0;j<UK.length;j++)dk[UK[j]]+=gi(s,UK[j].substring(0,2)==="so"?"so":UK[j].substring(0,2));
+  }
+  dk.part=deptList.length>0?Math.round(tp/deptList.length):0;
+  var dom=UK[0];for(var j=1;j<UK.length;j++){if((dk[UK[j]]||0)>(dk[dom]||0))dom=UK[j];}
+  dk.gagnant=dom;dk.structs=deptList;
+  return dk;
+}
+function getDeptAdhInfo(code){
+  var cp2=code.length===1?"0"+code:code;
+  var total=0;var structs=[];
+  for(var i=0;i<STRUCTS.length;i++){
+    var cp=String(STRUCTS[i].cp||"").replace(/[^0-9]/g,"").padStart(5,"0");
+    var match=false;
+    if(code==="2A"){match=(cp.substring(0,3)==="200"||cp.substring(0,3)==="201");}
+    else if(code==="2B"){match=(cp.substring(0,3)==="202"||cp.substring(0,3)==="206");}
+    else{match=(cp.substring(0,2)===cp2||cp.substring(0,2)===code);}
+    if(match){
+      var si=STRUCTS[i].si||"";
+      var adhLst=ADHERENTS[si]||[];
+      var actifs=0;
+      for(var j=0;j<adhLst.length;j++){if(adhLst[j].arc!=="OUI")actifs++;}
+      if(actifs>0){total+=actifs;structs.push({nom:STRUCTS[i].n||"",siret:si,n:actifs});}
+    }
+  }
+  return total>0?{total:total,structs:structs}:null;
+}
+function getRegAdhInfo(rsKey){
+  var total=0;var structs=[];
+  for(var i=0;i<STRUCTS.length;i++){
+    var reg=STRUCTS[i].r||"";
+    if(reg!==rsKey)continue;
+    var si=STRUCTS[i].si||"";
+    var adhLst=ADHERENTS[si]||[];
+    var actifs=0;
+    for(var j=0;j<adhLst.length;j++){if(adhLst[j].arc!=="OUI")actifs++;}
+    if(actifs>0){total+=actifs;structs.push({nom:STRUCTS[i].n||"",siret:si,n:actifs});}
+  }
+  return total>0?{total:total,structs:structs}:null;
+}
+
+
+
+function fedShowSector(s) {
+  document.getElementById('fed-sector-aci').style.display  = (s === 'aci') ? 'block' : 'none';
+  document.getElementById('fed-sector-soon').style.display = (s !== 'aci') ? 'block' : 'none';
+  document.querySelectorAll('.fed-sec-btn').forEach(function(b) {
+    b.style.background = '#222'; b.style.color = '#666'; b.style.borderColor = '#333';
+  });
+  var btn = document.getElementById('fed-btn-' + s);
+  if (btn) { btn.style.background = '#E24B4A'; btn.style.color = '#fff'; btn.style.borderColor = '#E24B4A'; }
+  if (s === 'aci') { if (!window._fedMapInited) { window._fedMapInited = true; setTimeout(initFedMap, 100); } setTimeout(buildReprCharts, 150); }
+}
+
+function initFedMap() {
+  if (typeof L === 'undefined') return;
+  if (window._fedMapObj) return;
+  var m = L.map('fed-map', {scrollWheelZoom:false, attributionControl:false});
+  m.fitBounds([[41.2,-5.5],[51.2,10.2]]);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(m);
+  window._fedMapObj = m;
+  /* Chargement GeoJSON régions */
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET','https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson');
+  xhr.onload = function() {
+    if (xhr.status !== 200) return;
+    var gj = JSON.parse(xhr.responseText);
+    var colors = {'Île-de-France':'#E24B4A','Hauts-de-France':'#E24B4A','Grand Est':'#c03535',
+      'Normandie':'#E24B4A','Bretagne':'#378ADD','Pays de la Loire':'#378ADD',
+      'Centre-Val de Loire':'#c03535','Bourgogne-Franche-Comté':'#378ADD',
+      'Auvergne-Rhône-Alpes':'#E24B4A','Nouvelle-Aquitaine':'#c03535',
+      'Occitanie':'#c03535','Provence-Alpes-Côte d\'Azur':'#E24B4A','Corse':'#999'};
+    L.geoJSON(gj, {
+      style: function(f) {
+        return {fillColor: colors[f.properties.nom] || '#bbb', fillOpacity:0.5, color:'#fff', weight:1};
+      },
+      onEachFeature: function(f, layer) {
+        layer.bindTooltip(f.properties.nom, {permanent:false});
+      }
+    }).addTo(m);
+  };
+  xhr.send();
+}).setView([46.8, 2.3], 5);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:18
+  }).addTo(map);
+  var elIcon = L.divIcon({className:'', html:'<div style="width:5px;height:5px;background:#E24B4A;border-radius:50%;opacity:0.7"></div>', iconSize:[5,5]});
+  var structs = typeof ACI_FED_STRUCTS !== 'undefined' ? ACI_FED_STRUCTS : [];
+  for (var i = 0; i < structs.length; i++) {
+    var s = structs[i];
+    L.marker([s.la, s.lo], {icon: elIcon})
+      .bindTooltip(s.n + '<br><small>' + s.v + ' (' + s.d + ')</small>', {direction:'top'})
+      .addTo(map);
+  }
+
+function switchTab(name, btn) {
+  var panels = document.getElementsByClassName('tab-panel');
+  for (var i = 0; i < panels.length; i++) {
+    panels[i].style.display = 'none';
+  }
+  var tabs = document.getElementsByClassName('nav-tab');
+  for (var j = 0; j < tabs.length; j++) {
+    tabs[j].style.borderBottomColor = 'transparent';
+    tabs[j].style.color = '#aaa';
+  }
+  var target = document.getElementById('panel-' + name);
+  if (target) target.style.display = 'block';
+  if (btn) {
+    btn.style.borderBottomColor = '#E24B4A';
+    btn.style.color = '#fff';
+  }
+  if (name === 'fed') {
+    if (!window._fedMapInited) { window._fedMapInited = true; setTimeout(initFedMap, 100); }
+    setTimeout(buildReprCharts, 200);
+  }
+}
+
+/* ancienne initFedMap supprimée */
+
+/* Init tabs au démarrage */
+document.addEventListener('DOMContentLoaded', function() {
+  var panels = document.getElementsByClassName('tab-panel');
+  for (var i = 0; i < panels.length; i++) {
+    if (panels[i].id === 'panel-portail') {
+      panels[i].style.display = 'block';
+    } else {
+      panels[i].style.display = 'none';
+    }
+  }
+});
+
+function openSector(sector) {
+  var msg = document.createElement('div');
+  msg.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1e1e1e;border:1px solid #E24B4A;color:#f0f0f0;padding:14px 24px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);text-align:center;max-width:320px;';
+  msg.innerHTML = '&#128679; <strong>Secteur en cours de déploiement</strong><br><span style="color:#aaa;font-size:11px">Ce tableau de bord sera disponible prochainement.</span>';
+  document.body.appendChild(msg);
+  setTimeout(function(){ msg.remove(); }, 3000);
+}
+</script!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNPOS-CGT — Portail Fédéral</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rouge: #E24B4A;
+  --rouge-dark: #c03535;
+  --noir: #111;
+  --gris: #1e1e1e;
+  --gris2: #2a2a2a;
+  --tx: #f0f0f0;
+  --tx2: #aaa;
+  --accent: #f5c518;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--noir);
+  color: var(--tx);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  padding: 36px 24px 28px;
+  text-align: center;
+  border-bottom: 3px solid var(--rouge);
+  background: linear-gradient(180deg, #1a0000 0%, var(--noir) 100%);
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 200px;
+  background: radial-gradient(ellipse, rgba(226,75,74,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.logo-circle {
+  width: 52px; height: 52px;
+  background: var(--rouge);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(226,75,74,0.5);
+}
+header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(26px, 6vw, 44px);
+  letter-spacing: 3px;
+  color: #fff;
+  line-height: 1;
+}
+header h1 span { color: var(--rouge); }
+header p {
+  font-size: 12px;
+  color: var(--tx2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ── INTRO ── */
+.intro {
+  text-align: center;
+  padding: 28px 20px 12px;
+  font-size: 13px;
+  color: var(--tx2);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+.intro strong { color: var(--tx); }
+
+/* ── GRILLE SECTEURS ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  padding: 20px 16px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── CARTE SECTEUR ── */
+.sector-card {
+  background: var(--gris);
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  text-decoration: none;
+  display: block;
+  position: relative;
+}
+.sector-card:active { transform: scale(0.97); }
+.sector-card:hover {
+  border-color: var(--rouge);
+  box-shadow: 0 4px 24px rgba(226,75,74,0.18);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 16px 18px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border-bottom: 1px solid #333;
+}
+.card-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+.card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1.5px;
+  color: #fff;
+  line-height: 1.1;
+}
+.card-subtitle {
+  font-size: 11px;
+  color: var(--tx2);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* Sous-secteurs */
+.subsectors {
+  padding: 10px 18px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sub-tag {
+  font-size: 10px;
+  background: var(--gris2);
+  border: 1px solid #3a3a3a;
+  border-radius: 20px;
+  padding: 3px 10px;
+  color: var(--tx2);
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+.sector-card:hover .sub-tag {
+  background: rgba(226,75,74,0.1);
+  border-color: rgba(226,75,74,0.3);
+  color: #f09;
+}
+
+/* Badge "bientôt" */
+.badge-soon {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 9px;
+  background: #333;
+  color: var(--tx2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Carte ACI — mise en avant */
+.sector-card.featured {
+  border-color: var(--rouge);
+  background: linear-gradient(135deg, #1e0000 0%, var(--gris) 60%);
+}
+.sector-card.featured .card-title { color: var(--rouge); }
+.sector-card.featured .badge-active {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-size: 9px;
+  background: var(--rouge);
+  color: #fff;
+  border-radius: 20px;
+  padding: 2px 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 11px;
+  color: #444;
+  border-top: 1px solid #222;
+  letter-spacing: 1px;
+}
+footer span { color: var(--rouge); }
+
+.cgt-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 84px;
+  flex-shrink: 0;
+}
+.cgt-logo-img {
+  width: 84px;
+  border-radius: 6px 6px 0 0;
+  display: block;
+}
+.cgt-logo-band {
+  background: #f5c518;
+  width: 84px;
+  border-radius: 0 0 5px 5px;
+  padding: 3px 4px;
+  text-align: center;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px 14px;
+}
+.btn-admin, .btn-consult {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+  transition: opacity 0.15s, transform 0.1s;
+  text-decoration: none;
+  display: block;
+}
+.btn-admin:active, .btn-consult:active { transform: scale(0.96); }
+.btn-admin {
+  background: var(--rouge);
+  color: #fff;
+}
+.btn-admin:hover { opacity: 0.85; }
+.btn-consult {
+  background: #2e2e2e;
+  color: var(--tx2);
+  border: 1px solid #444;
+}
+.btn-consult:hover { border-color: #888; color: var(--tx); }
+.btn-soon {
+  flex: 1;
+  padding: 7px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: default;
+  background: #222;
+  color: #444;
+  border: 1px solid #2a2a2a;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── ONGLETS NAVIGATION ── */
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  background: #111;
+  border-bottom: 2px solid var(--rouge);
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-tab {
+  padding: 12px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--tx2);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.nav-tab.active {
+  color: #fff;
+  border-bottom-color: var(--rouge);
+}
+.nav-tab:hover { color: #fff; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── FÉDÉRATION ── */
+.fed-header {
+  padding: 24px 16px 12px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.fed-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.fed-title span { color: var(--rouge); }
+.fed-subtitle {
+  font-size: 11px;
+  color: var(--tx2);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* KPIs fédération */
+.fed-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 12px 16px 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.fed-kpi {
+  background: var(--gris);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.fed-kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--rouge);
+}
+.fed-kpi-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: #fff;
+  line-height: 1;
+}
+.fed-kpi-lbl {
+  font-size: 10px;
+  color: var(--tx2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 4px;
+}
+.fed-kpi-sector {
+  font-size: 9px;
+  color: var(--rouge);
+  margin-top: 2px;
+  font-weight: 600;
+}
+.fed-kpi-soon {
+  opacity: 0.35;
+}
+
+/* Tableau secteurs */
+.fed-sectors {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
+.fed-sector-row {
+  background: var(--gris);
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fed-sector-row.active-sector { border-color: var(--rouge); }
+.fed-sector-name {
+  font-weight: 600;
+  font-size: 13px;
+  flex: 1;
+}
+.fed-sector-stat {
+  font-size: 12px;
+  color: var(--tx2);
+  text-align: right;
+  min-width: 80px;
+}
+.fed-sector-stat strong { color: #fff; display: block; font-size: 18px; font-family: 'Bebas Neue', sans-serif; }
+.badge-active-sm {
+  font-size: 9px;
+  background: var(--rouge);
+  color: #fff;
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+.badge-soon-sm {
+  font-size: 9px;
+  background: #333;
+  color: #555;
+  border-radius: 20px;
+  padding: 2px 8px;
+}
+
+/* Carte fédération */
+#fed-map {
+  height: 420px;
+  border-radius: 10px;
+  margin: 0 16px 24px;
+  max-width: calc(960px - 32px);
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  border: 1px solid #333;
+}
+.fed-map-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px 24px;
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body>
+</html>
