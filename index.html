@@ -328,16 +328,17 @@ function loadFedKpis() {
       var row = rows[0];
       /* Compter les adhérents dans edits */
       var edits = typeof row.edits === 'string' ? JSON.parse(row.edits) : row.edits;
-      var count = 0;
+      var baseCount = 60;
+      var extraCount = 0;
       if (edits && edits.adherents) {
         var adh = edits.adherents;
         for (var siret in adh) {
           var list = adh[siret];
-          if (Array.isArray(list)) count += list.length;
+          if (Array.isArray(list)) extraCount += list.length;
         }
       }
       var el = document.getElementById('kpi-adh');
-      if (el && count > 0) el.textContent = count;
+      if (el) el.textContent = baseCount + extraCount;
       /* Date de mise à jour */
       var dateEl = document.getElementById('kpi-adh-date');
       if (dateEl && row.updated_at) {
