@@ -1277,9 +1277,16 @@ function renderContacts() {
   try {
   var html = '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">';
   html += '<input type="text" id="ct-search" placeholder="Rechercher\u2026" oninput="filterContacts()"';
-  html += ' style="flex:1;min-width:180px;font-size:11px;padding:6px 10px;border:1px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--tx);outline:none">';
+  html += ' style="flex:1;min-width:180px;font-size:11px;padding:6px 10px;border:1px solid var(--bd2);'
+        + 'border-radius:6px;background:var(--bg);color:var(--tx);outline:none">';
   html += '<span id="ct-count" style="font-size:11px;color:var(--tx3)"></span>';
   html += '</div>';
+
+  var ROLES = [
+    { key:'ref',  lbl:'R\u00e9f\u00e9rents groupe \u00e9lections', color:'#E24B4A', icon:'\ud83d\udcdd' },
+    { key:'cef',  lbl:'Membres CEF',                               color:'#185fa5', icon:'\ud83c\udfc5' },
+    { key:'resp', lbl:'Responsable(s) de r\u00e9gion',             color:'#0f6e56', icon:'\ud83c\udf1f' }
+  ];
 
   var newRegs = Object.keys(CONTACTS_BY_REG).sort();
   var totalPersons = 0;
@@ -1317,41 +1324,29 @@ function renderContacts() {
 
       /* Étiquette ancienne région */
       html += '<div style="margin-bottom:14px">';
-      html += '<div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);'
-            + 'border-left:3px solid var(--ac);border-radius:0 4px 4px 0;'
-            + 'padding:4px 12px;font-size:11px;font-weight:700;color:var(--ac);margin-bottom:8px">';
+      html += '<div style="display:inline-flex;align-items:center;gap:6px;'
+            + 'background:rgba(226,75,74,.08);border-left:3px solid #E24B4A;'
+            + 'border-radius:0 4px 4px 0;padding:4px 12px;font-size:11px;'
+            + 'font-weight:700;color:#E24B4A;margin-bottom:8px">';
       html += '\ud83d\udccd ' + esc(blk.label);
       html += '</div>';
 
-      /* Référents (col B du fichier) */
-      if (blk.ref && blk.ref.length > 0) {
-        html += '<div style="margin-bottom:8px">';
-        html += '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;'
-              + 'letter-spacing:.8px;margin-bottom:5px">\ud83d\udcdd R\u00e9f\u00e9rents groupe \u00e9lections</div>';
-        for (var ci = 0; ci < blk.ref.length; ci++) {
-          html += _ctCard(blk.ref[ci]);
-        }
-        html += '</div>';
-      }
+      /* Référents, CEF, Responsables avec code couleur */
+      for (var gi = 0; gi < ROLES.length; gi++) {
+        var role = ROLES[gi];
+        var list = blk[role.key] || [];
+        if (list.length === 0) continue;
 
-      /* Membres CEF */
-      if (blk.cef && blk.cef.length > 0) {
         html += '<div style="margin-bottom:8px">';
-        html += '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;'
-              + 'letter-spacing:.8px;margin-bottom:5px">\ud83c\udfc5 Membres CEF</div>';
-        for (var ci2 = 0; ci2 < blk.cef.length; ci2++) {
-          html += _ctCard(blk.cef[ci2]);
-        }
+        /* Titre du groupe avec couleur */
+        html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">';
+        html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;'
+              + 'background:' + role.color + ';flex-shrink:0"></span>';
+        html += '<span style="font-size:10px;font-weight:700;color:' + role.color + ';'
+              + 'text-transform:uppercase;letter-spacing:.7px">' + role.lbl + '</span>';
         html += '</div>';
-      }
-
-      /* Responsables de région */
-      if (blk.resp && blk.resp.length > 0) {
-        html += '<div style="margin-bottom:8px">';
-        html += '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;'
-              + 'letter-spacing:.8px;margin-bottom:5px">\ud83c\udf1f Responsable(s) de r\u00e9gion</div>';
-        for (var ci3 = 0; ci3 < blk.resp.length; ci3++) {
-          html += _ctCard(blk.resp[ci3]);
+        for (var ci = 0; ci < list.length; ci++) {
+          html += _ctCard(list[ci], role.color);
         }
         html += '</div>';
       }
@@ -1383,15 +1378,16 @@ function renderContacts() {
   }
 }
 
-function _ctCard(c) {
-  var h = '<div style="background:var(--bg);border:1px solid var(--bd);border-radius:6px;'
-        + 'padding:7px 10px;margin-bottom:4px">';
-  h += '<div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:3px">' + esc(c.n) + '</div>';
+function _ctCard(c, color) {
+  var col = color || '#E24B4A';
+  var h = '<div style="background:var(--bg);border:1px solid var(--bd);border-left:3px solid '
+        + col + ';border-radius:0 6px 6px 0;padding:7px 10px;margin-bottom:4px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:3px">' + esc(c.n) + '</div>';
   h += '<div style="display:flex;flex-wrap:wrap;gap:10px">';
-  if (c.t) h += '<a href="tel:' + c.t.replace(/\s/g,'') + '" style="font-size:11px;color:#378ADD;text-decoration:none">'
-              + '\ud83d\udcde\u00a0' + esc(c.t) + '</a>';
-  if (c.e) h += '<a href="mailto:' + esc(c.e) + '" style="font-size:11px;color:var(--ac);text-decoration:none;word-break:break-all">'
-              + '\u2709\u00a0' + esc(c.e) + '</a>';
+  if (c.t) h += '<a href="tel:' + c.t.replace(/\s/g,'') + '" style="font-size:11px;color:' + col
+              + ';text-decoration:none">\ud83d\udcde\u00a0' + esc(c.t) + '</a>';
+  if (c.e) h += '<a href="mailto:' + esc(c.e) + '" style="font-size:11px;color:var(--tx2);'
+              + 'text-decoration:none;word-break:break-all">\u2709\u00a0' + esc(c.e) + '</a>';
   if (!c.t && !c.e) h += '<span style="font-size:10px;color:var(--tx3)">Coordonn\u00e9es \u00e0 compl\u00e9ter</span>';
   h += '</div></div>';
   return h;
