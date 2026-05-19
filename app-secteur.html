@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tableau de bord FNPOS-CGT</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--bg2:#f5f4f0;--bg3:#eceae3;--tx:#1a1a18;--tx2:#5f5e5a;--tx3:#888780;--bd:rgba(0,0,0,.12);--bd2:rgba(0,0,0,.22);--r:8px;--ac:#E24B4A}
+@media(prefers-color-scheme:dark){:root{--bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;--tx:#e8e6df;--tx2:#b4b2a9;--tx3:#73726c;--bd:rgba(255,255,255,.12);--bd2:rgba(255,255,255,.25)}}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:13px;background:var(--bg);color:var(--tx);min-height:100vh}
+#wrap{max-width:1150px;margin:0 auto;padding:16px}
+
+/* READONLY BANNER */
+#readonly-banner{display:none;background:#1a3a1a;color:#7dd87d;font-size:11px;padding:6px 12px;text-align:center;letter-spacing:.5px}
+body.is-readonly #readonly-banner{display:block}
+
+/* BACK */
+.back-link{font-size:11px;color:var(--tx3);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}
+.back-link:hover{color:var(--ac)}
+
+/* HEADER */
+.hdr{padding:10px 0 14px;border-bottom:3px solid var(--ac);margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hdr-left h1{font-size:20px;font-weight:700;color:var(--ac)}
+.hdr-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.hdr-idcc{font-size:10px;color:var(--ac);margin-top:2px}
+.hdr-right{display:flex;gap:6px;align-items:center}
+
+/* NAV */
+.nav{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--bd);padding-bottom:8px;flex-wrap:wrap}
+.nb{font-size:12px;padding:5px 13px;border:1px solid var(--bd2);border-radius:20px;cursor:pointer;background:transparent;color:var(--tx2);white-space:nowrap;flex-shrink:0}
+.nb.on{background:var(--tx);color:var(--bg);border-color:transparent}
+
+/* PANELS */
+.tp{display:none}.tp.on{display:block;animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* KPIs */
+.krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:var(--bg2);border-radius:var(--r);padding:10px 12px}
+.kl{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kv{font-size:20px;font-weight:700;color:var(--tx);line-height:1}
+.ks{font-size:10px;color:var(--ac);margin-top:1px}
+
+/* TOOLBAR */
+.tbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;padding:8px;background:var(--bg2);border-radius:var(--r)}
+.tbar input{font-size:11px;padding:4px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none;flex:1;min-width:140px}
+.btn{font-size:11px;padding:5px 12px;border:1px solid var(--bd2);border-radius:6px;cursor:pointer;background:var(--bg);color:var(--tx2);white-space:nowrap}
+.btn:hover{background:var(--ac);color:#fff;border-color:var(--ac)}
+.btn-red{color:#c44;border-color:#c44}
+.btn-red:hover{background:#c44;color:#fff;border-color:#c44}
+.btn-prim{background:var(--ac);color:#fff;border-color:var(--ac)}
+.btn-prim:hover{opacity:.85}
+
+/* TABLE */
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tscroll::-webkit-scrollbar{height:5px}
+.tscroll::-webkit-scrollbar-track{background:var(--bg2)}
+.tscroll::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--tx2);font-weight:600;cursor:pointer;white-space:nowrap;background:var(--bg2);user-select:none}
+th:hover{color:var(--tx)}
+td{padding:5px 8px;border-bottom:1px solid var(--bd);color:var(--tx)}
+tr:hover td{background:var(--bg2)}
+.tr-click{cursor:pointer}
+
+/* PAGER */
+.pager{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:6px 2px;font-size:11px;color:var(--tx2);min-height:32px}
+.pg-btn{padding:3px 9px;border:1px solid var(--bd2);border-radius:4px;cursor:pointer;background:var(--bg);color:var(--tx2);font-size:11px;line-height:1.5}
+.pg-btn:hover{background:var(--bg2)}
+.pg-btn.on{background:var(--tx);color:var(--bg);font-weight:700;border-color:transparent}
+.pg-btn[disabled]{opacity:.35;cursor:default;pointer-events:none}
+.pg-info{font-size:11px;color:var(--tx3)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
+.empty h3{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--tx2)}
+.empty p{font-size:12px;margin-bottom:16px;line-height:1.6}
+
+/* MAP */
+#leaflet-map{height:460px;border-radius:8px;overflow:hidden;z-index:0}
+.map-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--tx3)}
+.leg-item{display:flex;align-items:center;gap:4px}
+.leg-sq{width:12px;height:12px;border-radius:2px}
+
+/* FICHE MODAL */
+#fiche-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;overflow-y:auto;padding:20px}
+#fiche-inner{background:var(--bg);border-radius:12px;max-width:520px;margin:0 auto;padding:20px}
+.fiche-title{font-weight:700;font-size:15px;margin-bottom:12px;color:var(--ac)}
+.fiche-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--bd);font-size:12px;gap:12px}
+.fiche-lbl{color:var(--tx3);flex-shrink:0;width:130px}
+.fiche-val{color:var(--tx);text-align:right;word-break:break-word}
+
+/* CONQUETE */
+.cq-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.cq-filters{display:flex;gap:5px;flex-wrap:wrap}
+.cq-filter-btn{font-size:10px;padding:3px 9px;border:1px solid var(--bd2);border-radius:12px;cursor:pointer;background:transparent;color:var(--tx2)}
+.cq-filter-btn.on{background:var(--tx);color:var(--bg)}
+.cq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-top:8px}
+.cq-card{background:var(--bg2);border-radius:var(--r);padding:10px;border-left:3px solid #555}
+.cq-name{font-size:11px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cq-loc{font-size:10px;color:var(--tx3);margin-bottom:6px}
+select.cq-sel{font-size:11px;padding:3px 6px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);width:100%}
+.cq-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;color:#fff;display:inline-block}
+
+/* IMPORT MODAL */
+#import-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;padding:16px}
+#import-modal.open{display:flex}
+#import-inner{background:var(--bg);border-radius:12px;max-width:480px;width:100%;padding:24px}
+#import-inner h3{font-size:15px;font-weight:700;margin-bottom:6px}
+#import-inner p{font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.5}
+.file-zone{border:2px dashed var(--bd2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;color:var(--tx3);font-size:12px;transition:border-color .2s}
+.file-zone:hover{border-color:var(--ac);color:var(--ac)}
+#import-preview{font-size:11px;color:var(--tx2);margin-top:10px;padding:8px;background:var(--bg2);border-radius:4px;display:none;max-height:100px;overflow-y:auto;line-height:1.6}
+.import-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+
+/* FAB */
+#fab-import{position:fixed;bottom:20px;right:20px;background:var(--ac);color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(226,75,74,.35);z-index:500;display:flex;align-items:center;gap:6px}
+body.is-readonly #fab-import{display:none}
+
+/* READONLY — masquer les boutons d'action */
+body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
+</style>
+</head>
+<body>
+
+<div id="readonly-banner">👁 Mode consultation — lecture seule</div>
+
+<div id="wrap">
+
+<a href="index.html" class="back-link">← Portail fédéral</a>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <h1 id="hdr-title">Chargement…</h1>
+    <div class="hdr-sub" id="hdr-sub"></div>
+    <div class="hdr-idcc" id="hdr-idcc"></div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-action" onclick="openImport()">📂 Importer XLS</button>
+    <button class="btn btn-action" onclick="exportJSON()">💾 Export</button>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="krow">
+  <div class="kpi"><div class="kl">Structures</div><div class="kv" id="kpi-total">0</div><div class="ks" id="kpi-sec-lbl">—</div></div>
+  <div class="kpi"><div class="kl">Avec élections</div><div class="kv" id="kpi-elec">0</div><div class="ks">CSE connus</div></div>
+  <div class="kpi"><div class="kl">Régions</div><div class="kv" id="kpi-regs">0</div><div class="ks">couvertes</div></div>
+  <div class="kpi"><div class="kl">Conquête</div><div class="kv" id="kpi-cq">0</div><div class="ks">structures suivies</div></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nb on" onclick="showTab('tableau',this)">📋 Tableau</button>
+  <button class="nb" onclick="showTab('carte',this)">🗺️ Carte</button>
+  <button class="nb" onclick="showTab('conquete',this)">🎯 Conquête</button>
+</nav>
+
+<!-- ═══ TABLEAU ═══ -->
+<div id="tp-tableau" class="tp on">
+
+  <div id="empty-state" class="empty">
+    <h3>Aucune structure chargée</h3>
+    <p>Importez un fichier XLS/XLSX pour commencer.<br>Les colonnes sont détectées automatiquement.<br>Les données sont sauvegardées localement dans votre navigateur.</p>
+    <button class="btn btn-prim" onclick="openImport()">📂 Importer un fichier XLS</button>
+  </div>
+
+  <div id="table-zone" style="display:none">
+    <div class="tbar">
+      <input type="text" id="search-input" placeholder="Rechercher nom, ville, département…" oninput="doSearch()">
+      <select id="filter-reg" onchange="doSearch()" style="font-size:11px;padding:4px 7px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx)">
+        <option value="">Toutes les régions</option>
+      </select>
+      <button class="btn btn-action btn-red" onclick="clearData()">🗑 Vider</button>
+    </div>
+    <div id="pager-top" class="pager"></div>
+    <div class="tscroll">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="pager-bot" class="pager"></div>
+  </div>
+
+</div>
+
+<!-- ═══ CARTE ═══ -->
+<div id="tp-carte" class="tp">
+  <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Les régions sont colorées selon le nombre de structures. Cliquez pour filtrer le tableau.</div>
+  <div id="leaflet-map"></div>
+  <div class="map-legend">
+    <div class="leg-item"><div class="leg-sq" style="background:#E24B4A;opacity:.15"></div> 0 structure</div>
+    <div class="leg-item"><div class="leg-sq" style="background:#E24B4A;opacity:.5"></div> quelques</div>
+    <div class="leg-item"><div class="leg-sq" style="background:#E24B4A;opacity:.9"></div> nombreuses</div>
+  </div>
+</div>
+
+<!-- ═══ CONQUÊTE ═══ -->
+<div id="tp-conquete" class="tp">
+  <div class="cq-header">
+    <div style="font-size:12px;color:var(--tx2)"><span id="cq-count">0</span> structure(s) suivie(s)</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <input type="text" id="cq-search" placeholder="Filtrer…" oninput="renderConquete()"
+        style="font-size:11px;padding:4px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none;width:180px">
+      <button class="btn" onclick="exportConquete()">💾 Export conquête</button>
+    </div>
+  </div>
+  <div class="cq-filters" id="cq-filters">
+    <button class="cq-filter-btn on" onclick="setCQFilter('',this)">Tout</button>
+    <button class="cq-filter-btn" onclick="setCQFilter('0',this)">0 — Néant</button>
+    <button class="cq-filter-btn" onclick="setCQFilter('1',this)">1 — Approche</button>
+    <button class="cq-filter-btn" onclick="setCQFilter('2',this)">2 — Constitution</button>
+    <button class="cq-filter-btn" onclick="setCQFilter('3',this)">3 — Implantation</button>
+    <button class="cq-filter-btn" onclick="setCQFilter('4',this)">4 — Contact UD/UL</button>
+  </div>
+  <div id="cq-grid" class="cq-grid"></div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- FAB -->
+<button id="fab-import" onclick="openImport()">📂 Importer XLS</button>
+
+<!-- FICHE MODAL -->
+<div id="fiche-modal" onclick="closeFicheClick(event)">
+  <div id="fiche-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="fiche-title" id="fiche-title">—</div>
+      <button class="btn" onclick="document.getElementById('fiche-modal').style.display='none'">✕</button>
+    </div>
+    <div id="fiche-body"></div>
+    <div id="fiche-actions" style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="import-modal">
+  <div id="import-inner">
+    <h3>📂 Importer un fichier XLS / XLSX</h3>
+    <p>Le fichier doit avoir une ligne d'en-têtes. Les colonnes sont détectées automatiquement : Nom, SIRET, CP, Ville, Département, Région, Email, Téléphone, Contact, Élections…<br><strong>Les données existantes seront remplacées.</strong></p>
+    <div class="file-zone" onclick="document.getElementById('file-input').click()">
+      Cliquez ici pour sélectionner un fichier<br>
+      <span style="font-size:10px;color:var(--tx3)">XLS, XLSX, CSV acceptés</span>
+    </div>
+    <input type="file" id="file-input" accept=".xls,.xlsx,.csv" style="display:none" onchange="handleFile(event)">
+    <div id="import-preview"></div>
+    <div class="import-btns">
+      <button class="btn" onclick="closeImport()">Annuler</button>
+      <button class="btn btn-prim" id="btn-confirm" onclick="confirmImport()" disabled>Importer <span id="import-count"></span></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+
+/* ════════════════════════════════
+   CONFIG SECTEURS
+════════════════════════════════ */
+var SECTORS = {
+  ml:  {name:"Missions Locales",    short:"ML",  sub:"Jeunesse · Accompagnement · Emploi · 16-25 ans",       idcc:"IDCC 1261"},
+  ss:  {name:"Sécurité Sociale",    short:"SS",  sub:"Protection sociale · CPAM · CARSAT · CAF · URSSAF",    idcc:""},
+  ad:  {name:"Aides à Domicile",    short:"AD",  sub:"SAAD · SSIAD · Services à la personne",                idcc:"IDCC 2111"},
+  rq:  {name:"Régies de Quartier",  short:"RQ",  sub:"Développement local · Cohésion sociale · CNLRQ",       idcc:"IDCC 1790"},
+  mut: {name:"Mutualité",           short:"MUT", sub:"Mutuelles · Protection complémentaire · FNMF",         idcc:"IDCC 2256"},
+  gps: {name:"GPS",                 short:"GPS", sub:"Groupements · Prévoyance · Solidarité",                idcc:""},
+  msa: {name:"MSA",                 short:"MSA", sub:"Mutualité Sociale Agricole · Rural",                   idcc:""},
+  ft:  {name:"France Travail",      short:"FT",  sub:"Emploi · Insertion professionnelle · Ex-Pôle Emploi",  idcc:"IDCC 2847"}
+};
+
+var CQ_LABELS = ['0 — Néant','1 — Approche','2 — Constitution','3 — Implantation','4 — Contact UD/UL'];
+var CQ_COLORS = ['#555','#EF9F27','#27AE60','#f5c518','#378ADD'];
+
+/* ════════════════════════════════
+   ÉTAT GLOBAL
+════════════════════════════════ */
+var SEC = 'ml';
+var CFG = {};
+var STRUCTS = [];
+var CONQUETE = {};
+var IS_READONLY = false;
+var MAP = null;
+var MAP_LAYER = null;
+var _page = 1;
+var PER_PAGE = 25;
+var _sortCol = 'n';
+var _sortAsc = true;
+var _regionFilter = '';
+var _cqFilter = '';
+var _pendingImport = [];
+
+/* ════════════════════════════════
+   COLONNES TABLEAU
+════════════════════════════════ */
+var COLS = [
+  {k:'n',  lbl:'Nom'},
+  {k:'d',  lbl:'Dept'},
+  {k:'v',  lbl:'Ville'},
+  {k:'r',  lbl:'Région'},
+  {k:'si', lbl:'SIRET'},
+  {k:'de', lbl:'Élections'},
+  {k:'pr', lbl:'Prochaines'},
+  {k:'ga', lbl:'Org'},
+  {k:'co', lbl:'Contact'},
+  {k:'em', lbl:'Email'}
+];
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+function init() {
+  var qs = window.location.search;
+  var m = qs.match(/[?&]sec=([a-z]+)/);
+  var key = (m && SECTORS[m[1]]) ? m[1] : 'ml';
+  SEC = key;
+  CFG = SECTORS[SEC];
+  IS_READONLY = qs.indexOf('readonly') >= 0;
+
+  document.title = 'TB ' + CFG.name + ' \u2014 FNPOS-CGT';
+  document.getElementById('hdr-title').textContent = CFG.name;
+  document.getElementById('hdr-sub').textContent = CFG.sub;
+  document.getElementById('hdr-idcc').textContent = CFG.idcc;
+  document.getElementById('kpi-sec-lbl').textContent = CFG.name;
+
+  if (IS_READONLY) {
+    document.body.classList.add('is-readonly');
+  }
+
+  try {
+    var s = localStorage.getItem('fnpos_structs_' + SEC);
+    if (s) STRUCTS = JSON.parse(s);
+  } catch(e) { STRUCTS = []; }
+
+  try {
+    var c = localStorage.getItem('fnpos_conquete_' + SEC);
+    if (c) CONQUETE = JSON.parse(c);
+  } catch(e) { CONQUETE = {}; }
+
+  updateKpis();
+  renderTable();
+  renderConquete();
+  buildRegionFilter();
+}
+
+/* ════════════════════════════════
+   KPIs
+════════════════════════════════ */
+function updateKpis() {
+  document.getElementById('kpi-total').textContent = STRUCTS.length;
+  var withElec = 0;
+  for (var i = 0; i < STRUCTS.length; i++) {
+    if (STRUCTS[i].de || STRUCTS[i].pr) withElec++;
+  }
+  document.getElementById('kpi-elec').textContent = withElec;
+  var regs = {};
+  for (var j = 0; j < STRUCTS.length; j++) {
+    if (STRUCTS[j].r) regs[STRUCTS[j].r] = 1;
+  }
+  document.getElementById('kpi-regs').textContent = Object.keys(regs).length;
+  var cqCount = 0;
+  for (var si in CONQUETE) { if (CONQUETE[si] > 0) cqCount++; }
+  document.getElementById('kpi-cq').textContent = cqCount;
+}
+
+/* ════════════════════════════════
+   TABS
+════════════════════════════════ */
+function showTab(name, btn) {
+  var panels = document.querySelectorAll('.tp');
+  for (var i = 0; i < panels.length; i++) panels[i].classList.remove('on');
+  var tabs = document.querySelectorAll('.nb');
+  for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('on');
+  var panel = document.getElementById('tp-' + name);
+  if (panel) panel.classList.add('on');
+  if (btn) btn.classList.add('on');
+  if (name === 'carte') {
+    setTimeout(function() { initMap(); }, 50);
+  }
+}
+
+/* ════════════════════════════════
+   TABLE
+════════════════════════════════ */
+function buildRegionFilter() {
+  var sel = document.getElementById('filter-reg');
+  if (!sel) return;
+  var regs = [];
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var r = STRUCTS[i].r;
+    if (r && regs.indexOf(r) < 0) regs.push(r);
+  }
+  regs.sort();
+  var html = '<option value="">Toutes les régions</option>';
+  for (var j = 0; j < regs.length; j++) {
+    html += '<option value="' + esc(regs[j]) + '">' + esc(regs[j]) + '</option>';
+  }
+  sel.innerHTML = html;
+}
+
+function getFiltered() {
+  var q = '';
+  var si = document.getElementById('search-input');
+  if (si) q = si.value.toLowerCase().trim();
+  var regSel = document.getElementById('filter-reg');
+  var regF = regSel ? regSel.value : '';
+  var result = [];
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var s = STRUCTS[i];
+    if (regF && s.r !== regF) continue;
+    if (q) {
+      var hay = [s.n, s.v, s.d, s.cp, s.r, s.si, s.co, s.em, s.ga].join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0) continue;
+    }
+    result.push(s);
+  }
+  result.sort(function(a, b) {
+    var va = (a[_sortCol] || '').toString().toLowerCase();
+    var vb = (b[_sortCol] || '').toString().toLowerCase();
+    return _sortAsc ? va.localeCompare(vb, 'fr') : vb.localeCompare(va, 'fr');
+  });
+  return result;
+}
+
+function doSearch() {
+  _page = 1;
+  renderTable();
+}
+
+function renderTable() {
+  var empty = document.getElementById('empty-state');
+  var zone = document.getElementById('table-zone');
+  if (STRUCTS.length === 0) {
+    empty.style.display = '';
+    zone.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  zone.style.display = '';
+
+  var rows = getFiltered();
+  var total = rows.length;
+  var maxPage = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (_page > maxPage) _page = maxPage;
+  var start = (_page - 1) * PER_PAGE;
+  var pageRows = rows.slice(start, start + PER_PAGE);
+
+  /* Thead */
+  var ths = '<tr>';
+  for (var c = 0; c < COLS.length; c++) {
+    var col = COLS[c];
+    var arrow = (_sortCol === col.k) ? (_sortAsc ? ' \u25b2' : ' \u25bc') : '';
+    ths += '<th onclick="sortBy(\'' + col.k + '\')">' + col.lbl + arrow + '</th>';
+  }
+  ths += '</tr>';
+  document.getElementById('thead').innerHTML = ths;
+
+  /* Tbody */
+  var html = '';
+  for (var i = 0; i < pageRows.length; i++) {
+    var s = pageRows[i];
+    var realIdx = STRUCTS.indexOf(s);
+    html += '<tr class="tr-click" onclick="openFiche(' + realIdx + ')">';
+    for (var j = 0; j < COLS.length; j++) {
+      var v = s[COLS[j].k] !== undefined ? s[COLS[j].k] : '';
+      html += '<td>' + esc(String(v)) + '</td>';
+    }
+    html += '</tr>';
+  }
+  document.getElementById('tbody').innerHTML = html;
+
+  buildPager('pager-top', _page, maxPage, total, start + 1, Math.min(start + PER_PAGE, total));
+  buildPager('pager-bot', _page, maxPage, total, start + 1, Math.min(start + PER_PAGE, total));
+}
+
+function sortBy(col) {
+  if (_sortCol === col) { _sortAsc = !_sortAsc; } else { _sortCol = col; _sortAsc = true; }
+  _page = 1;
+  renderTable();
+}
+
+function buildPager(id, page, maxPage, total, from, to) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (maxPage <= 1) {
+    el.innerHTML = '<span class="pg-info">' + total + ' r\u00e9sultat' + (total > 1 ? 's' : '') + '</span>';
+    return;
+  }
+  var html = '<button class="pg-btn" onclick="goPage(' + (page - 1) + ')" ' + (page <= 1 ? 'disabled' : '') + '>\u2039</button>';
+  var lo = Math.max(1, page - 2);
+  var hi = Math.min(maxPage, page + 2);
+  if (lo > 1) { html += '<button class="pg-btn" onclick="goPage(1)">1</button>'; if (lo > 2) html += '<span class="pg-info">\u2026</span>'; }
+  for (var p = lo; p <= hi; p++) {
+    html += '<button class="pg-btn' + (p === page ? ' on' : '') + '" onclick="goPage(' + p + ')">' + p + '</button>';
+  }
+  if (hi < maxPage) { if (hi < maxPage - 1) html += '<span class="pg-info">\u2026</span>'; html += '<button class="pg-btn" onclick="goPage(' + maxPage + ')">' + maxPage + '</button>'; }
+  html += '<button class="pg-btn" onclick="goPage(' + (page + 1) + ')" ' + (page >= maxPage ? 'disabled' : '') + '>\u203a</button>';
+  html += '<span class="pg-info">' + from + '\u2013' + to + ' / ' + total + '</span>';
+  el.innerHTML = html;
+}
+
+function goPage(p) { _page = p; renderTable(); }
+
+/* ════════════════════════════════
+   FICHE
+════════════════════════════════ */
+var FICHE_FIELDS = [
+  ['Nom',              'n'],
+  ['SIRET',            'si'],
+  ['Adresse',          'ad'],
+  ['Code postal',      'cp'],
+  ['Ville',            'v'],
+  ['Département',      'd'],
+  ['Région',           'r'],
+  ['Téléphone',        'tl'],
+  ['Email',            'em'],
+  ['Contact',          'co'],
+  ['Dernières élec.',  'de'],
+  ['Prochaines élec.', 'pr'],
+  ['Inscrits',         'in'],
+  ['Votants',          'vo'],
+  ['Participation %',  'pa'],
+  ['CGT',              'cg'],
+  ['CFDT',             'cf'],
+  ['FO',               'fo'],
+  ['Org gagnante',     'ga'],
+  ['Notes',            'nt']
+];
+
+function openFiche(idx) {
+  var s = STRUCTS[idx];
+  if (!s) return;
+  document.getElementById('fiche-title').textContent = s.n || '\u2014';
+  var html = '';
+  for (var i = 0; i < FICHE_FIELDS.length; i++) {
+    var v = s[FICHE_FIELDS[i][1]];
+    if (v === undefined || v === null || v === '') continue;
+    html += '<div class="fiche-row"><span class="fiche-lbl">' + FICHE_FIELDS[i][0] + '</span><span class="fiche-val">' + esc(String(v)) + '</span></div>';
+  }
+  if (!html) html = '<div style="color:var(--tx3);font-size:12px">Aucune donn\u00e9e.</div>';
+  document.getElementById('fiche-body').innerHTML = html;
+
+  /* Actions conquête */
+  var cval = CONQUETE[s.si] || 0;
+  var actHtml = '';
+  if (!IS_READONLY && s.si) {
+    actHtml = '<select style="font-size:11px;padding:4px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx)" onchange="setCQFromFiche(\'' + s.si + '\',this.value)">';
+    for (var lv = 0; lv < CQ_LABELS.length; lv++) {
+      actHtml += '<option value="' + lv + '"' + (cval === lv ? ' selected' : '') + '>' + CQ_LABELS[lv] + '</option>';
+    }
+    actHtml += '</select>';
+  }
+  document.getElementById('fiche-actions').innerHTML = actHtml;
+  document.getElementById('fiche-modal').style.display = 'block';
+}
+
+function setCQFromFiche(si, val) {
+  CONQUETE[si] = parseInt(val) || 0;
+  try { localStorage.setItem('fnpos_conquete_' + SEC, JSON.stringify(CONQUETE)); } catch(e) {}
+  updateKpis();
+  if (document.getElementById('tp-conquete').classList.contains('on')) renderConquete();
+}
+
+function closeFicheClick(e) {
+  if (e.target === document.getElementById('fiche-modal')) {
+    document.getElementById('fiche-modal').style.display = 'none';
+  }
+}
+
+/* ════════════════════════════════
+   CARTE
+════════════════════════════════ */
+function initMap() {
+  if (MAP) { MAP.invalidateSize(); return; }
+  MAP = L.map('leaflet-map', {zoomControl:true}).setView([46.8, 2.5], 5);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '\u00a9 OSM \u00a9 Carto', maxZoom:19
+  }).addTo(MAP);
+  loadRegionsLayer();
+}
+
+function loadRegionsLayer() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson', true);
+  xhr.onload = function() {
+    if (xhr.status !== 200) return;
+    try {
+      var gj = JSON.parse(xhr.responseText);
+      var counts = {};
+      for (var i = 0; i < STRUCTS.length; i++) {
+        var r = STRUCTS[i].r || '';
+        if (r) counts[r] = (counts[r] || 0) + 1;
+      }
+      var max = 1;
+      for (var k in counts) { if (counts[k] > max) max = counts[k]; }
+      MAP_LAYER = L.geoJSON(gj, {
+        style: function(feat) {
+          var n = counts[feat.properties.nom] || 0;
+          var alpha = n === 0 ? 0.06 : 0.12 + (n / max) * 0.72;
+          return {fillColor:'#E24B4A', fillOpacity:alpha, color:'#fff', weight:1};
+        },
+        onEachFeature: function(feat, layer) {
+          var name = feat.properties.nom;
+          var n = counts[name] || 0;
+          layer.bindTooltip(name + (n ? ' \u2014 ' + n + ' structure' + (n > 1 ? 's' : '') : ' \u2014 aucune'), {sticky:true});
+          layer.on('click', function() {
+            var regSel = document.getElementById('filter-reg');
+            if (regSel) {
+              regSel.value = (regSel.value === name) ? '' : name;
+            }
+            _page = 1;
+            renderTable();
+          });
+        }
+      }).addTo(MAP);
+    } catch(e) {}
+  };
+  xhr.send();
+}
+
+/* ════════════════════════════════
+   CONQUÊTE
+════════════════════════════════ */
+function setCQFilter(val, btn) {
+  _cqFilter = val;
+  var btns = document.querySelectorAll('.cq-filter-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('on');
+  if (btn) btn.classList.add('on');
+  renderConquete();
+}
+
+function renderConquete() {
+  var el = document.getElementById('cq-grid');
+  var q = '';
+  var cqs = document.getElementById('cq-search');
+  if (cqs) q = cqs.value.toLowerCase();
+  var html = '';
+  var shown = 0;
+  var tracked = 0;
+  for (var si in CONQUETE) { if (CONQUETE[si] > 0) tracked++; }
+
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var s = STRUCTS[i];
+    if (!s.si) continue;
+    var cval = CONQUETE[s.si] || 0;
+    if (_cqFilter !== '' && String(cval) !== _cqFilter) continue;
+    if (q && (s.n + ' ' + s.v + ' ' + s.d).toLowerCase().indexOf(q) < 0) continue;
+    shown++;
+    var color = CQ_COLORS[cval];
+    html += '<div class="cq-card" style="border-left-color:' + color + '">';
+    html += '<div class="cq-name" title="' + esc(s.n || '') + '">' + esc(s.n || '\u2014') + '</div>';
+    html += '<div class="cq-loc">' + esc(s.v || '') + (s.d ? ' (' + esc(s.d) + ')' : '') + '</div>';
+    if (!IS_READONLY) {
+      html += '<select class="cq-sel" onchange="setCQ(\'' + s.si.replace(/'/g, '') + '\',this.value)">';
+      for (var lv = 0; lv < CQ_LABELS.length; lv++) {
+        html += '<option value="' + lv + '"' + (cval === lv ? ' selected' : '') + '>' + CQ_LABELS[lv] + '</option>';
+      }
+      html += '</select>';
+    } else {
+      html += '<div style="font-size:10px;color:' + color + ';font-weight:600">' + CQ_LABELS[cval] + '</div>';
+    }
+    html += '</div>';
+  }
+
+  if (!html) {
+    html = '<div style="color:var(--tx3);font-size:12px;padding:20px;text-align:center">'
+      + (STRUCTS.length === 0 ? 'Importez des données pour commencer.' : 'Aucun résultat.') + '</div>';
+  }
+  el.innerHTML = html;
+  document.getElementById('cq-count').textContent = shown;
+  updateKpis();
+}
+
+function setCQ(si, val) {
+  CONQUETE[si] = parseInt(val) || 0;
+  try { localStorage.setItem('fnpos_conquete_' + SEC, JSON.stringify(CONQUETE)); } catch(e) {}
+  updateKpis();
+}
+
+function exportConquete() {
+  var out = [];
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var s = STRUCTS[i];
+    if (!s.si) continue;
+    var v = CONQUETE[s.si] || 0;
+    if (v > 0) {
+      out.push({si:s.si, n:s.n, v:s.v, d:s.d, statut:v, libelle:CQ_LABELS[v]});
+    }
+  }
+  downloadJSON(out, 'conquete_' + SEC + '_' + today() + '.json');
+}
+
+/* ════════════════════════════════
+   IMPORT XLS
+════════════════════════════════ */
+function openImport() {
+  if (IS_READONLY) return;
+  _pendingImport = [];
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-preview').innerHTML = '';
+  document.getElementById('btn-confirm').disabled = true;
+  document.getElementById('import-count').textContent = '';
+  document.getElementById('file-input').value = '';
+  document.getElementById('import-modal').classList.add('open');
+}
+
+function closeImport() {
+  document.getElementById('import-modal').classList.remove('open');
+}
+
+function handleFile(evt) {
+  var file = evt.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, {type:'binary'});
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if (!rows || rows.length === 0) { alert('Fichier vide ou non lisible.'); return; }
+      _pendingImport = parseXLSRows(rows);
+      var prev = document.getElementById('import-preview');
+      prev.style.display = '';
+      var ph = '<strong>' + _pendingImport.length + ' structure(s) d\u00e9tect\u00e9e(s)</strong><br>';
+      for (var i = 0; i < Math.min(4, _pendingImport.length); i++) {
+        ph += '\u2022 ' + esc(_pendingImport[i].n || '\u2014') + ' \u2014 ' + esc(_pendingImport[i].cp || '') + ' ' + esc(_pendingImport[i].v || '') + '<br>';
+      }
+      if (_pendingImport.length > 4) ph += '\u2026 et ' + (_pendingImport.length - 4) + ' autres';
+      prev.innerHTML = ph;
+      document.getElementById('btn-confirm').disabled = false;
+      document.getElementById('import-count').textContent = '(' + _pendingImport.length + ')';
+    } catch(err) {
+      alert('Erreur lecture fichier : ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function parseXLSRows(rows) {
+  if (!rows || rows.length === 0) return [];
+  var headers = Object.keys(rows[0]);
+
+  function col(candidates) {
+    for (var i = 0; i < candidates.length; i++) {
+      var c = candidates[i].toLowerCase().trim();
+      for (var j = 0; j < headers.length; j++) {
+        if (headers[j].toLowerCase().trim().indexOf(c) >= 0) return headers[j];
+      }
+    }
+    return null;
+  }
+
+  var colN  = col(['raison sociale','nom','structure','etablissement','organisme','designation','libelle']);
+  var colSi = col(['siret','n\u00b0 siret','numero siret','n siret','siren']);
+  var colCp = col(['code postal','cp','codepostal','code_postal','c.p.','c.p']);
+  var colV  = col(['ville','commune','localite','localité']);
+  var colD  = col(['département','departement','dept','dep ','dep.','num dep','numdep']);
+  var colR  = col(['région','region','reg ','reg.']);
+  var colAd = col(['adresse','adresse 1','rue','voie','addr']);
+  var colEm = col(['email','mail','courriel','e-mail','mel','mél']);
+  var colTl = col(['téléphone','telephone','tél','tel ','tel.','phone']);
+  var colCo = col(['contact','referent','référent','responsable','nom contact','nom ref']);
+  var colDe = col(['date election','date élection','dernieres elections','derniéres','date cse','dern\u00e8res']);
+  var colPr = col(['prochaines','renouvellement','prochain','echeance','échéance','mandat']);
+  var colIn = col(['inscrits','nb inscrits','electeurs','électeurs','nb elect']);
+  var colVo = col(['votants','nb votants','suffrages','nb suffrages','nbre votants']);
+  var colPa = col(['participation','taux participation','taux','% part']);
+  var colCg = col(['cgt','sieges cgt','voix cgt','cgt sièges','nb cgt']);
+  var colCf = col(['cfdt','sieges cfdt','voix cfdt']);
+  var colFo = col(['fo ','fo.','force ouvr','sieges fo','voix fo']);
+  var colGa = col(['gagnant','majoritaire','1er','premier','resultat','organisation gagnante']);
+
+  var result = [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var n = colN ? String(row[colN] || '').trim() : '';
+    if (!n) continue;
+    var obj = {n:n};
+    if (colSi) obj.si = String(row[colSi] || '').replace(/\s+/g,'').replace(/\.0+$/,'');
+    if (colCp) {
+      var cpv = String(row[colCp] || '').replace(/\s+/g,'').replace(/\.0+$/,'');
+      if (cpv.length > 0 && cpv.length < 3 && parseInt(cpv) < 100) {
+        cpv = (cpv.length === 1 ? '0' + cpv + '000' : cpv + '000');
+      }
+      obj.cp = cpv;
+    }
+    if (colV)  obj.v  = String(row[colV]  || '').trim();
+    if (colD)  obj.d  = String(row[colD]  || '').trim().replace(/\.0+$/,'');
+    if (colR)  obj.r  = String(row[colR]  || '').trim().toUpperCase();
+    if (colAd) obj.ad = String(row[colAd] || '').trim();
+    if (colEm) obj.em = String(row[colEm] || '').trim().toLowerCase();
+    if (colTl) obj.tl = String(row[colTl] || '').trim();
+    if (colCo) obj.co = String(row[colCo] || '').trim();
+    if (colDe) { var dv = String(row[colDe] || '').trim(); if (dv && dv !== '0' && dv.length > 2) obj.de = dv; }
+    if (colPr) { var pv = String(row[colPr] || '').trim(); if (pv && pv !== '0' && pv.length > 2) obj.pr = pv; }
+    if (colIn) { var iv = parseFloat(row[colIn]); if (!isNaN(iv)) obj.in = iv; }
+    if (colVo) { var vv = parseFloat(row[colVo]); if (!isNaN(vv)) obj.vo = vv; }
+    if (colPa) { var pav = parseFloat(row[colPa]); if (!isNaN(pav)) obj.pa = pav; }
+    if (colCg) { var cgv = parseFloat(row[colCg]); if (!isNaN(cgv)) obj.cg = cgv; }
+    if (colCf) { var cfv = parseFloat(row[colCf]); if (!isNaN(cfv)) obj.cf = cfv; }
+    if (colFo) { var fov = parseFloat(row[colFo]); if (!isNaN(fov)) obj.fo = fov; }
+    if (colGa) obj.ga = String(row[colGa] || '').trim();
+    result.push(obj);
+  }
+  return result;
+}
+
+function confirmImport() {
+  if (_pendingImport.length === 0) return;
+  STRUCTS = _pendingImport;
+  try { localStorage.setItem('fnpos_structs_' + SEC, JSON.stringify(STRUCTS)); } catch(e) {}
+  closeImport();
+  _page = 1;
+  updateKpis();
+  renderTable();
+  buildRegionFilter();
+  renderConquete();
+  if (MAP) { MAP.remove(); MAP = null; }
+}
+
+/* ════════════════════════════════
+   EXPORT / CLEAR
+════════════════════════════════ */
+function exportJSON() {
+  downloadJSON({sec:SEC, structs:STRUCTS, conquete:CONQUETE, exported:new Date().toISOString()},
+    'fnpos_' + SEC + '_' + today() + '.json');
+}
+
+function clearData() {
+  if (!confirm('Supprimer toutes les structures du secteur ' + CFG.name + ' ?\nCette action est irr\u00e9versible.')) return;
+  STRUCTS = [];
+  try { localStorage.removeItem('fnpos_structs_' + SEC); } catch(e) {}
+  _page = 1;
+  updateKpis();
+  renderTable();
+  renderConquete();
+  if (MAP) { MAP.remove(); MAP = null; }
+}
+
+/* ════════════════════════════════
+   UTILITAIRES
+════════════════════════════════ */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function today() {
+  var d = new Date();
+  return d.getFullYear() + '' + pad2(d.getMonth()+1) + '' + pad2(d.getDate());
+}
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function downloadJSON(data, filename) {
+  var str = JSON.stringify(data, null, 2);
+  var blob = new Blob([str], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ════════════════════════════════
+   DÉMARRAGE
+════════════════════════════════ */
+init();
+
+</script>
+</body>
+</html>
