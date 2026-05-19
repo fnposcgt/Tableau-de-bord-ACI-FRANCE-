@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Tableau de bord FNPOS-CGT</title>
 <script src="data-secteurs.js"></script>
+<script src="contacts.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -16,6 +17,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-siz
 /* READONLY BANNER */
 #readonly-banner{display:none;background:#1a3a1a;color:#7dd87d;font-size:11px;padding:6px 12px;text-align:center;letter-spacing:.5px}
 body.is-readonly #readonly-banner{display:block}
+
+/* AUTH OVERLAY */
+#auth-overlay{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#1a0000 0%,#111 60%,#1a1a2e 100%);display:flex;align-items:center;justify-content:center;padding:20px}
+#auth-card{background:rgba(255,255,255,.05);border:1px solid rgba(226,75,74,.3);border-radius:16px;padding:32px 28px;max-width:360px;width:100%;text-align:center;backdrop-filter:blur(10px)}
+#auth-logo{font-family:Georgia,serif;font-size:28px;font-weight:700;font-style:italic;color:#E24B4A;margin-bottom:4px}
+#auth-org{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+#auth-sector{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+#auth-mode{font-size:11px;margin-bottom:24px;padding:4px 12px;border-radius:20px;display:inline-block}
+.auth-mode-admin{background:rgba(226,75,74,.2);color:#E24B4A;border:1px solid rgba(226,75,74,.4)}
+.auth-mode-readonly{background:rgba(55,138,221,.2);color:#7eb8f7;border:1px solid rgba(55,138,221,.4)}
+#auth-input{width:100%;padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:14px;text-align:center;letter-spacing:2px;outline:none;margin-bottom:10px}
+#auth-input:focus{border-color:#E24B4A;background:rgba(226,75,74,.08)}
+#auth-input::placeholder{color:rgba(255,255,255,.3);letter-spacing:0}
+#auth-btn{width:100%;padding:12px;border-radius:8px;border:none;background:#E24B4A;color:#fff;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;margin-bottom:8px}
+#auth-btn:hover{background:#c03838}
+#auth-bio-btn{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;margin-bottom:12px;display:none}
+#auth-bio-btn:hover{background:rgba(255,255,255,.08)}
+#auth-error{font-size:11px;color:#ff7070;min-height:16px;margin-bottom:4px}
+#auth-hint{font-size:10px;color:rgba(255,255,255,.3);line-height:1.5}
+
 
 /* BACK */
 .back-link{font-size:11px;color:var(--tx3);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}
@@ -120,11 +141,43 @@ select.cq-sel{font-size:11px;padding:3px 6px;border:1px solid var(--bd2);border-
 #fab-import{position:fixed;bottom:20px;right:20px;background:var(--ac);color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(226,75,74,.35);z-index:500;display:flex;align-items:center;gap:6px}
 body.is-readonly #fab-import{display:none}
 
+/* CONTACTS */
+.ct-region{margin-bottom:18px;background:var(--bg2);border-radius:var(--r);overflow:hidden}
+.ct-reg-hdr{padding:10px 14px;background:var(--ac);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.ct-reg-hdr span{font-size:10px;opacity:.8;font-weight:400}
+.ct-reg-body{padding:10px 14px}
+.ct-group{margin-bottom:10px}
+.ct-group-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.ct-card{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ct-name{font-size:12px;font-weight:600;color:var(--tx)}
+.ct-infos{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.ct-tel{font-size:11px;color:#378ADD;text-decoration:none}
+.ct-tel:hover{text-decoration:underline}
+.ct-mail{font-size:11px;color:var(--ac);text-decoration:none;word-break:break-all}
+.ct-mail:hover{text-decoration:underline}
+.ct-empty{font-size:11px;color:var(--tx3);font-style:italic;padding:4px 0}
+
+
 /* READONLY — masquer les boutons d'action */
 body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
 </style>
 </head>
 <body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div id="auth-card">
+    <div id="auth-logo">CGT</div>
+    <div id="auth-org">FNPOS-CGT — Portail fédéral</div>
+    <div id="auth-sector">Chargement…</div>
+    <div id="auth-mode" class="auth-mode-admin">🔐 Administration</div>
+    <input type="password" id="auth-input" placeholder="Mot de passe" autocomplete="current-password">
+    <button id="auth-btn" onclick="checkAuth()">Accéder</button>
+    <button id="auth-bio-btn" onclick="tryBiometric()">🪪 Utiliser la biométrie / code PIN</button>
+    <div id="auth-error"></div>
+    <div id="auth-hint"></div>
+  </div>
+</div>
 
 <div id="readonly-banner">👁 Mode consultation — lecture seule</div>
 
@@ -160,6 +213,7 @@ body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
   <button class="nb" onclick="showTab('carte',this)">🗺️ Carte</button>
   <button class="nb" onclick="showTab('conquete',this)">🎯 Conquête</button>
   <button class="nb" onclick="showTab('syndicats',this)">🏅 Syndicats</button>
+  <button class="nb" onclick="showTab('contacts',this)">📇 Contacts</button>
 </nav>
 
 <!-- ═══ TABLEAU ═══ -->
@@ -226,6 +280,11 @@ body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
 <!-- ═══ SYNDICATS ═══ -->
 <div id="tp-syndicats" class="tp">
   <div id="synd-body"></div>
+</div>
+
+<!-- ═══ CONTACTS ═══ -->
+<div id="tp-contacts" class="tp">
+  <div id="contacts-body"></div>
 </div>
 
 </div><!-- /wrap -->
@@ -341,6 +400,8 @@ function init() {
     document.body.classList.add('is-readonly');
   }
 
+  initAuth();
+
   try {
     var s = localStorage.getItem('fnpos_structs_' + SEC);
     if (s) STRUCTS = JSON.parse(s);
@@ -404,6 +465,7 @@ function showTab(name, btn) {
     setTimeout(function() { initMap(); }, 50);
   }
   if (name === 'syndicats') renderSyndicats();
+  if (name === 'contacts')  renderContacts();
 }
 
 /* ════════════════════════════════
@@ -1190,6 +1252,231 @@ function renderSyndicats() {
 
   el.innerHTML = html;
 }
+
+/* ════════════════════════════════
+   CONTACTS PAR RÉGION
+════════════════════════════════ */
+var _contactsRendered = false;
+
+function renderContacts() {
+  if (_contactsRendered) return;
+  _contactsRendered = true;
+  var el = document.getElementById('contacts-body');
+  if (!el) return;
+
+  if (typeof CONTACTS_BY_REG === 'undefined') {
+    el.innerHTML = '<div style="color:var(--tx3);padding:30px;text-align:center">Fichier contacts.js non charg\u00e9.</div>';
+    return;
+  }
+
+  var ROLE_LABELS = [
+    {key:'resp', lbl:'Responsable(s) de r\u00e9gion', icon:'\ud83c\udf1f'},
+    {key:'cef',  lbl:'Membres CEF',                  icon:'\ud83c\udfc5'},
+    {key:'ref',  lbl:'R\u00e9f\u00e9rents \u00e9lections', icon:'\ud83d\udcdd'}
+  ];
+
+  /* Filtre recherche */
+  var html = '<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+  html += '<input type="text" id="ct-search" placeholder="Rechercher un contact ou une r\u00e9gion\u2026" oninput="filterContacts()"';
+  html += ' style="font-size:11px;padding:6px 10px;border:1px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--tx);outline:none;flex:1;min-width:200px">';
+  html += '<span id="ct-count" style="font-size:11px;color:var(--tx3)"></span>';
+  html += '</div>';
+  html += '<div id="ct-regions">';
+
+  var regions = Object.keys(CONTACTS_BY_REG).sort();
+  var totalContacts = 0;
+
+  for (var ri = 0; ri < regions.length; ri++) {
+    var reg = regions[ri];
+    var d = CONTACTS_BY_REG[reg];
+    var anc = d.anciennes ? d.anciennes.join(', ') : '';
+    var regTotal = d.ref.length + d.cef.length + d.resp.length;
+    totalContacts += regTotal;
+
+    html += '<div class="ct-region" id="ctr-' + ri + '">';
+    html += '<div class="ct-reg-hdr" onclick="toggleRegion(' + ri + ')">';
+    html += '<span>' + esc(reg) + '</span>';
+    html += '<span>' + (anc ? anc + ' \u2014 ' : '') + regTotal + ' contact' + (regTotal > 1 ? 's' : '') + ' \u25be</span>';
+    html += '</div>';
+    html += '<div class="ct-reg-body" id="ctrb-' + ri + '">';
+
+    for (var gi = 0; gi < ROLE_LABELS.length; gi++) {
+      var grp = ROLE_LABELS[gi];
+      var list = d[grp.key] || [];
+      html += '<div class="ct-group">';
+      html += '<div class="ct-group-lbl">' + grp.icon + ' ' + grp.lbl + '</div>';
+      if (list.length === 0) {
+        html += '<div class="ct-empty">Aucun contact renseign\u00e9</div>';
+      } else {
+        for (var ci = 0; ci < list.length; ci++) {
+          var c = list[ci];
+          html += '<div class="ct-card">';
+          html += '<div><div class="ct-name">' + esc(c.n) + '</div>';
+          html += '<div class="ct-infos">';
+          if (c.t) html += '<a class="ct-tel" href="tel:' + c.t.replace(/\s/g,'') + '">\ud83d\udcde ' + esc(c.t) + '</a>';
+          if (c.e) html += '<a class="ct-mail" href="mailto:' + esc(c.e) + '">\u2709 ' + esc(c.e) + '</a>';
+          html += '</div></div>';
+          html += '</div>';
+        }
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+  document.getElementById('ct-count').textContent = totalContacts + ' contacts \u2014 ' + regions.length + ' r\u00e9gions';
+}
+
+function toggleRegion(ri) {
+  var body = document.getElementById('ctrb-' + ri);
+  var hdr  = document.querySelector('#ctr-' + ri + ' .ct-reg-hdr span:last-child');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (hdr) hdr.textContent = hdr.textContent.replace(open ? '\u25be' : '\u25b8', open ? '\u25b8' : '\u25be');
+}
+
+function filterContacts() {
+  var q = (document.getElementById('ct-search') ? document.getElementById('ct-search').value : '').toLowerCase().trim();
+  var regions = document.querySelectorAll('.ct-region');
+  var visCount = 0;
+  for (var ri = 0; ri < regions.length; ri++) {
+    var text = regions[ri].textContent.toLowerCase();
+    var show = !q || text.indexOf(q) >= 0;
+    regions[ri].style.display = show ? '' : 'none';
+    if (show) visCount++;
+  }
+  var countEl = document.getElementById('ct-count');
+  if (countEl && q) countEl.textContent = visCount + ' r\u00e9gion' + (visCount > 1 ? 's' : '') + ' trouv\u00e9e' + (visCount > 1 ? 's' : '');
+}
+
+/* ════════════════════════════════
+   AUTHENTIFICATION
+════════════════════════════════ */
+var ADMIN_PWD = {
+  ml:  'Admin@ML93100',
+  ss:  'Admin@SS93100',
+  ad:  'Admin@AD93100',
+  rq:  'Admin@RQ93100',
+  mut: 'Admin@MUT93100',
+  gps: 'Admin@GPS93100',
+  msa: 'Admin@MSA93100',
+  ft:  'Admin@FT93100',
+  aci: 'Admin@ACI93100'
+};
+var READONLY_PWD = 'Org@soc93100';
+
+function initAuth() {
+  var overlay = document.getElementById('auth-overlay');
+  var sectorEl = document.getElementById('auth-sector');
+  var modeEl = document.getElementById('auth-mode');
+  var hintEl = document.getElementById('auth-hint');
+  var bioBtn = document.getElementById('auth-bio-btn');
+  var input = document.getElementById('auth-input');
+
+  sectorEl.textContent = CFG.name;
+
+  /* Vérifier session existante */
+  var sessionKey = IS_READONLY ? 'fnpos_auth_ro' : ('fnpos_auth_admin_' + SEC);
+  try {
+    if (sessionStorage.getItem(sessionKey) === '1') {
+      overlay.style.display = 'none';
+      return;
+    }
+  } catch(e) {}
+
+  /* Configurer l'overlay selon le mode */
+  if (IS_READONLY) {
+    modeEl.textContent = '\ud83d\udc41 Consultation';
+    modeEl.className = 'auth-mode-readonly';
+    hintEl.textContent = 'Accès lecture seule — tous secteurs';
+  } else {
+    modeEl.textContent = '\ud83d\udd10 Administration';
+    modeEl.className = 'auth-mode-admin';
+    hintEl.textContent = 'Accès réservé aux responsables de secteur FNPOS-CGT';
+  }
+
+  /* Afficher bouton biométrie si supporté */
+  if (window.PublicKeyCredential) {
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(ok) {
+      if (ok) { bioBtn.style.display = 'block'; }
+    }).catch(function() {});
+  }
+
+  /* Touches clavier */
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkAuth();
+  });
+
+  /* Focus auto */
+  setTimeout(function() { input.focus(); }, 300);
+}
+
+function checkAuth() {
+  var input = document.getElementById('auth-input');
+  var errEl = document.getElementById('auth-error');
+  var val = input.value;
+
+  var expected = IS_READONLY ? READONLY_PWD : (ADMIN_PWD[SEC] || '');
+
+  if (!val) {
+    errEl.textContent = 'Veuillez saisir le mot de passe.';
+    return;
+  }
+
+  if (val !== expected) {
+    errEl.textContent = 'Mot de passe incorrect.';
+    input.value = '';
+    input.focus();
+    /* Animation shake */
+    var card = document.getElementById('auth-card');
+    card.style.animation = 'shake .3s ease';
+    setTimeout(function() { card.style.animation = ''; }, 350);
+    return;
+  }
+
+  /* Succès */
+  authSuccess();
+}
+
+function authSuccess() {
+  var sessionKey = IS_READONLY ? 'fnpos_auth_ro' : ('fnpos_auth_admin_' + SEC);
+  try { sessionStorage.setItem(sessionKey, '1'); } catch(e) {}
+  var overlay = document.getElementById('auth-overlay');
+  overlay.style.transition = 'opacity .3s ease';
+  overlay.style.opacity = '0';
+  setTimeout(function() { overlay.style.display = 'none'; }, 320);
+}
+
+function tryBiometric() {
+  /* Déclenche la suggestion du gestionnaire de mots de passe natif (biométrie/PIN) */
+  var input = document.getElementById('auth-input');
+  input.focus();
+  /* Sur Android Chrome avec un mot de passe sauvegardé, le gestionnaire propose la biométrie */
+  try {
+    if (navigator.credentials && navigator.credentials.get) {
+      navigator.credentials.get({
+        password: true,
+        mediation: 'required'
+      }).then(function(cred) {
+        if (cred && cred.password) {
+          input.value = cred.password;
+          checkAuth();
+        }
+      }).catch(function() {
+        /* Fallback : focus sur le champ pour déclencher le gestionnaire */
+        input.focus();
+      });
+    }
+  } catch(e) { input.focus(); }
+}
+
+/* Animation shake */
+var authStyle = document.createElement('style');
+authStyle.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}';
+document.head.appendChild(authStyle);
 
 /* ════════════════════════════════
    DÉMARRAGE
