@@ -157,6 +157,7 @@ body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
   <button class="nb on" onclick="showTab('tableau',this)">📋 Tableau</button>
   <button class="nb" onclick="showTab('carte',this)">🗺️ Carte</button>
   <button class="nb" onclick="showTab('conquete',this)">🎯 Conquête</button>
+  <button class="nb" onclick="showTab('syndicats',this)">🏅 Syndicats</button>
 </nav>
 
 <!-- ═══ TABLEAU ═══ -->
@@ -218,6 +219,11 @@ body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
     <button class="cq-filter-btn" onclick="setCQFilter('4',this)">4 — Contact UD/UL</button>
   </div>
   <div id="cq-grid" class="cq-grid"></div>
+</div>
+
+<!-- ═══ SYNDICATS ═══ -->
+<div id="tp-syndicats" class="tp">
+  <div id="synd-body"></div>
 </div>
 
 </div><!-- /wrap -->
@@ -381,6 +387,7 @@ function showTab(name, btn) {
   if (name === 'carte') {
     setTimeout(function() { initMap(); }, 50);
   }
+  if (name === 'syndicats') renderSyndicats();
 }
 
 /* ════════════════════════════════
@@ -866,6 +873,305 @@ function downloadJSON(data, filename) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+/* ════════════════════════════════
+   DONNÉES REPRÉSENTATIVITÉ (cycle 4 — 2021-2024)
+════════════════════════════════ */
+var REPR_DATA = {
+  aci: {
+    label:'ACI', cycle:4, inscrits:5795,
+    note:'2\u00e8me organisation syndicale nationale',
+    orgs:[
+      {n:'CFDT',        voix:43.56, repr:44.90, ok:true},
+      {n:'CGT',         voix:33.28, repr:34.31, ok:true, cgt:true},
+      {n:'FO',          voix:11.46, repr:11.82, ok:true},
+      {n:'Solidaires',  voix:8.97,  repr:8.97,  ok:true}
+    ],
+    cgt_rang:2, cgt_voix:33.28, cgt_repr:34.31,
+    colleges:[
+      {n:'1er coll\u00e8ge (18,1%)', cgt:41.5, rang:1},
+      {n:'2e coll\u00e8ge (4,6%)',   cgt:33.2, rang:1},
+      {n:'5e coll\u00e8ge (76,4%)',  cgt:30.8, rang:2}
+    ],
+    presence:[{c:'1er',p:53},{c:'2e',p:43},{c:'5e',p:47}],
+    annees:[{y:2021,cgt:23.7},{y:2022,cgt:35.1},{y:2023,cgt:36.3},{y:2024,cgt:29.4}]
+  },
+  ml: {
+    label:'Missions Locales', cycle:4, inscrits:8985,
+    note:'1\u00e8re organisation syndicale nationale',
+    orgs:[
+      {n:'CGT',  voix:38.65, repr:41.02, ok:true, cgt:true},
+      {n:'CFDT', voix:38.21, repr:40.55, ok:true},
+      {n:'CFTC', voix:9.30,  repr:9.87,  ok:true},
+      {n:'FO',   voix:8.06,  repr:8.56,  ok:true}
+    ],
+    cgt_rang:1, cgt_voix:38.65, cgt_repr:41.02,
+    colleges:[
+      {n:'1er coll\u00e8ge (35,0%)', cgt:38.2, rang:2},
+      {n:'2e coll\u00e8ge (12,9%)',  cgt:34.4, rang:2},
+      {n:'5e coll\u00e8ge (49,8%)',  cgt:41.3, rang:1}
+    ],
+    presence:[{c:'1er',p:54},{c:'2e',p:40},{c:'5e',p:48}],
+    annees:[{y:2021,cgt:38.0},{y:2022,cgt:45.5},{y:2023,cgt:34.0},{y:2024,cgt:43.7}]
+  },
+  ss: {
+    label:'S\u00e9curit\u00e9 Sociale', cycle:4, inscrits:149927,
+    note:'2\u00e8me organisation (\u00e9cart 95 voix avec FO sur 149 927 inscrits)',
+    orgs:[
+      {n:'FO',      voix:27.11, repr:29.62, ok:true},
+      {n:'CGT',     voix:27.01, repr:29.52, ok:true, cgt:true},
+      {n:'CFDT',    voix:25.41, repr:27.77, ok:true},
+      {n:'CFTC',    voix:9.02,  repr:9.86,  ok:true},
+      {n:'CFE-CGC', voix:2.96,  repr:3.23,  ok:true, cat:true}
+    ],
+    cgt_rang:2, cgt_voix:27.01, cgt_repr:29.52,
+    colleges:[
+      {n:'Coll. employ\u00e9s (68,3%)', cgt:29.7, rang:1},
+      {n:'Coll. cadres (31,7%)',        cgt:21.7, rang:3}
+    ],
+    presence:[],
+    annees:[{y:2021,cgt:39.7},{y:2022,cgt:32.0},{y:2023,cgt:25.0},{y:2024,cgt:26.5}]
+  },
+  ad: {
+    label:'Aides \u00e0 Domicile', cycle:4, inscrits:81890,
+    note:'2\u00e8me organisation syndicale nationale',
+    orgs:[
+      {n:'CFDT', voix:38.93, repr:46.31, ok:true},
+      {n:'CGT',  voix:32.09, repr:38.17, ok:true, cgt:true},
+      {n:'FO',   voix:13.04, repr:15.51, ok:true}
+    ],
+    cgt_rang:2, cgt_voix:32.09, cgt_repr:38.17,
+    colleges:[
+      {n:'1er coll\u00e8ge (60,8%)', cgt:33.2, rang:2},
+      {n:'2e coll\u00e8ge (7,0%)',   cgt:22.2, rang:2},
+      {n:'5e coll\u00e8ge (28,9%)',  cgt:32.1, rang:2}
+    ],
+    presence:[{c:'1er',p:49},{c:'2e',p:37},{c:'5e',p:35}],
+    annees:[{y:2021,cgt:40.3},{y:2022,cgt:31.5},{y:2023,cgt:31.8},{y:2024,cgt:31.9}]
+  },
+  rq: {
+    label:'R\u00e9gies de Quartier', cycle:4, inscrits:null,
+    note:'2\u00e8me organisation syndicale nationale',
+    orgs:[
+      {n:'CFDT',       voix:46.64, repr:50.13, ok:true},
+      {n:'CGT',        voix:25.03, repr:26.90, ok:true, cgt:true},
+      {n:'Solidaires', voix:21.37, repr:22.97, ok:true}
+    ],
+    cgt_rang:2, cgt_voix:25.03, cgt_repr:26.90,
+    colleges:[],
+    presence:[{c:'Global',p:45}],
+    annees:[]
+  },
+  mut: {
+    label:'Mutualit\u00e9', cycle:4, inscrits:46621,
+    note:'2\u00e8me organisation syndicale nationale',
+    orgs:[
+      {n:'CFDT',    voix:30.68, repr:33.18, ok:true},
+      {n:'CGT',     voix:21.47, repr:23.22, ok:true, cgt:true},
+      {n:'FO',      voix:14.87, repr:16.08, ok:true},
+      {n:'CFE-CGC', voix:12.78, repr:13.82, ok:true},
+      {n:'UNSA',    voix:12.66, repr:13.69, ok:true}
+    ],
+    cgt_rang:2, cgt_voix:21.47, cgt_repr:23.22,
+    colleges:[
+      {n:'1er coll\u00e8ge (37,7%)', cgt:32.7, rang:1},
+      {n:'2e coll\u00e8ge (30,5%)',  cgt:22.1, rang:2},
+      {n:'3e coll\u00e8ge (24,3%)',  cgt:9.1,  rang:4},
+      {n:'4e coll\u00e8ge (6,7%)',   cgt:10.6, rang:5}
+    ],
+    presence:[{c:'1er',p:48},{c:'2e',p:39},{c:'3e',p:33},{c:'4e',p:55}],
+    annees:[{y:2021,cgt:24.0},{y:2022,cgt:11.6},{y:2023,cgt:19.7},{y:2024,cgt:26.5}]
+  },
+  gps: {
+    label:'GPS', cycle:4, inscrits:27521,
+    note:'3\u00e8me organisation syndicale nationale',
+    orgs:[
+      {n:'CFDT',    voix:27.65, repr:29.46, ok:true},
+      {n:'FO',      voix:17.90, repr:19.07, ok:true},
+      {n:'CGT',     voix:15.94, repr:16.98, ok:true, cgt:true},
+      {n:'CFE-CGC', voix:14.38, repr:15.32, ok:true},
+      {n:'UNSA',    voix:9.94,  repr:10.59, ok:true},
+      {n:'CFTC',    voix:8.05,  repr:8.58,  ok:true}
+    ],
+    cgt_rang:3, cgt_voix:15.94, cgt_repr:16.98,
+    colleges:[
+      {n:'1er coll\u00e8ge (39,7%)', cgt:23.1, rang:3},
+      {n:'2e coll\u00e8ge (31,2%)',  cgt:13.3, rang:4},
+      {n:'3e coll\u00e8ge (27,3%)',  cgt:7.4,  rang:6}
+    ],
+    presence:[{c:'1er',p:79},{c:'2e',p:55},{c:'3e',p:47}],
+    annees:[{y:2021,cgt:14.3},{y:2022,cgt:31.3},{y:2023,cgt:14.5},{y:2024,cgt:0.0}]
+  },
+  msa: {
+    label:'MSA', cycle:4, inscrits:null,
+    note:'3\u00e8me organisation syndicale nationale',
+    orgs:[
+      {n:'CFDT',    voix:45.08, repr:47.63, ok:true},
+      {n:'FO',      voix:15.99, repr:16.90, ok:true},
+      {n:'CGT',     voix:14.33, repr:15.14, ok:true, cgt:true},
+      {n:'UNSA',    voix:11.67, repr:12.33, ok:true},
+      {n:'CFE-CGC', voix:7.56,  repr:7.99,  ok:true, cat:true}
+    ],
+    cgt_rang:3, cgt_voix:14.33, cgt_repr:15.14,
+    colleges:[
+      {n:'1er coll\u00e8ge (50,5%)', cgt:18.2, rang:3},
+      {n:'2e coll\u00e8ge (18,9%)',  cgt:11.6, rang:4},
+      {n:'3e coll\u00e8ge (28,0%)',  cgt:9.6,  rang:4}
+    ],
+    presence:[{c:'1er',p:46},{c:'2e',p:35},{c:'3e',p:33}],
+    annees:[]
+  },
+  ft: {
+    label:'France Travail', cycle:4, inscrits:null,
+    note:'4\u00e8me organisation syndicale — prochaines \u00e9lections fin 2027',
+    orgs:[
+      {n:'Autres (FSU…)', voix:31.86, repr:null, ok:false},
+      {n:'CFDT',          voix:18.76, repr:null, ok:false},
+      {n:'FO',            voix:18.51, repr:null, ok:false},
+      {n:'CGT',           voix:10.61, repr:null, ok:false, cgt:true},
+      {n:'CFTC',          voix:8.43,  repr:null, ok:false},
+      {n:'CFE-CGC',       voix:8.28,  repr:null, ok:false}
+    ],
+    cgt_rang:4, cgt_voix:10.61, cgt_repr:null,
+    colleges:[
+      {n:'1er coll\u00e8ge (43%)', cgt:13.3, rang:4},
+      {n:'2e coll\u00e8ge (43%)',  cgt:9.8,  rang:4},
+      {n:'3e coll\u00e8ge (14%)',  cgt:6.5,  rang:6}
+    ],
+    presence:[{c:'1er',p:80},{c:'2e',p:76},{c:'3e',p:68}],
+    annees:[]
+  }
+};
+
+/* MAP sec key → REPR_DATA key */
+var REPR_KEY = {ml:'ml', ss:'ss', ad:'ad', rq:'rq', mut:'mut', gps:'gps', msa:'msa', ft:'ft', aci:'aci'};
+
+/* ════════════════════════════════
+   SYNDICATS TAB
+════════════════════════════════ */
+function renderSyndicats() {
+  var el = document.getElementById('synd-body');
+  if (!el) return;
+  var key = REPR_KEY[SEC] || SEC;
+  var d = REPR_DATA[key];
+  if (!d) {
+    el.innerHTML = '<div style="color:var(--tx3);padding:30px;text-align:center">Donn\u00e9es de repr\u00e9sentativit\u00e9 non disponibles pour ce secteur.</div>';
+    return;
+  }
+
+  var rang_medal = d.cgt_rang === 1 ? '\ud83e\udd47' : (d.cgt_rang === 2 ? '\ud83e\udd48' : (d.cgt_rang === 3 ? '\ud83e\udd49' : d.cgt_rang + 'e'));
+  var repr_str = d.cgt_repr !== null ? d.cgt_repr.toFixed(2) + '%' : '\u2014';
+  var inscrits_str = d.inscrits ? d.inscrits.toLocaleString('fr-FR') : '\u2014';
+
+  var html = '<div style="margin-bottom:14px">';
+  /* KPI strip */
+  html += '<div class="krow">';
+  html += '<div class="kpi" style="border-left:3px solid #E24B4A">';
+  html += '<div class="kl">Score CGT</div><div class="kv" style="color:#E24B4A">' + d.cgt_voix.toFixed(2) + '%</div>';
+  html += '<div class="ks">Voix exprim\u00e9es</div></div>';
+  html += '<div class="kpi" style="border-left:3px solid #E24B4A">';
+  html += '<div class="kl">Repr\u00e9sentativit\u00e9</div><div class="kv" style="color:#E24B4A">' + repr_str + '</div>';
+  html += '<div class="ks">Taux officiel</div></div>';
+  html += '<div class="kpi">';
+  html += '<div class="kl">Rang CGT</div><div class="kv">' + rang_medal + '</div>';
+  html += '<div class="ks">' + d.note.substring(0, 28) + '</div></div>';
+  if (d.inscrits) {
+    html += '<div class="kpi"><div class="kl">Inscrits</div><div class="kv">' + inscrits_str + '</div><div class="ks">Cycle ' + d.cycle + '</div></div>';
+  }
+  html += '</div>';
+
+  /* Tableau des organisations */
+  html += '<div style="margin-bottom:12px">';
+  html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">R\u00e9sultats tous coll\u00e8ges — Cycle ' + d.cycle + ' (2021-2024)</div>';
+  html += '<div class="tscroll"><table><thead><tr>';
+  html += '<th>Organisation</th><th>% voix</th><th>Taux repr.</th><th>Statut</th></tr></thead><tbody>';
+  for (var i = 0; i < d.orgs.length; i++) {
+    var org = d.orgs[i];
+    var rowStyle = org.cgt ? ' style="background:rgba(226,75,74,.07)"' : '';
+    var reprTxt = org.repr !== null ? org.repr.toFixed(2) + '%' : '\u2014';
+    var statut = org.ok ? '<span style="color:#27AE60;font-weight:700">\u2713 Repr\u00e9sentatif' + (org.cat ? ' (cat.)' : '') + '</span>' : '<span style="color:var(--tx3)">Non repr.</span>';
+    html += '<tr' + rowStyle + '>';
+    html += '<td style="font-weight:' + (org.cgt ? '700' : '400') + ';color:' + (org.cgt ? '#E24B4A' : 'var(--tx)') + '">' + esc(org.n) + '</td>';
+    html += '<td>' + org.voix.toFixed(2) + '%</td>';
+    html += '<td>' + reprTxt + '</td>';
+    html += '<td>' + statut + '</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table></div></div>';
+
+  /* Barres horizontales taux repr */
+  html += '<div style="margin-bottom:12px">';
+  html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Taux de repr\u00e9sentativit\u00e9</div>';
+  for (var j = 0; j < d.orgs.length; j++) {
+    var o = d.orgs[j];
+    if (!o.ok || o.repr === null) continue;
+    var barColor = o.cgt ? '#E24B4A' : (j === 0 ? '#378ADD' : 'var(--tx3)');
+    html += '<div style="margin-bottom:7px">';
+    html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">';
+    html += '<span style="color:' + barColor + ';font-weight:' + (o.cgt ? '700' : '400') + '">' + esc(o.n) + '</span>';
+    html += '<span style="color:' + barColor + ';font-weight:700">' + o.repr.toFixed(2) + '%</span></div>';
+    html += '<div style="background:var(--bg3);border-radius:4px;height:7px">';
+    html += '<div style="background:' + barColor + ';width:' + Math.min(o.repr, 100) + '%;height:7px;border-radius:4px"></div>';
+    html += '</div></div>';
+  }
+  html += '</div>';
+
+  /* Résultats par collège */
+  if (d.colleges && d.colleges.length > 0) {
+    html += '<div style="margin-bottom:12px">';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Score CGT par coll\u00e8ge</div>';
+    for (var c = 0; c < d.colleges.length; c++) {
+      var col = d.colleges[c];
+      var colColor = col.rang === 1 ? '#E24B4A' : (col.rang === 2 ? '#EF9F27' : 'var(--tx3)');
+      var colRang = col.rang === 1 ? '\ud83e\udd471er' : (col.rang === 2 ? '\ud83e\udd482e' : col.rang + 'e');
+      html += '<div style="margin-bottom:6px">';
+      html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">';
+      html += '<span style="color:var(--tx2)">' + esc(col.n) + '</span>';
+      html += '<span style="color:' + colColor + ';font-weight:700">' + col.cgt + '% — ' + colRang + '</span></div>';
+      html += '<div style="background:var(--bg3);border-radius:4px;height:6px">';
+      html += '<div style="background:' + colColor + ';width:' + Math.min(col.cgt, 100) + '%;height:6px;border-radius:4px"></div>';
+      html += '</div></div>';
+    }
+    html += '</div>';
+  }
+
+  /* Présence aux élections */
+  if (d.presence && d.presence.length > 0) {
+    html += '<div style="margin-bottom:12px">';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Pr\u00e9sence CGT aux \u00e9lections</div>';
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    for (var pr = 0; pr < d.presence.length; pr++) {
+      var pres = d.presence[pr];
+      html += '<div style="background:var(--bg2);border-radius:6px;padding:8px 12px;text-align:center;flex:1;min-width:70px">';
+      html += '<div style="font-size:16px;font-weight:700;color:#378ADD">' + pres.p + '%</div>';
+      html += '<div style="font-size:10px;color:var(--tx3)">' + esc(pres.c) + '</div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  /* Évolution annuelle */
+  if (d.annees && d.annees.length > 0) {
+    html += '<div style="margin-bottom:8px">';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">\u00c9volution CGT par ann\u00e9e</div>';
+    html += '<div style="display:flex;align-items:flex-end;gap:10px;height:70px">';
+    var maxV = 0;
+    for (var ai = 0; ai < d.annees.length; ai++) { if (d.annees[ai].cgt > maxV) maxV = d.annees[ai].cgt; }
+    for (var ak = 0; ak < d.annees.length; ak++) {
+      var an = d.annees[ak];
+      var barH = maxV > 0 ? Math.round((an.cgt / maxV) * 54) : 0;
+      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
+      html += '<div style="font-size:9px;color:#E24B4A;font-weight:700">' + an.cgt + '%</div>';
+      html += '<div style="background:#E24B4A;width:100%;height:' + barH + 'px;border-radius:3px 3px 0 0"></div>';
+      html += '<div style="font-size:9px;color:var(--tx3)">' + an.y + '</div></div>';
+    }
+    html += '</div></div>';
+  }
+
+  html += '<div style="font-size:9px;color:var(--tx3);margin-top:8px;text-align:right">Source : FNPOS-CGT \u2014 Cycle 4 (2021-2024)</div>';
+  html += '</div>';
+
+  el.innerHTML = html;
 }
 
 /* ════════════════════════════════
