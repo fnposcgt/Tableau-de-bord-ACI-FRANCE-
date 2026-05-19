@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Tableau de bord FNPOS-CGT</title>
+<script src="data-secteurs.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -148,6 +149,7 @@ body.is-readonly .btn-action{opacity:.35;pointer-events:none;cursor:default}
 <div class="krow">
   <div class="kpi"><div class="kl">Structures</div><div class="kv" id="kpi-total">0</div><div class="ks" id="kpi-sec-lbl">—</div></div>
   <div class="kpi"><div class="kl">Avec élections</div><div class="kv" id="kpi-elec">0</div><div class="ks">CSE connus</div></div>
+  <div class="kpi"><div class="kl">Score moy. CGT</div><div class="kv" id="kpi-score" style="color:var(--ac)">—</div><div class="ks">tous collèges</div></div>
   <div class="kpi"><div class="kl">Régions</div><div class="kv" id="kpi-regs">0</div><div class="ks">couvertes</div></div>
   <div class="kpi"><div class="kl">Conquête</div><div class="kv" id="kpi-cq">0</div><div class="ks">structures suivies</div></div>
 </div>
@@ -308,10 +310,12 @@ var COLS = [
   {k:'d',  lbl:'Dept'},
   {k:'v',  lbl:'Ville'},
   {k:'r',  lbl:'Région'},
+  {k:'cl', lbl:'Collège'},
   {k:'si', lbl:'SIRET'},
   {k:'de', lbl:'Élections'},
   {k:'pr', lbl:'Prochaines'},
-  {k:'ga', lbl:'Org'},
+  {k:'ga', lbl:'Score CGT'},
+  {k:'in', lbl:'Inscrits'},
   {k:'co', lbl:'Contact'},
   {k:'em', lbl:'Email'}
 ];
@@ -342,6 +346,11 @@ function init() {
     if (s) STRUCTS = JSON.parse(s);
   } catch(e) { STRUCTS = []; }
 
+  /* Charger données pré-intégrées si localStorage vide */
+  if (STRUCTS.length === 0 && typeof STRUCTS_BY_SEC !== 'undefined' && STRUCTS_BY_SEC[SEC]) {
+    STRUCTS = STRUCTS_BY_SEC[SEC];
+  }
+
   try {
     var c = localStorage.getItem('fnpos_conquete_' + SEC);
     if (c) CONQUETE = JSON.parse(c);
@@ -359,10 +368,17 @@ function init() {
 function updateKpis() {
   document.getElementById('kpi-total').textContent = STRUCTS.length;
   var withElec = 0;
+  var scoreSum = 0; var scoreCount = 0;
   for (var i = 0; i < STRUCTS.length; i++) {
     if (STRUCTS[i].de || STRUCTS[i].pr) withElec++;
+    if (STRUCTS[i].ga) {
+      var sv = parseFloat(STRUCTS[i].ga.replace('%',''));
+      if (!isNaN(sv)) { scoreSum += sv; scoreCount++; }
+    }
   }
   document.getElementById('kpi-elec').textContent = withElec;
+  var scoreEl = document.getElementById('kpi-score');
+  if (scoreEl) scoreEl.textContent = scoreCount > 0 ? (scoreSum/scoreCount).toFixed(1) + '%' : '\u2014';
   var regs = {};
   for (var j = 0; j < STRUCTS.length; j++) {
     if (STRUCTS[j].r) regs[STRUCTS[j].r] = 1;
@@ -420,7 +436,7 @@ function getFiltered() {
     var s = STRUCTS[i];
     if (regF && s.r !== regF) continue;
     if (q) {
-      var hay = [s.n, s.v, s.d, s.cp, s.r, s.si, s.co, s.em, s.ga].join(' ').toLowerCase();
+      var hay = [s.n, s.v, s.d, s.cp, s.r, s.si, s.co, s.em, s.ga, s.cl].join(' ').toLowerCase();
       if (hay.indexOf(q) < 0) continue;
     }
     result.push(s);
@@ -518,6 +534,7 @@ function goPage(p) { _page = p; renderTable(); }
 var FICHE_FIELDS = [
   ['Nom',              'n'],
   ['SIRET',            'si'],
+  ['Collège',          'cl'],
   ['Adresse',          'ad'],
   ['Code postal',      'cp'],
   ['Ville',            'v'],
