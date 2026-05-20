@@ -711,61 +711,19 @@ function roCheckPwd(){
 
 <!-- SYNDICATS -->
 <div class="tp" id="tp-syndicats">
-  <!-- Représentativité nationale -->
-  <div style="margin-bottom:14px">
-    <div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px 2px">Repr&eacute;sentativit&eacute; nationale 2024 &mdash; toucher pour filtrer</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
-      <div class="kpi" onclick="reprFilter('cfdt')" style="cursor:pointer">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#378ADD;display:inline-block"></span>CFDT</div>
-        <div style="font-size:20px;font-weight:700;line-height:1.1">44,43&nbsp;%</div>
-        <div style="font-size:9px;color:var(--tx3);margin-top:2px">1<sup>re</sup> organisation</div>
-      </div>
-      <div class="kpi" onclick="reprFilter('cgt')" style="cursor:pointer">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#E24B4A;display:inline-block"></span>CGT</div>
-        <div style="font-size:20px;font-weight:700;line-height:1.1;color:#E24B4A">34,59&nbsp;%</div>
-        <div style="font-size:9px;color:var(--tx3);margin-top:2px">2<sup>e</sup> organisation</div>
-      </div>
-      <div class="kpi" onclick="reprFilter('fo')" style="cursor:pointer">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#EF9F27;display:inline-block"></span>FO</div>
-        <div style="font-size:20px;font-weight:700;line-height:1.1">11,81&nbsp;%</div>
-        <div style="font-size:9px;color:var(--tx3);margin-top:2px">3<sup>e</sup> organisation</div>
-      </div>
-      <div class="kpi" onclick="reprFilter('solidaires')" style="cursor:pointer">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px"><span style="width:9px;height:9px;border-radius:2px;background:#639922;display:inline-block"></span>Solidaires</div>
-        <div style="font-size:20px;font-weight:700;line-height:1.1">9,17&nbsp;%</div>
-        <div style="font-size:9px;color:var(--tx3);margin-top:2px">4<sup>e</sup> organisation</div>
-      </div>
-    </div>
-
-    <!-- &Eacute;volution + Coll&egrave;ges -->
-    <div class="cgrid" style="margin-bottom:12px">
-      <div class="cc"><div class="ct">&Eacute;volution 2021-2024</div><div style="position:relative;height:210px"><canvas id="ch-evol" style="cursor:pointer"></canvas></div></div>
-      <div class="cc"><div class="ct">R&eacute;partition par coll&egrave;ge (1<sup>er</sup>, 2<sup>e</sup>, 5<sup>e</sup>)</div><div style="position:relative;height:210px"><canvas id="ch-college" style="cursor:pointer"></canvas></div></div>
-    </div>
-
-    <!-- Pr&eacute;sence CGT par coll&egrave;ge -->
-    <div class="cc" style="margin-bottom:12px">
-      <div class="ct">Taux de pr&eacute;sence CGT aux &eacute;lections par coll&egrave;ge &mdash; toucher pour voir les structures sans CGT</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
-        <div onclick="reprPresenceFilter(1)" style="cursor:pointer">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px"><span>1<sup>er</sup> coll&egrave;ge</span><span style="color:var(--tx2)"><strong style="color:#E24B4A">53&nbsp;%</strong> pr&eacute;sente &middot; absente 47&nbsp;%</span></div>
-          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:53%;background:#E24B4A"></div></div>
-        </div>
-        <div onclick="reprPresenceFilter(2)" style="cursor:pointer">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px"><span>2<sup>e</sup> coll&egrave;ge</span><span style="color:var(--tx2)"><strong style="color:#E24B4A">43&nbsp;%</strong> pr&eacute;sente &middot; absente 57&nbsp;%</span></div>
-          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:43%;background:#E24B4A"></div></div>
-        </div>
-        <div onclick="reprPresenceFilter(5)" style="cursor:pointer">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px"><span>5<sup>e</sup> coll&egrave;ge</span><span style="color:var(--tx2)"><strong style="color:#E24B4A">47&nbsp;%</strong> pr&eacute;sente &middot; absente 53&nbsp;%</span></div>
-          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;width:47%;background:#E24B4A"></div></div>
-        </div>
-      </div>
-      <div style="font-size:9px;color:var(--tx3);margin-top:8px;font-style:italic">Source : FNPOS-CGT &middot; <span id="src-idcc"></span></div>
-    </div>
+  <div id="repr-kpi-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px"></div>
+  <div class="cgrid" style="margin-bottom:12px">
+    <div class="cc"><div class="ct" id="repr-evol-title">Évolution</div><div style="position:relative;height:210px"><canvas id="ch-evol" style="cursor:pointer"></canvas></div></div>
+    <div class="cc"><div class="ct" id="repr-college-title">Répartition par collège</div><div style="position:relative;height:210px"><canvas id="ch-college" style="cursor:pointer"></canvas></div></div>
   </div>
-
+  <div class="cc" style="margin-bottom:12px">
+    <div class="ct">Taux de présence CGT aux élections par collège</div>
+    <div id="repr-presence-bars" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
+    <div style="font-size:9px;color:var(--tx3);margin-top:8px;font-style:italic" id="repr-source"></div>
+  </div>
 </div>
 
+<!-- CAL
 <!-- CALENDRIER -->
 <div class="tp" id="tp-calendrier">
   <div class="fbar">
@@ -2766,7 +2724,7 @@ function goTab(name){
     var m=b.getAttribute("onclick");
     b.classList.toggle("on", !!(m && m.indexOf("'"+name+"'")+1));
   });
-  if(name==="syndicats")window.setTimeout(function(){buildReprCharts();},80);
+  if(name==="syndicats"){window.setTimeout(function(){renderReprPanel();buildReprCharts();},80);}
   if(name==="ciblage")window.setTimeout(buildCiblage,80);
   if(name==="contacts")window.setTimeout(function(){buildContacts();collapseAllContacts();},80);
   if(name==="udul")window.setTimeout(buildUDUL,80);
@@ -3511,9 +3469,9 @@ function buildKPIs(){
   h+='<div class="kpi" onclick="filterByKpi(\'elections\')"><div class="kl">Avec \u00e9lections</div><div class="kv">'+GS.nb_elections+'</div><div class="ks">donn\u00e9es CSE</div></div>';
   h+='<div class="kpi" onclick="filterByKpi(\'inscrits\')"><div class="kl">Inscrits</div><div class="kv">'+fmt(GS.total_insc)+'</div><div class="ks">\u00e9lecteurs</div></div>';
   h+='<div class="kpi" onclick="filterByKpi(\'participation\')"><div class="kl">Participation</div><div class="kv">'+ap+'%</div><div class="ks">'+fmt(GS.total_votants)+' votants</div></div>';
-  h+='<div class="kpi" onclick="goTab(\'syndicats\')"><div class="kl">1<sup>er</sup> syndicat</div><div class="kv" style="color:#378ADD">CFDT</div><div class="ks">44,43\u00a0% national</div></div>';
-  h+='<div class="kpi" onclick="goTab(\'syndicats\')"><div class="kl">CGT</div><div class="kv" style="color:#E24B4A">34,59\u00a0%</div><div class="ks">repr\u00e9sentativit\u00e9 nationale</div></div>';
-  h+='<div class="kpi" onclick="goTab(\'syndicats\')"><div class="kl">CFDT</div><div class="kv" style="color:#378ADD">44,43\u00a0%</div><div class="ks">repr\u00e9sentativit\u00e9 nationale</div></div>';
+  h+='<div class="kpi" onclick="goTab(\'syndicats\')"><div class="kl">1<sup>er</sup> syndicat</div><div class="kv" style="color:'+REPR_DATA.top[0].color+'">'+REPR_DATA.top[0].nom+'</div><div class="ks">'+REPR_DATA.top[0].rate.toFixed(2).replace('.',',')+'\u00a0% national</div></div>';
+  var _cgt=REPR_DATA.orgs&&REPR_DATA.orgs.cgt?REPR_DATA.orgs.cgt:REPR_DATA.top[0]; h+='<div class="kpi" onclick="goTab(\'syndicats\')"><div class="kl">CGT</div><div class="kv" style="color:#E24B4A">'+(_cgt.rate||0).toFixed(2).replace('.',',')+' %</div><div class="ks">représentativité nationale</div></div>';
+  var _1er=REPR_DATA.top[0]; h+='<div class="kpi" onclick="goTab(\'syndicats\')"><div class="kl">'+_1er.nom+'</div><div class="kv" style="color:'+_1er.color+'">'+_1er.rate.toFixed(2).replace('.',',')+' %</div><div class="ks">représentativité nationale</div></div>';
   
   document.getElementById("krow").innerHTML=h;
 }
@@ -4388,12 +4346,194 @@ function buildCharts(){
   });
 }
 
-var REPR_DATA={
-  cfdt:{nom:"CFDT",color:"#378ADD",rate:44.43,rank:"1re",collEval:{c1:35.9,c2:30.7,c5:46.5},evol:[70.6,42.8,45.9,35.5,34.3]},
-  cgt:{nom:"CGT",color:"#E24B4A",rate:34.59,rank:"2e",collEval:{c1:41.5,c2:50.1,c5:33.3},evol:[23.7,35.1,36.3,29.4,14.3]},
-  fo:{nom:"FO",color:"#EF9F27",rate:11.81,rank:"3e",collEval:{c1:12.3,c2:15.6,c5:11.2},evol:[5.7,12.6,9.0,15.2,16.9]},
-  solidaires:{nom:"Solidaires",color:"#639922",rate:9.17,rank:"4e",collEval:{c1:10.3,c2:3.5,c5:9.0},evol:[0,6.5,5.9,16.3,14.8]}
+
+/* ── Données représentativité par secteur (source : FNPOS-CGT, arrêtés 2024-2025) ── */
+var REPR_DATA_ALL = {
+  aci:{
+    source:"Arrêté 24 juin 2025 — IDCC 3016",
+    evolLabels:["2021","2022","2023","2024","2025*"],
+    collegeLabels:["1er coll.","2e coll.","5e coll."],
+    presence:{c1:53,c2:43,c5:47,labels:["1er collège","2e collège","5e collège"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",color:"#378ADD",rate:44.43,rank:"1re"},
+      {key:"cgt", nom:"CGT", color:"#E24B4A",rate:34.59,rank:"2e"},
+      {key:"fo",  nom:"FO",  color:"#EF9F27",rate:11.81,rank:"3e"},
+      {key:"so",  nom:"Solidaires",color:"#639922",rate:9.17,rank:"4e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT", color:"#E24B4A",rate:34.59,rank:"2e",evol:[23.7,35.1,36.3,29.4,14.3],collEval:{c1:41.5,c2:50.1,c5:33.3}},
+      cfdt:{nom:"CFDT",color:"#378ADD",rate:44.43,rank:"1re",evol:[70.6,42.8,45.9,35.5,34.3],collEval:{c1:35.9,c2:30.7,c5:46.5}},
+      fo:  {nom:"FO",  color:"#EF9F27",rate:11.81,rank:"3e",evol:[5.7,12.6,9.0,15.2,16.9], collEval:{c1:12.3,c2:15.6,c5:11.2}},
+      so:  {nom:"Solidaires",color:"#639922",rate:9.17,rank:"4e",evol:[0,6.5,5.9,16.3,14.8],collEval:{c1:10.3,c2:3.5,c5:9.0}}
+    },
+    chartEvol:["cgt","cfdt","fo","so"],
+    chartCollege:["cgt","cfdt","fo","so"]
+  },
+  ss:{
+    source:"Arrêté 2025 — tous organismes",
+    evolLabels:["2021","2022","2023","2024"],
+    collegeLabels:["Employés","Cadres"],
+    presence:{c1:78,c2:63,labels:["Coll. employés (Maladie)","Coll. cadres (Maladie)"]},
+    top:[
+      {key:"fo",  nom:"FO",  color:"#EF9F27",rate:29.62,rank:"1re"},
+      {key:"cgt", nom:"CGT", color:"#E24B4A",rate:29.52,rank:"2e"},
+      {key:"cfdt",nom:"CFDT",color:"#378ADD",rate:27.77,rank:"3e"},
+      {key:"cftc",nom:"CFTC",color:"#8B5CF6",rate:9.86, rank:"4e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT", color:"#E24B4A",rate:29.52,rank:"2e",evol:[39.7,32.0,25.0,26.5],collEval:{c1:29.7,c2:21.7}},
+      cfdt:{nom:"CFDT",color:"#378ADD",rate:27.77,rank:"3e",evol:[35.7,23.9,23.5,31.8],collEval:{c1:23.9,c2:28.2}},
+      fo:  {nom:"FO",  color:"#EF9F27",rate:29.62,rank:"1re",evol:[16.9,22.5,31.0,20.5],collEval:{c1:28.6,c2:24.3}},
+      cftc:{nom:"CFTC",color:"#8B5CF6",rate:9.86,rank:"4e",evol:[null,null,null,null],  collEval:{c1:8.5,c2:9.9}}
+    },
+    chartEvol:["cgt","cfdt","fo"],
+    chartCollege:["cgt","cfdt","fo","cftc"]
+  },
+  ad:{
+    source:"Arrêté 2025 — IDCC 2941",
+    evolLabels:["2021","2022","2023","2024"],
+    collegeLabels:["1er coll.","2e coll.","5e coll."],
+    presence:{c1:49,c2:37,c5:35,labels:["1er collège","2e collège","5e collège"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",color:"#378ADD",rate:46.31,rank:"1re"},
+      {key:"cgt", nom:"CGT", color:"#E24B4A",rate:38.17,rank:"2e"},
+      {key:"fo",  nom:"FO",  color:"#EF9F27",rate:15.51,rank:"3e"},
+      {key:"cftc",nom:"CFTC",color:"#8B5CF6",rate:null, rank:"non repr."}
+    ],
+    orgs:{
+      cgt: {nom:"CGT", color:"#E24B4A",rate:38.17,rank:"2e",evol:[40.3,31.5,31.8,31.9],collEval:{c1:33.2,c2:22.2,c5:32.1}},
+      cfdt:{nom:"CFDT",color:"#378ADD",rate:46.31,rank:"1re",evol:[18.7,43.1,41.7,26.9],collEval:{c1:40.1,c2:40.1,c5:39.0}},
+      fo:  {nom:"FO",  color:"#EF9F27",rate:15.51,rank:"3e",evol:[17.3,16.8,11.7,14.2],collEval:{c1:13.8,c2:13.9,c5:11.3}},
+      cftc:{nom:"CFTC",color:"#8B5CF6",rate:null,rank:"non repr.",evol:[null,null,null,null],collEval:{c1:null,c2:null,c5:null}}
+    },
+    chartEvol:["cgt","cfdt","fo"],
+    chartCollege:["cgt","cfdt","fo"]
+  },
+  ft:{
+    source:"Élections novembre 2023 — IDCC 2847",
+    evolLabels:["2023"],
+    collegeLabels:["1er coll.","2e coll.","3e coll."],
+    presence:{c1:80,c2:76,c5:68,labels:["1er collège","2e collège","3e collège"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",  color:"#378ADD",rate:18.76,rank:"2e"},
+      {key:"fo",  nom:"FO",    color:"#EF9F27",rate:18.51,rank:"3e"},
+      {key:"cgt", nom:"CGT",   color:"#E24B4A",rate:10.61,rank:"4e"},
+      {key:"cftc",nom:"CFTC",  color:"#8B5CF6",rate:8.43, rank:"5e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT", color:"#E24B4A",rate:10.61,rank:"4e",evol:[10.61],collEval:{c1:13.3,c2:9.8,c5:6.5}},
+      cfdt:{nom:"CFDT",color:"#378ADD",rate:18.76,rank:"2e",evol:[18.76],collEval:{c1:null,c2:null,c5:null}},
+      fo:  {nom:"FO",  color:"#EF9F27",rate:18.51,rank:"3e",evol:[18.51],collEval:{c1:null,c2:null,c5:null}},
+      cftc:{nom:"CFTC",color:"#8B5CF6",rate:8.43, rank:"5e",evol:[8.43], collEval:{c1:null,c2:null,c5:null}}
+    },
+    chartEvol:["cfdt","fo","cgt","cftc"],
+    chartCollege:["cgt"]
+  },
+  mut:{
+    source:"Arrêté 2025 — IDCC 2128",
+    evolLabels:["2021","2022","2023","2024"],
+    collegeLabels:["1er coll.","2e coll.","3e coll."],
+    presence:{c1:48,c2:39,c5:33,labels:["1er collège","2e collège","3e collège"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",   color:"#378ADD",rate:33.18,rank:"1re"},
+      {key:"cgt", nom:"CGT",    color:"#E24B4A",rate:23.22,rank:"2e"},
+      {key:"fo",  nom:"FO",     color:"#EF9F27",rate:16.08,rank:"3e"},
+      {key:"cgc", nom:"CFE-CGC",color:"#EC4899",rate:13.82,rank:"4e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT",    color:"#E24B4A",rate:23.22,rank:"2e", evol:[24.0,11.6,19.7,26.5],collEval:{c1:32.7,c2:22.1,c5:9.1}},
+      cfdt:{nom:"CFDT",   color:"#378ADD",rate:33.18,rank:"1re",evol:[37.5,43.4,28.3,27.9],collEval:{c1:29.4,c2:31.3,c5:31.3}},
+      fo:  {nom:"FO",     color:"#EF9F27",rate:16.08,rank:"3e", evol:[15.0,13.6,17.5,9.1], collEval:{c1:19.7,c2:13.3,c5:9.7}},
+      cgc: {nom:"CFE-CGC",color:"#EC4899",rate:13.82,rank:"4e", evol:[10.0,12.7,12.8,14.7],collEval:{c1:null,c2:11.3,c5:30.7}}
+    },
+    chartEvol:["cgt","cfdt","fo","cgc"],
+    chartCollege:["cgt","cfdt","fo","cgc"]
+  },
+  gps:{
+    source:"Arrêté 2025 — GPS",
+    evolLabels:["2021","2022","2023","2024"],
+    collegeLabels:["1er coll.","2e coll.","3e coll."],
+    presence:{c1:79,c2:55,c5:47,labels:["1er collège","2e collège","3e collège"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",   color:"#378ADD",rate:29.46,rank:"1re"},
+      {key:"fo",  nom:"FO",     color:"#EF9F27",rate:19.07,rank:"2e"},
+      {key:"cgt", nom:"CGT",    color:"#E24B4A",rate:16.98,rank:"3e"},
+      {key:"cgc", nom:"CFE-CGC",color:"#EC4899",rate:15.32,rank:"4e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT",    color:"#E24B4A",rate:16.98,rank:"3e", evol:[14.3,31.3,14.5,0.0], collEval:{c1:23.1,c2:13.3,c5:7.4}},
+      cfdt:{nom:"CFDT",   color:"#378ADD",rate:29.46,rank:"1re",evol:[30.4,26.4,26.4,33.6],collEval:{c1:29.6,c2:27.9,c5:25.6}},
+      fo:  {nom:"FO",     color:"#EF9F27",rate:19.07,rank:"2e", evol:[17.1,8.6,19.1,38.6], collEval:{c1:24.0,c2:18.5,c5:11.3}},
+      cgc: {nom:"CFE-CGC",color:"#EC4899",rate:15.32,rank:"4e", evol:[null,null,null,null], collEval:{c1:null,c2:15.0,c5:30.4}}
+    },
+    chartEvol:["cgt","cfdt","fo"],
+    chartCollege:["cgt","cfdt","fo","cgc"]
+  },
+  msa:{
+    source:"Arrêté 2025 — MSA",
+    evolLabels:["2023"],
+    collegeLabels:["1er coll.","2e coll.","3e coll."],
+    presence:{c1:46,c2:35,c5:33,labels:["1er collège","2e collège","3e collège"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",color:"#378ADD",rate:47.63,rank:"1re"},
+      {key:"fo",  nom:"FO",  color:"#EF9F27",rate:16.90,rank:"2e"},
+      {key:"cgt", nom:"CGT", color:"#E24B4A",rate:15.14,rank:"3e"},
+      {key:"unsa",nom:"UNSA",color:"#14B8A6",rate:12.33,rank:"4e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT", color:"#E24B4A",rate:15.14,rank:"3e", evol:[14.33],collEval:{c1:18.2,c2:11.6,c5:9.6}},
+      cfdt:{nom:"CFDT",color:"#378ADD",rate:47.63,rank:"1re",evol:[45.08],collEval:{c1:45.8,c2:44.2,c5:45.9}},
+      fo:  {nom:"FO",  color:"#EF9F27",rate:16.90,rank:"2e", evol:[15.99],collEval:{c1:18.2,c2:15.9,c5:13.0}},
+      unsa:{nom:"UNSA",color:"#14B8A6",rate:12.33,rank:"4e", evol:[11.67],collEval:{c1:null,c2:13.9,c5:null}}
+    },
+    chartEvol:["cfdt","fo","cgt","unsa"],
+    chartCollege:["cgt","cfdt","fo","unsa"]
+  },
+  ml:{
+    source:"Arrêté 2025 — IDCC 2190",
+    evolLabels:["2021","2022","2023","2024"],
+    collegeLabels:["1er coll.","2e coll.","5e coll."],
+    presence:{c1:54,c2:40,c5:48,labels:["1er collège","2e collège","5e collège"]},
+    top:[
+      {key:"cgt", nom:"CGT", color:"#E24B4A",rate:41.02,rank:"1re"},
+      {key:"cfdt",nom:"CFDT",color:"#378ADD",rate:40.55,rank:"2e"},
+      {key:"cftc",nom:"CFTC",color:"#8B5CF6",rate:9.87, rank:"3e"},
+      {key:"fo",  nom:"FO",  color:"#EF9F27",rate:8.56, rank:"4e"}
+    ],
+    orgs:{
+      cgt: {nom:"CGT", color:"#E24B4A",rate:41.02,rank:"1re",evol:[38.0,45.5,34.0,43.7],collEval:{c1:38.2,c2:34.4,c5:41.3}},
+      cfdt:{nom:"CFDT",color:"#378ADD",rate:40.55,rank:"2e", evol:[53.7,39.9,38.2,26.2],collEval:{c1:41.5,c2:46.2,c5:32.1}},
+      cftc:{nom:"CFTC",color:"#8B5CF6",rate:9.87, rank:"3e", evol:[5.5,6.7,9.8,14.0],  collEval:{c1:13.2,c2:7.3,c5:7.1}},
+      fo:  {nom:"FO",  color:"#EF9F27",rate:8.56, rank:"4e", evol:[0.0,6.3,10.5,7.8],  collEval:{c1:null,c2:10.2,c5:10.2}}
+    },
+    chartEvol:["cgt","cfdt","cftc","fo"],
+    chartCollege:["cgt","cfdt","cftc","fo"]
+  },
+  rq:{
+    source:"Arrêté 2025 — IDCC 3105",
+    evolLabels:["2024"],
+    collegeLabels:["Tous collèges"],
+    presence:{c1:45,labels:["Tous collèges (45% présence CGT)"]},
+    top:[
+      {key:"cfdt",nom:"CFDT",     color:"#378ADD",rate:50.13,rank:"1re"},
+      {key:"cgt", nom:"CGT",      color:"#E24B4A",rate:26.90,rank:"2e"},
+      {key:"so",  nom:"Solidaires",color:"#639922",rate:22.97,rank:"3e"},
+      {key:"fo",  nom:"FO",       color:"#EF9F27",rate:null, rank:"non repr."}
+    ],
+    orgs:{
+      cgt: {nom:"CGT",      color:"#E24B4A",rate:26.90,rank:"2e",evol:[25.03],collEval:{c1:25.03}},
+      cfdt:{nom:"CFDT",     color:"#378ADD",rate:50.13,rank:"1re",evol:[46.64],collEval:{c1:46.64}},
+      so:  {nom:"Solidaires",color:"#639922",rate:22.97,rank:"3e",evol:[21.37],collEval:{c1:21.37}},
+      fo:  {nom:"FO",       color:"#EF9F27",rate:null,rank:"non repr.",evol:[5.31],collEval:{c1:5.31}}
+    },
+    chartEvol:["cfdt","cgt","so"],
+    chartCollege:["cfdt","cgt","so"]
+  }
 };
+
+/* Initialiser REPR_DATA selon le secteur courant */
+var REPR_DATA = REPR_DATA_ALL[_secKey] || REPR_DATA_ALL.aci;
+
 
 function reprFilter(key){
   var d=REPR_DATA[key];if(!d)return;
@@ -4434,59 +4574,133 @@ function reprYearFilter(yearIdx){
   alert(msg);
 }
 
+
+function renderReprPanel(){
+  var d = REPR_DATA;
+  if(!d) return;
+
+  /* ── KPI cards ── */
+  var grid = document.getElementById('repr-kpi-grid');
+  if(grid){
+    var kh = '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px 2px;grid-column:1/-1">Représentativité nationale · toucher pour filtrer</div>';
+    for(var i=0; i<d.top.length; i++){
+      var t = d.top[i];
+      var rateStr = t.rate ? t.rate.toFixed(2).replace('.',',')+'\u00a0%' : '—';
+      var rankSup = t.rank.replace(/(\d+)/,'$1');
+      var isCgt = (t.key==='cgt');
+      kh += '<div class="kpi" onclick="reprFilter(\''+t.key+'\')" style="cursor:pointer">';
+      kh += '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--tx2);margin-bottom:3px">';
+      kh += '<span style="width:9px;height:9px;border-radius:2px;background:'+t.color+';display:inline-block"></span>'+t.nom+'</div>';
+      kh += '<div style="font-size:20px;font-weight:700;line-height:1.1'+(isCgt?';color:#E24B4A':'')+'">'+rateStr+'</div>';
+      kh += '<div style="font-size:9px;color:var(--tx3);margin-top:2px">'+t.rank+' organisation</div>';
+      kh += '</div>';
+    }
+    grid.innerHTML = kh;
+  }
+
+  /* ── Barres de présence ── */
+  var pb = document.getElementById('repr-presence-bars');
+  if(pb && d.presence){
+    var ph = '';
+    var pr = d.presence;
+    var labs = pr.labels || [];
+    var pkeys = Object.keys(pr).filter(function(k){return k!=='labels';});
+    for(var j=0; j<labs.length; j++){
+      var pval = pr[pkeys[j]] || 0;
+      ph += '<div onclick="reprPresenceFilter('+(j+1)+')" style="cursor:pointer">';
+      ph += '<div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px;margin-bottom:3px">';
+      ph += '<span>'+labs[j]+'</span>';
+      ph += '<span style="color:var(--tx2)"><strong style="color:#E24B4A">'+pval+'\u00a0%</strong> présente \u00b7 absente '+(100-pval)+'\u00a0%</span></div>';
+      ph += '<div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">';
+      ph += '<div style="height:100%;width:'+pval+'%;background:#E24B4A"></div></div></div>';
+    }
+    pb.innerHTML = ph;
+  }
+
+  /* ── Source ── */
+  var src = document.getElementById('repr-source');
+  if(src) src.textContent = 'Source : FNPOS-CGT \u00b7 ' + (d.source||'');
+
+  /* ── Titres charts ── */
+  var et = document.getElementById('repr-evol-title');
+  if(et) et.textContent = 'Évolution ' + (d.evolLabels||[]).join('-');
+  var ct = document.getElementById('repr-college-title');
+  if(ct) ct.textContent = 'Répartition par collège (' + (d.collegeLabels||[]).join(', ') + ')';
+}
+
 function buildReprCharts(){
-  var tc="rgba(0,0,0,0.6)",gc="rgba(0,0,0,.05)";
+  var d = REPR_DATA;
+  if(!d) return;
+  var tc="rgba(0,0,0,0.6)", gc="rgba(0,0,0,.05)";
+
+  /* Évolution */
   var ceRef=document.getElementById("ch-evol");
   if(ceRef){
     killChart("evol");
+    var evolDs = [];
+    var evolKeys = d.chartEvol || [];
+    for(var i=0;i<evolKeys.length;i++){
+      var ok = evolKeys[i];
+      var oo = d.orgs[ok];
+      if(!oo) continue;
+      var ds = {label:oo.nom, data:oo.evol, borderColor:oo.color, backgroundColor:oo.color,
+                fill:false, tension:0.3, pointRadius:4, borderWidth:2};
+      if(i>0) ds.borderDash=[5,3];
+      evolDs.push(ds);
+    }
     chartCache["evol"]=new Chart(ceRef,{
       type:"line",
-      data:{
-        labels:["2021","2022","2023","2024","2025*"],
-        datasets:[
-          {label:"CGT",data:REPR_DATA.cgt.evol,borderColor:"#E24B4A",backgroundColor:"#E24B4A",fill:false,tension:0.3,pointRadius:4,borderWidth:2},
-          {label:"CFDT",data:REPR_DATA.cfdt.evol,borderColor:"#378ADD",backgroundColor:"#378ADD",fill:false,tension:0.3,pointRadius:4,borderWidth:2,borderDash:[5,3]},
-          {label:"FO",data:REPR_DATA.fo.evol,borderColor:"#EF9F27",backgroundColor:"#EF9F27",fill:false,tension:0.3,pointRadius:4,borderWidth:2},
-          {label:"Solidaires",data:REPR_DATA.solidaires.evol,borderColor:"#639922",backgroundColor:"#639922",fill:false,tension:0.3,pointRadius:4,borderWidth:2,borderDash:[2,3]}
-        ]
-      },
+      data:{labels: d.evolLabels||[], datasets: evolDs},
       options:{
-        responsive:true,maintainAspectRatio:false,
+        responsive:true, maintainAspectRatio:false,
         plugins:{legend:{position:"top",labels:{font:{size:9},color:tc,padding:6,boxWidth:10,usePointStyle:true}}},
-        scales:{x:{ticks:{color:tc,font:{size:9}},grid:{display:false}},y:{ticks:{color:tc,font:{size:9},callback:function(v){return v+"%";}},min:0,max:75,grid:{color:gc}}},
-        onClick:function(evt,els){if(els.length)reprYearFilter(els[0].index);}
+        scales:{
+          x:{ticks:{color:tc,font:{size:9}},grid:{display:false}},
+          y:{ticks:{color:tc,font:{size:9},callback:function(v){return v+"%";}},min:0,max:75,grid:{color:gc}}
+        },
+        onClick:function(evt,els){if(els.length) reprYearFilter(els[0].index);}
       }
     });
   }
+
+  /* Collèges */
   var ccRef=document.getElementById("ch-college");
   if(ccRef){
     killChart("college");
+    var collDs = [];
+    var collKeys = d.chartCollege || [];
+    var collLabels = d.collegeLabels || [];
+    for(var i=0;i<collKeys.length;i++){
+      var ck = collKeys[i];
+      var co = d.orgs[ck];
+      if(!co) continue;
+      var cvals = [];
+      var cevals = co.collEval || {};
+      var ckeys = Object.keys(cevals);
+      for(var j=0;j<ckeys.length;j++) cvals.push(cevals[ckeys[j]]);
+      collDs.push({label:co.nom, data:cvals, backgroundColor:co.color, _key:ck});
+    }
     chartCache["college"]=new Chart(ccRef,{
       type:"bar",
-      data:{
-        labels:["1er coll.","2e coll.","5e coll."],
-        datasets:[
-          {label:"CGT",data:[REPR_DATA.cgt.collEval.c1,REPR_DATA.cgt.collEval.c2,REPR_DATA.cgt.collEval.c5],backgroundColor:"#E24B4A",_key:"cgt"},
-          {label:"CFDT",data:[REPR_DATA.cfdt.collEval.c1,REPR_DATA.cfdt.collEval.c2,REPR_DATA.cfdt.collEval.c5],backgroundColor:"#378ADD",_key:"cfdt"},
-          {label:"FO",data:[REPR_DATA.fo.collEval.c1,REPR_DATA.fo.collEval.c2,REPR_DATA.fo.collEval.c5],backgroundColor:"#EF9F27",_key:"fo"},
-          {label:"Solidaires",data:[REPR_DATA.solidaires.collEval.c1,REPR_DATA.solidaires.collEval.c2,REPR_DATA.solidaires.collEval.c5],backgroundColor:"#639922",_key:"solidaires"}
-        ]
-      },
+      data:{labels: collLabels, datasets: collDs},
       options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:"top",labels:{font:{size:9},color:tc,padding:6,boxWidth:10}}},
-        scales:{x:{ticks:{color:tc,font:{size:9}},grid:{display:false}},y:{ticks:{color:tc,font:{size:9},callback:function(v){return v+"%";}},max:55,grid:{color:gc}}},
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:"top",labels:{font:{size:9},color:tc,padding:6,boxWidth:10,usePointStyle:true}}},
+        scales:{
+          x:{ticks:{color:tc,font:{size:9}},grid:{display:false}},
+          y:{ticks:{color:tc,font:{size:9},callback:function(v){return v+"%";}},min:0,max:75,grid:{color:gc}}
+        },
         onClick:function(evt,els){
-          if(!els.length)return;
-          var idx=els[0].index,dsIdx=els[0].datasetIndex;
-          var colls=[1,2,5];
-          var keys=["cgt","cfdt","fo","solidaires"];
-          reprCollegeFilter(keys[dsIdx],colls[idx]);
+          if(els.length){
+            var ds=collDs[els[0].datasetIndex];
+            if(ds && ds._key) reprCollegeFilter(ds._key, els[0].index+1);
+          }
         }
       }
     });
   }
 }
+
 
 function buildCal(){
   var reg=document.getElementById("cal-reg").value;
