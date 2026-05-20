@@ -559,6 +559,14 @@ body.is-readonly #readonly-banner{display:block}
 #auth-error{font-size:11px;color:#ff7070;min-height:16px;margin-bottom:4px}
 #auth-hint{font-size:10px;color:rgba(255,255,255,.3);line-height:1.5}
 body.is-readonly #nav-outils { display: none; }
+body.is-readonly #fab-import,
+body.is-readonly #btn-hdr-import,
+body.is-readonly #btn-vider,
+body.is-readonly #sync-btn,
+body.is-readonly .cq-sel,
+body.is-readonly .cq-filter-btn:not(.on),
+body.is-readonly #fiche-actions { display: none !important; }
+body.is-readonly .empty button { display: none; }
 /* ── BACK LINK ── */
 .back-link{font-size:11px;color:var(--tx3);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}
 .back-link:hover{color:var(--ac)}
@@ -693,8 +701,9 @@ body.is-readonly #nav-outils { display: none; }
   </div>
   <div class="hdr-right">
     <span id="sync-status"></span>
+    <button class="btn btn-action" id="sync-btn" onclick="doSync()" title="Synchroniser avec Firebase">🔄 Sync</button>
     <button id="theme-toggle" onclick="toggleTheme()" title="Thème clair/sombre" style="padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;font-size:14px;line-height:1;">🌙</button>
-    <button class="btn btn-action" onclick="openImport()">📂 Importer XLS</button>
+    <button class="btn btn-action" id="btn-hdr-import" onclick="openImport()">📂 Importer XLS</button>
     <button class="btn btn-action" onclick="exportJSON()">💾 Export</button>
   </div>
 </div>
@@ -735,7 +744,7 @@ body.is-readonly #nav-outils { display: none; }
       <select id="filter-reg" onchange="doSearch()" style="font-size:11px;padding:4px 7px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx)">
         <option value="">Toutes les régions</option>
       </select>
-      <button class="btn btn-action btn-red" onclick="clearData()">🗑 Vider</button>
+      <button class="btn btn-action btn-red" id="btn-vider" onclick="clearData()">🗑 Vider</button>
     </div>
     <div id="pager-top" class="pager"></div>
     <div class="tscroll">
@@ -3560,54 +3569,124 @@ function renderOutils() {
 
   var fbUrl = '';
   try { fbUrl = localStorage.getItem('fnpos_firebase_url') || ''; } catch(e) {}
-
   var localTs = 0;
   try { localTs = parseInt(localStorage.getItem('fnpos_save_ts_' + SEC) || '0'); } catch(e) {}
   var tsStr = localTs ? new Date(localTs).toLocaleString('fr-FR') : 'jamais';
 
   var html = '';
 
-  /* Sync */
+  /* ── Sync Firebase ── */
   html += '<div class="ot-section">';
   html += '<div class="ot-section-title">🔄 Synchronisation Firebase</div>';
-  html += '<div class="ml-cfg-row" style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><label style="width:90px;font-size:11px;color:var(--tx2);flex-shrink:0">URL Firebase</label>';
-  html += '<input id="ot-fb-url" value="' + esc(fbUrl) + '" placeholder="https://xxxx.firebaseio.com" style="flex:1;font-size:11px;padding:4px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none"></div>';
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+  html += '<label style="font-size:11px;color:var(--tx2);flex-shrink:0;width:90px">URL Firebase</label>';
+  html += '<input id="ot-fb-url" value="' + esc(fbUrl) + '" placeholder="https://xxxx-default-rtdb.firebaseio.com" style="flex:1;min-width:200px;font-size:11px;padding:5px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none">';
+  html += '</div>';
   html += '<div class="ot-row">';
-  html += '<button class="ot-btn" onclick="otSaveFbUrl()">💾 Enregistrer URL</button>';
+  html += '<button class="ot-btn ot-btn-prim" onclick="otSaveFbUrl()">💾 Enregistrer URL</button>';
   html += '<button class="ot-btn" onclick="doSync()">🔄 Synchroniser maintenant</button>';
   html += '</div>';
-  html += '<div class="ot-info">Dernière sauvegarde locale : ' + tsStr + '</div>';
+  html += '<div class="ot-info">Dernière sauvegarde locale : <strong>' + tsStr + '</strong><br>';
+  html += 'Le bouton 🔄 Sync dans le header déclenche la même synchronisation.</div>';
   html += '</div>';
 
-  /* Export */
+  /* ── Import XLS (comme ACI) ── */
   html += '<div class="ot-section">';
-  html += '<div class="ot-section-title">📤 Export</div>';
+  html += '<div class="ot-section-title">📂 Importer un fichier XLS / XLSX</div>';
+  html += '<div class="ot-info">Colonnes détectées automatiquement : Nom, SIRET, CP, Ville, Département, Région, Email, Téléphone, Contact, Élections, Score CGT…<br>Les données existantes seront remplacées après confirmation.</div>';
+  html += '<div class="file-zone" onclick="document.getElementById(\'ot-xls-input\').click()" style="margin:10px 0">';
+  html += '📂 Cliquez pour sélectionner un fichier XLS / XLSX<br><span style="font-size:10px;color:var(--tx3)">XLS, XLSX, CSV acceptés</span>';
+  html += '</div>';
+  html += '<input type="file" id="ot-xls-input" accept=".xls,.xlsx,.csv" style="display:none" onchange="otHandleXLS(event)">';
+  html += '<div id="ot-xls-preview" style="display:none;font-size:11px;color:var(--tx2);margin-bottom:8px"></div>';
+  html += '<div class="ot-row" id="ot-xls-btns" style="display:none">';
+  html += '<button class="ot-btn ot-btn-prim" onclick="otConfirmXLS()">✅ Importer</button>';
+  html += '<button class="ot-btn" onclick="otCancelXLS()">Annuler</button>';
+  html += '</div>';
+  html += '</div>';
+
+  /* ── Import JSON ── */
+  html += '<div class="ot-section">';
+  html += '<div class="ot-section-title">📥 Restaurer depuis JSON</div>';
+  html += '<div class="ot-info">Restaure structs + conquête depuis un export JSON précédent.</div>';
+  html += '<div class="ot-row">';
+  html += '<label class="ot-btn" style="cursor:pointer">📂 Choisir un fichier JSON<input type="file" id="ot-json-file" accept=".json" style="display:none" onchange="otImportJSON(event)"></label>';
+  html += '</div>';
+  html += '</div>';
+
+  /* ── Export ── */
+  html += '<div class="ot-section">';
+  html += '<div class="ot-section-title">📤 Exports</div>';
   html += '<div class="ot-row">';
   html += '<button class="ot-btn" onclick="exportXLSX()">📊 Exporter XLS</button>';
   html += '<button class="ot-btn" onclick="exportJSON()">💾 Exporter JSON</button>';
   html += '<button class="ot-btn" onclick="exportConquete()">🎯 Export conquête</button>';
   html += '</div>';
-  html += '<div class="ot-info">' + STRUCTS.length + ' structures — ' + Object.keys(CONQUETE).length + ' suivies en conquête</div>';
+  html += '<div class="ot-info">' + STRUCTS.length + ' structures — ' + Object.keys(CONQUETE).length + ' en conquête</div>';
   html += '</div>';
 
-  /* Import JSON */
-  html += '<div class="ot-section">';
-  html += '<div class="ot-section-title">📥 Import JSON (restaurer)</div>';
-  html += '<div class="ot-row">';
-  html += '<label class="ot-btn" style="cursor:pointer">📂 Choisir un fichier JSON <input type="file" id="ot-json-file" accept=".json" style="display:none" onchange="otImportJSON(event)"></label>';
-  html += '</div>';
-  html += '<div class="ot-info">Restaure structs + conquête depuis un export JSON.</div>';
-  html += '</div>';
-
-  /* Danger */
+  /* ── Zone danger ── */
   html += '<div class="ot-section" style="border-color:rgba(226,75,74,.4)">';
   html += '<div class="ot-section-title" style="color:#E24B4A">⚠️ Zone danger</div>';
   html += '<div class="ot-row">';
-  html += '<button class="ot-btn ot-btn-warn" onclick="clearData()">🗑 Vider les structures</button>';
+  html += '<button class="ot-btn ot-btn-warn" onclick="clearData()">🗑 Vider toutes les structures</button>';
   html += '</div>';
   html += '</div>';
 
   c.innerHTML = html;
+}
+
+var _otPendingXLS = [];
+
+function otHandleXLS(evt) {
+  var file = evt.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, {type:'binary'});
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if (!rows || rows.length === 0) { alert('Fichier vide ou non lisible.'); return; }
+      _otPendingXLS = parseXLSRows(rows);
+      var prev = document.getElementById('ot-xls-preview');
+      var btns = document.getElementById('ot-xls-btns');
+      if (!prev || !btns) return;
+      prev.style.display = '';
+      var ph = '<strong>' + _otPendingXLS.length + ' structure(s) détectée(s)</strong><br>';
+      for (var i = 0; i < Math.min(4, _otPendingXLS.length); i++) {
+        ph += '• ' + esc(_otPendingXLS[i].n || '—') + ' — ' + esc(_otPendingXLS[i].cp || '') + ' ' + esc(_otPendingXLS[i].v || '') + '<br>';
+      }
+      if (_otPendingXLS.length > 4) ph += '… et ' + (_otPendingXLS.length - 4) + ' autres';
+      prev.innerHTML = ph;
+      btns.style.display = '';
+    } catch(err) { alert('Erreur lecture fichier : ' + err.message); }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function otConfirmXLS() {
+  if (!_otPendingXLS.length) return;
+  if (!confirm('Remplacer les ' + STRUCTS.length + ' structures actuelles par ' + _otPendingXLS.length + ' nouvelles ?')) return;
+  STRUCTS = _otPendingXLS;
+  _otPendingXLS = [];
+  saveLocal();
+  autoSync();
+  _page = 1;
+  updateKpis(); renderTable(); buildRegionFilter(); renderConquete();
+  if (MAP) { MAP.remove(); MAP = null; }
+  renderOutils();
+  alert('Importé : ' + STRUCTS.length + ' structures.');
+}
+
+function otCancelXLS() {
+  _otPendingXLS = [];
+  var prev = document.getElementById('ot-xls-preview');
+  var btns = document.getElementById('ot-xls-btns');
+  var inp = document.getElementById('ot-xls-input');
+  if (prev) prev.style.display = 'none';
+  if (btns) btns.style.display = 'none';
+  if (inp) inp.value = '';
 }
 
 function otSaveFbUrl() {
