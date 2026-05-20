@@ -558,6 +558,7 @@ body.is-readonly #readonly-banner{display:block}
 #auth-bio-btn:hover{background:rgba(255,255,255,.08)}
 #auth-error{font-size:11px;color:#ff7070;min-height:16px;margin-bottom:4px}
 #auth-hint{font-size:10px;color:rgba(255,255,255,.3);line-height:1.5}
+body.is-readonly #nav-outils { display: none; }
 /* ── BACK LINK ── */
 .back-link{font-size:11px;color:var(--tx3);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}
 .back-link:hover{color:var(--ac)}
@@ -716,7 +717,7 @@ body.is-readonly #readonly-banner{display:block}
   <button class="nb" onclick="showTab('contacts',this)">📇 Contacts</button>
   <button class="nb" onclick="showTab('udul',this)">🏛️ UD / UL</button>
   <button class="nb" onclick="showTab('mailing',this)">📧 Mailing</button>
-  <button class="nb" onclick="showTab('outils',this)">🔧 Outils</button>
+  <button class="nb" onclick="showTab('outils',this)" id="nav-outils">🔧 Outils</button>
 </div>
 
 <!-- ═══ TABLEAU ═══ -->
@@ -3551,6 +3552,11 @@ function _mlStatus(cls, msg) {
 function renderOutils() {
   var c = document.getElementById('outils-body');
   if (!c) return;
+
+  if (IS_READONLY) {
+    c.innerHTML = '<div class="empty"><h3>🔐 Accès réservé aux administrateurs</h3><p>Cet onglet n\'est pas disponible en mode consultation.</p></div>';
+    return;
+  }
 
   var fbUrl = '';
   try { fbUrl = localStorage.getItem('fnpos_firebase_url') || ''; } catch(e) {}
