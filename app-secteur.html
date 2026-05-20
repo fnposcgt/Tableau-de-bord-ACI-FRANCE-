@@ -558,15 +558,37 @@ body.is-readonly #readonly-banner{display:block}
 #auth-bio-btn:hover{background:rgba(255,255,255,.08)}
 #auth-error{font-size:11px;color:#ff7070;min-height:16px;margin-bottom:4px}
 #auth-hint{font-size:10px;color:rgba(255,255,255,.3);line-height:1.5}
-body.is-readonly #nav-outils { display: none; }
 body.is-readonly #fab-import,
 body.is-readonly #btn-hdr-import,
 body.is-readonly #btn-vider,
 body.is-readonly #sync-btn,
 body.is-readonly .cq-sel,
 body.is-readonly .cq-filter-btn:not(.on),
-body.is-readonly #fiche-actions { display: none !important; }
+body.is-readonly #fiche-actions,
+body.is-readonly .ot-write-only { display: none !important; }
 body.is-readonly .empty button { display: none; }
+/* ── Bibliothèque ── */
+.biblio-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:var(--bg2);border-radius:var(--r)}
+.biblio-toolbar input{flex:1;min-width:140px}
+.biblio-cats{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.biblio-cat-btn{font-size:11px;padding:3px 10px;border:1px solid var(--bd2);border-radius:20px;cursor:pointer;background:transparent;color:var(--tx2)}
+.biblio-cat-btn.on{background:var(--tx);color:var(--bg);border-color:transparent}
+.biblio-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.biblio-card{background:var(--bg2);border-radius:var(--r);padding:12px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:6px;position:relative}
+.biblio-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.biblio-card-cat{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:3px;color:#fff;display:inline-block;align-self:flex-start}
+.biblio-card-nom{font-size:12px;font-weight:700;color:var(--tx);word-break:break-word}
+.biblio-card-meta{font-size:10px;color:var(--tx3);line-height:1.5}
+.biblio-card-actions{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.biblio-btn{font-size:10px;padding:4px 10px;border:1px solid var(--bd2);border-radius:4px;cursor:pointer;background:var(--bg);color:var(--tx2)}
+.biblio-btn:hover{background:var(--bg3)}
+.biblio-btn-dl{background:#E24B4A;color:#fff;border-color:#E24B4A}
+.biblio-btn-dl:hover{background:#c03838}
+.biblio-btn-del{color:#E24B4A;border-color:rgba(226,75,74,.4)}
+.biblio-upload-zone{border:2px dashed var(--bd2);border-radius:var(--r);padding:20px;text-align:center;font-size:12px;color:var(--tx3);cursor:pointer;margin-bottom:10px;background:var(--bg2)}
+.biblio-upload-zone:hover{border-color:#E24B4A;color:var(--tx)}
+.biblio-count{font-size:11px;color:var(--tx3);margin-bottom:8px}
+.biblio-empty{text-align:center;padding:40px 20px;color:var(--tx3);font-size:12px}
 /* ── BACK LINK ── */
 .back-link{font-size:11px;color:var(--tx3);text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}
 .back-link:hover{color:var(--ac)}
@@ -727,6 +749,7 @@ body.is-readonly .empty button { display: none; }
   <button class="nb" onclick="showTab('udul',this)">🏛️ UD / UL</button>
   <button class="nb" onclick="showTab('mailing',this)">📧 Mailing</button>
   <button class="nb" onclick="showTab('outils',this)" id="nav-outils">🔧 Outils</button>
+  <button class="nb" onclick="showTab('biblio',this)">📚 Bibliothèque</button>
 </div>
 
 <!-- ═══ TABLEAU ═══ -->
@@ -813,6 +836,11 @@ body.is-readonly .empty button { display: none; }
 <!-- ═══ OUTILS ═══ -->
 <div id="tp-outils" class="tp">
   <div id="outils-body"></div>
+</div>
+
+<!-- ═══ BIBLIOTHÈQUE ═══ -->
+<div id="tp-biblio" class="tp">
+  <div id="biblio-body"></div>
 </div>
 
 </div><!-- /wrap -->
@@ -997,6 +1025,7 @@ function showTab(name, btn) {
   if (name === 'udul')      renderUDUL();
   if (name === 'mailing')   renderMailing();
   if (name === 'outils')    renderOutils();
+  if (name === 'biblio')    renderBiblio();
 }
 
 /* ════════════════════════════════
@@ -3562,11 +3591,6 @@ function renderOutils() {
   var c = document.getElementById('outils-body');
   if (!c) return;
 
-  if (IS_READONLY) {
-    c.innerHTML = '<div class="empty"><h3>🔐 Accès réservé aux administrateurs</h3><p>Cet onglet n\'est pas disponible en mode consultation.</p></div>';
-    return;
-  }
-
   var fbUrl = '';
   try { fbUrl = localStorage.getItem('fnpos_firebase_url') || ''; } catch(e) {}
   var localTs = 0;
@@ -3578,43 +3602,49 @@ function renderOutils() {
   /* ── Sync Firebase ── */
   html += '<div class="ot-section">';
   html += '<div class="ot-section-title">🔄 Synchronisation Firebase</div>';
-  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
-  html += '<label style="font-size:11px;color:var(--tx2);flex-shrink:0;width:90px">URL Firebase</label>';
-  html += '<input id="ot-fb-url" value="' + esc(fbUrl) + '" placeholder="https://xxxx-default-rtdb.firebaseio.com" style="flex:1;min-width:200px;font-size:11px;padding:5px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none">';
-  html += '</div>';
-  html += '<div class="ot-row">';
-  html += '<button class="ot-btn ot-btn-prim" onclick="otSaveFbUrl()">💾 Enregistrer URL</button>';
-  html += '<button class="ot-btn" onclick="doSync()">🔄 Synchroniser maintenant</button>';
-  html += '</div>';
-  html += '<div class="ot-info">Dernière sauvegarde locale : <strong>' + tsStr + '</strong><br>';
-  html += 'Le bouton 🔄 Sync dans le header déclenche la même synchronisation.</div>';
-  html += '</div>';
-
-  /* ── Import XLS (comme ACI) ── */
-  html += '<div class="ot-section">';
-  html += '<div class="ot-section-title">📂 Importer un fichier XLS / XLSX</div>';
-  html += '<div class="ot-info">Colonnes détectées automatiquement : Nom, SIRET, CP, Ville, Département, Région, Email, Téléphone, Contact, Élections, Score CGT…<br>Les données existantes seront remplacées après confirmation.</div>';
-  html += '<div class="file-zone" onclick="document.getElementById(\'ot-xls-input\').click()" style="margin:10px 0">';
-  html += '📂 Cliquez pour sélectionner un fichier XLS / XLSX<br><span style="font-size:10px;color:var(--tx3)">XLS, XLSX, CSV acceptés</span>';
-  html += '</div>';
-  html += '<input type="file" id="ot-xls-input" accept=".xls,.xlsx,.csv" style="display:none" onchange="otHandleXLS(event)">';
-  html += '<div id="ot-xls-preview" style="display:none;font-size:11px;color:var(--tx2);margin-bottom:8px"></div>';
-  html += '<div class="ot-row" id="ot-xls-btns" style="display:none">';
-  html += '<button class="ot-btn ot-btn-prim" onclick="otConfirmXLS()">✅ Importer</button>';
-  html += '<button class="ot-btn" onclick="otCancelXLS()">Annuler</button>';
-  html += '</div>';
+  if (!IS_READONLY) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">';
+    html += '<label style="font-size:11px;color:var(--tx2);flex-shrink:0;width:90px">URL Firebase</label>';
+    html += '<input id="ot-fb-url" value="' + esc(fbUrl) + '" placeholder="https://xxxx-default-rtdb.firebaseio.com" style="flex:1;min-width:200px;font-size:11px;padding:5px 8px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none">';
+    html += '</div>';
+    html += '<div class="ot-row ot-write-only">';
+    html += '<button class="ot-btn ot-btn-prim" onclick="otSaveFbUrl()">💾 Enregistrer URL</button>';
+    html += '<button class="ot-btn" onclick="doSync()">🔄 Synchroniser maintenant</button>';
+    html += '</div>';
+  }
+  html += '<div class="ot-info">Dernière sauvegarde locale : <strong>' + tsStr + '</strong></div>';
+  if (!IS_READONLY) html += '<div class="ot-info" style="font-size:10px">Le bouton 🔄 Sync dans le header déclenche la même synchronisation.</div>';
   html += '</div>';
 
-  /* ── Import JSON ── */
-  html += '<div class="ot-section">';
-  html += '<div class="ot-section-title">📥 Restaurer depuis JSON</div>';
-  html += '<div class="ot-info">Restaure structs + conquête depuis un export JSON précédent.</div>';
-  html += '<div class="ot-row">';
-  html += '<label class="ot-btn" style="cursor:pointer">📂 Choisir un fichier JSON<input type="file" id="ot-json-file" accept=".json" style="display:none" onchange="otImportJSON(event)"></label>';
-  html += '</div>';
-  html += '</div>';
+  /* ── Import XLS (admin seulement) ── */
+  if (!IS_READONLY) {
+    html += '<div class="ot-section ot-write-only">';
+    html += '<div class="ot-section-title">📂 Importer un fichier XLS / XLSX</div>';
+    html += '<div class="ot-info">Colonnes détectées automatiquement : Nom, SIRET, CP, Ville, Département, Région, Email, Téléphone, Contact, Élections, Score CGT…<br>Les données existantes seront remplacées après confirmation.</div>';
+    html += '<div class="file-zone" onclick="document.getElementById(\'ot-xls-input\').click()" style="margin:10px 0">';
+    html += '📂 Cliquez pour sélectionner un fichier XLS / XLSX<br><span style="font-size:10px;color:var(--tx3)">XLS, XLSX, CSV acceptés</span>';
+    html += '</div>';
+    html += '<input type="file" id="ot-xls-input" accept=".xls,.xlsx,.csv" style="display:none" onchange="otHandleXLS(event)">';
+    html += '<div id="ot-xls-preview" style="display:none;font-size:11px;color:var(--tx2);margin-bottom:8px"></div>';
+    html += '<div class="ot-row" id="ot-xls-btns" style="display:none">';
+    html += '<button class="ot-btn ot-btn-prim" onclick="otConfirmXLS()">✅ Importer</button>';
+    html += '<button class="ot-btn" onclick="otCancelXLS()">Annuler</button>';
+    html += '</div>';
+    html += '</div>';
+  }
 
-  /* ── Export ── */
+  /* ── Import JSON (admin seulement) ── */
+  if (!IS_READONLY) {
+    html += '<div class="ot-section ot-write-only">';
+    html += '<div class="ot-section-title">📥 Restaurer depuis JSON</div>';
+    html += '<div class="ot-info">Restaure structs + conquête depuis un export JSON précédent.</div>';
+    html += '<div class="ot-row">';
+    html += '<label class="ot-btn" style="cursor:pointer">📂 Choisir un fichier JSON<input type="file" id="ot-json-file" accept=".json" style="display:none" onchange="otImportJSON(event)"></label>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  /* ── Export (tous) ── */
   html += '<div class="ot-section">';
   html += '<div class="ot-section-title">📤 Exports</div>';
   html += '<div class="ot-row">';
@@ -3625,13 +3655,15 @@ function renderOutils() {
   html += '<div class="ot-info">' + STRUCTS.length + ' structures — ' + Object.keys(CONQUETE).length + ' en conquête</div>';
   html += '</div>';
 
-  /* ── Zone danger ── */
-  html += '<div class="ot-section" style="border-color:rgba(226,75,74,.4)">';
-  html += '<div class="ot-section-title" style="color:#E24B4A">⚠️ Zone danger</div>';
-  html += '<div class="ot-row">';
-  html += '<button class="ot-btn ot-btn-warn" onclick="clearData()">🗑 Vider toutes les structures</button>';
-  html += '</div>';
-  html += '</div>';
+  /* ── Zone danger (admin seulement) ── */
+  if (!IS_READONLY) {
+    html += '<div class="ot-section ot-write-only" style="border-color:rgba(226,75,74,.4)">';
+    html += '<div class="ot-section-title" style="color:#E24B4A">⚠️ Zone danger</div>';
+    html += '<div class="ot-row">';
+    html += '<button class="ot-btn ot-btn-warn" onclick="clearData()">🗑 Vider toutes les structures</button>';
+    html += '</div>';
+    html += '</div>';
+  }
 
   c.innerHTML = html;
 }
@@ -3730,6 +3762,199 @@ function otImportJSON(evt) {
     } catch(err) { alert('Erreur : ' + err.message); }
   };
   reader.readAsText(file);
+}
+
+/* ════════════════════════════════
+   BIBLIOTHÈQUE
+════════════════════════════════ */
+var BIBLIO_CATS = [
+  {k:'ccn',   lbl:'CCN / Accord',  color:'#185fa5'},
+  {k:'legal', lbl:'Textes légaux', color:'#0f6e56'},
+  {k:'circ',  lbl:'Circulaires',   color:'#EF9F27'},
+  {k:'tract', lbl:'Tracts / Comm', color:'#E24B4A'},
+  {k:'cse',   lbl:'CSE / Élections',color:'#8b5cf6'},
+  {k:'autre', lbl:'Autres',         color:'#73726c'}
+];
+var _biblioFilter = '';
+var _biblioSearch = '';
+
+function _biblioLoad() {
+  try { return JSON.parse(localStorage.getItem('fnpos_biblio_' + SEC) || '[]'); } catch(e) { return []; }
+}
+function _biblioSave(docs) {
+  try { localStorage.setItem('fnpos_biblio_' + SEC, JSON.stringify(docs)); } catch(e) {}
+}
+function _biblioGetCat(k) {
+  for (var i = 0; i < BIBLIO_CATS.length; i++) { if (BIBLIO_CATS[i].k === k) return BIBLIO_CATS[i]; }
+  return BIBLIO_CATS[BIBLIO_CATS.length - 1];
+}
+function _biblioFmtSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1048576) return Math.round(bytes/1024) + ' Ko';
+  return (bytes/1048576).toFixed(1) + ' Mo';
+}
+
+function renderBiblio() {
+  var c = document.getElementById('biblio-body');
+  if (!c) return;
+  var docs = _biblioLoad();
+
+  var html = '';
+
+  /* Barre de recherche + filtre */
+  html += '<div class="biblio-toolbar">';
+  html += '<input type="text" placeholder="\ud83d\udd0d Rechercher un document..." value="' + esc(_biblioSearch) + '" oninput="biblioSetSearch(this.value)">';
+  if (!IS_READONLY) {
+    html += '<label class="btn btn-action" style="cursor:pointer;margin:0">📎 Ajouter un document<input type="file" id="biblio-file-input" multiple style="display:none" onchange="biblioHandleFiles(event)"></label>';
+  }
+  html += '</div>';
+
+  /* Filtres catégories */
+  html += '<div class="biblio-cats">';
+  html += '<button class="biblio-cat-btn' + (_biblioFilter === '' ? ' on' : '') + '" onclick="biblioSetCat(\'\')">Tous (' + docs.length + ')</button>';
+  for (var ci = 0; ci < BIBLIO_CATS.length; ci++) {
+    var cat = BIBLIO_CATS[ci];
+    var count = 0;
+    for (var di = 0; di < docs.length; di++) { if (docs[di].cat === cat.k) count++; }
+    if (count === 0) continue;
+    var selCat = _biblioFilter === cat.k ? ' on' : '';
+    html += '<button class="biblio-cat-btn' + selCat + '" onclick="biblioSetCat(\'' + cat.k + '\')" style="' + (selCat ? 'background:' + cat.color + ';border-color:' + cat.color + ';color:#fff' : '') + '">' + esc(cat.lbl) + ' (' + count + ')</button>';
+  }
+  html += '</div>';
+
+  /* Upload zone (admin) — si aucun doc */
+  if (!IS_READONLY && docs.length === 0) {
+    html += '<div class="biblio-upload-zone" onclick="document.getElementById(\'biblio-file-input\').click()">';
+    html += '📂 Cliquez ou glissez des fichiers ici<br><span style="font-size:10px">PDF, Word, Excel, images…</span>';
+    html += '</div>';
+  }
+
+  /* Filtrer les docs */
+  var filtered = [];
+  for (var i = 0; i < docs.length; i++) {
+    var d = docs[i];
+    if (_biblioFilter && d.cat !== _biblioFilter) continue;
+    if (_biblioSearch) {
+      var q = _biblioSearch.toLowerCase();
+      if (d.nom.toLowerCase().indexOf(q) < 0 && (d.desc || '').toLowerCase().indexOf(q) < 0) continue;
+    }
+    filtered.push(d);
+  }
+
+  html += '<div class="biblio-count">' + filtered.length + ' document' + (filtered.length > 1 ? 's' : '') + (docs.length !== filtered.length ? ' sur ' + docs.length : '') + '</div>';
+
+  if (filtered.length === 0) {
+    html += '<div class="biblio-empty">';
+    if (docs.length === 0) {
+      html += IS_READONLY ? 'Aucun document disponible.' : 'Aucun document. Ajoutez votre premier fichier via le bouton "📎 Ajouter".';
+    } else {
+      html += 'Aucun résultat pour cette recherche.';
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="biblio-grid">';
+    for (var j = 0; j < filtered.length; j++) {
+      var doc = filtered[j];
+      var catObj = _biblioGetCat(doc.cat);
+      var dateStr = doc.ts ? new Date(doc.ts).toLocaleDateString('fr-FR') : '';
+      html += '<div class="biblio-card">';
+      html += '<span class="biblio-card-cat" style="background:' + catObj.color + '">' + esc(catObj.lbl) + '</span>';
+      html += '<div class="biblio-card-nom">' + esc(doc.nom) + '</div>';
+      html += '<div class="biblio-card-meta">';
+      if (doc.desc) html += esc(doc.desc) + '<br>';
+      html += _biblioFmtSize(doc.size) + (dateStr ? ' — ' + dateStr : '');
+      html += '</div>';
+      html += '<div class="biblio-card-actions">';
+      html += '<button class="biblio-btn biblio-btn-dl" onclick="biblioDownload(\'' + doc.id + '\')">⬇ Télécharger</button>';
+      if (!IS_READONLY) {
+        html += '<button class="biblio-btn biblio-btn-del" onclick="biblioDel(\'' + doc.id + '\')">🗑</button>';
+        html += '<select class="biblio-btn" onchange="biblioChangeCat(\'' + doc.id + '\',this.value)" style="padding:4px 6px">';
+        for (var ci2 = 0; ci2 < BIBLIO_CATS.length; ci2++) {
+          var catOpt = BIBLIO_CATS[ci2];
+          html += '<option value="' + catOpt.k + '"' + (doc.cat === catOpt.k ? ' selected' : '') + '>' + esc(catOpt.lbl) + '</option>';
+        }
+        html += '</select>';
+      }
+      html += '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  c.innerHTML = html;
+}
+
+function biblioSetCat(k) { _biblioFilter = k; renderBiblio(); }
+function biblioSetSearch(v) { _biblioSearch = v; renderBiblio(); }
+
+function biblioHandleFiles(evt) {
+  var files = evt.target.files;
+  if (!files || files.length === 0) return;
+  var docs = _biblioLoad();
+  var done = 0;
+  var total = files.length;
+  for (var i = 0; i < total; i++) {
+    (function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var id = 'doc_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        docs.push({
+          id: id,
+          nom: file.name,
+          cat: 'autre',
+          size: file.size,
+          type: file.type,
+          data: e.target.result,
+          ts: Date.now(),
+          desc: ''
+        });
+        done++;
+        if (done === total) {
+          _biblioSave(docs);
+          renderBiblio();
+        }
+      };
+      reader.readAsDataURL(file);
+    })(files[i]);
+  }
+  evt.target.value = '';
+}
+
+function biblioDownload(id) {
+  var docs = _biblioLoad();
+  for (var i = 0; i < docs.length; i++) {
+    if (docs[i].id === id) {
+      var d = docs[i];
+      var a = document.createElement('a');
+      a.href = d.data;
+      a.download = d.nom;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+  }
+}
+
+function biblioDel(id) {
+  if (IS_READONLY) return;
+  if (!confirm('Supprimer ce document ?')) return;
+  var docs = _biblioLoad();
+  var newDocs = [];
+  for (var i = 0; i < docs.length; i++) { if (docs[i].id !== id) newDocs.push(docs[i]); }
+  _biblioSave(newDocs);
+  renderBiblio();
+}
+
+function biblioChangeCat(id, cat) {
+  if (IS_READONLY) return;
+  var docs = _biblioLoad();
+  for (var i = 0; i < docs.length; i++) {
+    if (docs[i].id === id) { docs[i].cat = cat; break; }
+  }
+  _biblioSave(docs);
+  renderBiblio();
 }
 
 /* ════════════════════════════════
