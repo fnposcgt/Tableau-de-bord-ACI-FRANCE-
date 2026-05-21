@@ -43,7 +43,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nav-tab{padding:12px 20px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--text2);cursor:pointer;border:none;background:none;text-transform:uppercase;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .2s}
 .nav-tab.active{color:#E24B4A;border-bottom-color:#E24B4A}
 /* PANELS */
-.panel{display:none}.panel.active{display:block}
+.panel{display:none}#portail{display:block}.panel.active{display:block}
 /* HEADER */
 header{padding:28px 20px 20px;text-align:center;border-bottom:2px solid #E24B4A;background:var(--header-bg);transition:background .25s}
 header h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(22px,5vw,38px);letter-spacing:3px;margin-bottom:4px;color:var(--text)}
@@ -858,13 +858,25 @@ function toggleTheme() {
 })();
 
 function showTab(name, btn) {
-  var panels = document.querySelectorAll('.panel');
-  for (var i=0; i<panels.length; i++) panels[i].classList.remove('active');
-  var tabs = document.querySelectorAll('.nav-tab');
-  for (var j=0; j<tabs.length; j++) tabs[j].classList.remove('active');
-  document.getElementById(name).classList.add('active');
-  btn.classList.add('active');
-  if (name === 'fed') loadFedKpis();
+  try {
+    /* 1. Masquer tous les panels */
+    var panels = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels.length; i++) panels[i].style.display = 'none';
+    /* 2. Désactiver tous les onglets */
+    var tabs = document.querySelectorAll('.nav-tab');
+    for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
+    /* 3. Afficher le panel demandé */
+    var panel = document.getElementById(name);
+    if (panel) panel.style.display = 'block';
+    /* 4. Activer l'onglet */
+    if (btn) btn.classList.add('active');
+    /* 5. Charger les données (dans un try séparé pour ne pas bloquer l'affichage) */
+    if (name === 'fed') {
+      try { loadFedKpis(); } catch(e) { console.error('loadFedKpis error', e); }
+    }
+  } catch(e) {
+    console.error('showTab error', e);
+  }
 }
 </script>
 
