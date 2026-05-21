@@ -709,6 +709,26 @@ function buildAgenda(filterSec) {
   if (!el) return;
   if (!filterSec) filterSec = 'all';
   var SEC_COLORS = {ACI:'#E24B4A',SS:'#F97316',AD:'#378ADD',ML:'#639922',MUT:'#8B5CF6',MSA:'#14B8A6',GPS:'#EC4899',RQ:'#EF9F27',FT:'#6B7280'};
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  function parseDate(dStr) {
+    var p = dStr.split('/');
+    if (p.length === 3) return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+    return new Date(dStr);
+  }
+  function daysUntil(dt) {
+    return Math.round((dt - today) / 86400000);
+  }
+  function daysLabel(n) {
+    if (n < 0)  return 'pass\u00e9';
+    if (n === 0) return 'aujourd\'hui';
+    if (n === 1) return 'demain';
+    if (n < 7)   return 'dans ' + n + 'j';
+    if (n < 30)  return 'dans ' + Math.round(n/7) + 'sem';
+    if (n < 365) return 'dans ' + Math.round(n/30) + 'mois';
+    return 'dans ' + Math.round(n/365) + 'an' + (n>=730?'s':'');
+  }
+
   /* Fusionner ACI + autres */
   var base = [];
   if (typeof ACI_ELEC !== 'undefined') {
@@ -717,41 +737,70 @@ function buildAgenda(filterSec) {
   if (typeof ELEC_ALL_SECTEURS !== 'undefined') {
     for(var j=0;j<ELEC_ALL_SECTEURS.length;j++) base.push(ELEC_ALL_SECTEURS[j]);
   }
-  /* Trier par date */
-  base.sort(function(a,b){
-    var pa=a.d.split('/'), pb=b.d.split('/');
-    var ta=new Date(pa[2],pa[1]-1,pa[0]), tb=new Date(pb[2],pb[1]-1,pb[0]);
-    return ta-tb;
+
+  /* Trier du plus proche au plus lointain */
+  base.sort(function(a, b) {
+    return parseDate(a.d) - parseDate(b.d);
   });
-  /* Filtrer par secteur */
-  var filtered = filterSec === 'all' ? base : base.filter(function(e){ return e.sec === filterSec; });
-  /* Mettre à jour compteur */
+
+  /* Filtrer par secteur + exclure passées */
+  var filtered = base.filter(function(e) {
+    var dt = parseDate(e.d);
+    if (dt < today) return false;
+    return filterSec === 'all' || e.sec === filterSec;
+  });
+
+  /* Compteur */
   var cnt = document.getElementById('ag-count');
   if (cnt) cnt.textContent = filtered.length;
+
   if (filtered.length === 0) {
-    el.innerHTML = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:12px">Aucune \u00e9lection pour ce secteur</div>';
+    el.innerHTML = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:12px">Aucune \u00e9lection \u00e0 venir pour ce secteur</div>';
     return;
   }
+
   var html = '';
-  var shown = Math.min(filtered.length, 60);
-  for (var i=0; i<shown; i++) {
+  var lastMonth = '';
+  var shown = Math.min(filtered.length, 80);
+
+  for (var i = 0; i < shown; i++) {
     var e = filtered[i];
+    var dt = parseDate(e.d);
+    var p = e.d.split('/');
+    var monthKey = p[1] + '/' + p[2];
+    var MONTHS = ['','Janvier','F\u00e9vrier','Mars','Avril','Mai','Juin','Juillet','Ao\u00fbt','Septembre','Octobre','Novembre','D\u00e9cembre'];
+    var monthLabel = MONTHS[parseInt(p[1])] + ' ' + p[2];
+
+    /* Séparateur mensuel */
+    if (monthKey !== lastMonth) {
+      html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;'
+        + 'color:var(--text3);padding:8px 0 4px;border-bottom:1px solid var(--card-bd);margin-bottom:6px">'
+        + monthLabel + '</div>';
+      lastMonth = monthKey;
+    }
+
     var col = SEC_COLORS[e.sec] || '#E24B4A';
-    html += '<div class="agenda-item">'
+    var days = daysUntil(dt);
+    var urgentStyle = days <= 7 ? 'font-weight:700' : '';
+
+    html += '<div class="agenda-item" style="' + urgentStyle + '">'
       + '<div style="display:flex;gap:5px;align-items:center;min-width:0">'
-      + '<div style="background:'+col+';color:#fff;border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0">' + e.d + '</div>'
-      + '<div style="background:'+col+'22;color:'+col+';border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;flex-shrink:0">' + e.sec + '</div>'
-      + '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e.n
-      + (e.v ? ' <span style="color:var(--text3)">\u00b7 '+e.v+'</span>' : '') + '</div>'
+      + '<div style="background:' + col + ';color:#fff;border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0">' + e.d + '</div>'
+      + '<div style="background:' + col + '22;color:' + col + ';border-radius:4px;padding:2px 5px;font-size:9px;font-weight:700;flex-shrink:0">' + e.sec + '</div>'
+      + '<div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + e.n
+      + (e.v ? ' <span style="color:var(--text3)">\u00b7 ' + e.v + '</span>' : '') + '</div>'
+      + '<div style="font-size:9px;color:var(--text3);flex-shrink:0;padding-left:4px">' + daysLabel(days) + '</div>'
       + '</div></div>';
   }
+
   if (filtered.length > shown) {
-    html += '<div style="font-size:10px;color:var(--text3);text-align:center;padding:8px">... et '+(filtered.length-shown)+' autres</div>';
+    html += '<div style="font-size:10px;color:var(--text3);text-align:center;padding:8px">'
+      + '... et ' + (filtered.length - shown) + ' autres \u00e9lections</div>';
   }
   el.innerHTML = html;
 }
 
-function agFilter(sec) {
+function agFilterfunction agFilter(sec) {
   /* Mettre à jour les boutons */
   var btns = ['all','ACI','SS','AD','ML','MUT','MSA','GPS','RQ'];
   var SEC_COLORS = {ACI:'#E24B4A',SS:'#F97316',AD:'#378ADD',ML:'#639922',MUT:'#8B5CF6',MSA:'#14B8A6',GPS:'#EC4899',RQ:'#EF9F27',all:'#E24B4A'};
