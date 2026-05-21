@@ -18,9 +18,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 a.back{display:inline-flex;align-items:center;gap:3px;padding:4px 9px;border-radius:5px;border:1px solid var(--bd);background:var(--bg3);color:var(--tx2);font-size:11px;text-decoration:none;flex-shrink:0}
 #main{flex:1;display:flex;min-height:0}
 #sb{width:210px;min-width:210px;background:var(--bg2);border-right:1px solid var(--bd);overflow-y:auto;display:flex;flex-direction:column;flex-shrink:0}
-@media(max-width:580px){#sb{width:100%;min-width:0;max-height:170px;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:none;border-bottom:1px solid var(--bd)}#main{flex-direction:column}.fs{min-width:130px}}
-#mw{flex:1;position:relative;min-height:0}
-#map{width:100%;height:100%}
+@media(max-width:580px){
+  #sb{width:100%;min-width:0;height:160px;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:none;border-bottom:1px solid var(--bd);flex-shrink:0}
+  .fs{min-width:130px;flex-shrink:0}
+  #main{flex-direction:column;overflow:hidden}
+  #mw{flex:1;min-height:0;height:calc(100vh - 52px - 160px) !important}
+  #map{position:absolute;top:0;left:0;right:0;bottom:0}
+}
+#mw{flex:1;position:relative;min-height:0;overflow:hidden}
+#map{width:100%;height:100%;min-height:300px}
 .fs{padding:9px 10px 6px;border-bottom:1px solid var(--bd)}
 .ft{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:7px}
 .sf{display:flex;align-items:center;gap:5px;width:100%;padding:5px 8px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;text-align:left;margin-bottom:3px}
@@ -360,6 +366,7 @@ document.addEventListener('DOMContentLoaded',function(){
   _map=L.map('map',{zoomControl:true,attributionControl:false});
   L.tileLayer(isL?'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
                   :'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',{maxZoom:10}).addTo(_map);
+  window.addEventListener('resize',function(){if(_map)_map.invalidateSize();});
   var DU='https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson';
   var RU='https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson';
   function mkL(geo){
@@ -372,12 +379,31 @@ document.addEventListener('DOMContentLoaded',function(){
       }
     });
   }
-  fetch(DU).then(function(r){return r.json();}).then(function(g){
-    _ld=mkL(g); _ld.addTo(_map); _map.fitBounds(_ld.getBounds()); loadACI();
-  }).catch(function(e){console.error('GeoJSON dept',e);});
-  fetch(RU).then(function(r){return r.json();}).then(function(g){
-    _lr=mkL(g);
-  }).catch(function(e){console.error('GeoJSON reg',e);});
+  /* XHR dept (plus fiable mobile) */
+  function xhrGeo(url, cb, errCb){
+    var x=new XMLHttpRequest();
+    x.open('GET',url,true); x.timeout=12000;
+    x.onload=function(){
+      if(x.status===200){try{cb(JSON.parse(x.responseText));}catch(e){if(errCb)errCb(e);}}
+      else if(errCb) errCb(new Error('HTTP '+x.status));
+    };
+    x.onerror=function(){if(errCb)errCb(new Error('network'));};
+    x.ontimeout=function(){if(errCb)errCb(new Error('timeout'));};
+    x.send();
+  }
+  var erDiv=document.getElementById('acibar');
+  xhrGeo(DU, function(g){
+    _ld=mkL(g); _ld.addTo(_map);
+    setTimeout(function(){
+      _map.invalidateSize();
+      _map.fitBounds(_ld.getBounds());
+      loadACI();
+    },100);
+  }, function(e){
+    if(erDiv){erDiv.textContent='⚠️ GeoJSON indisponible — vérifier la connexion';erDiv.style.display='block';}
+    console.error('GeoJSON dept',e);
+  });
+  xhrGeo(RU, function(g){_lr=mkL(g);}, function(e){console.warn('GeoJSON reg',e);});
 });
 </script>
 </body>
