@@ -2,303 +2,535 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Carte Fédérale — FNPOS-CGT</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>Carte Fédérale FNPOS-CGT</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
   --bg:#0f1117;--bg2:#181c27;--bg3:#1e2334;--bd:#2a3050;
   --tx:#e8ecf4;--tx2:#9aa3bd;--tx3:#6b7494;
-  --acc:#E24B4A;--card:rgba(255,255,255,.04);
+  --acc:#E24B4A;
+  --shadow:0 2px 12px rgba(0,0,0,.4);
 }
 body.light{
   --bg:#f0f2f8;--bg2:#fff;--bg3:#e8ebf4;--bd:#d0d5e8;
-  --tx:#1a1d2e;--tx2:#4a5070;--tx3:#8892b0;--card:rgba(0,0,0,.03);
+  --tx:#1a1d2e;--tx2:#4a5070;--tx3:#8892b0;
+  --shadow:0 2px 12px rgba(0,0,0,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  background:var(--bg);color:var(--tx);height:100vh;
+  display:flex;flex-direction:column;overflow:hidden}
+
+/* ─ TOPBAR ─ */
 #topbar{
-  display:flex;align-items:center;gap:10px;padding:8px 14px;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
   background:var(--bg2);border-bottom:1px solid var(--bd);
-  flex-shrink:0;flex-wrap:wrap;z-index:1000;
+  flex-shrink:0;z-index:1000;
 }
-#topbar h1{font-size:13px;font-weight:700;white-space:nowrap;margin-right:4px}
+#back-btn{
+  display:inline-flex;align-items:center;gap:3px;padding:4px 9px;
+  border-radius:5px;border:1px solid var(--bd);background:var(--bg3);
+  color:var(--tx2);font-size:11px;text-decoration:none;flex-shrink:0;
+}
+#topbar h1{font-size:13px;font-weight:700;white-space:nowrap}
 #topbar h1 span{color:var(--acc)}
-#sec-filters{display:flex;gap:5px;flex-wrap:wrap;flex:1}
-.sf-btn{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:4px 9px;border-radius:5px;border:1px solid var(--bd);
-  background:var(--bg3);color:var(--tx2);font-size:11px;font-weight:600;
-  cursor:pointer;transition:all .15s;white-space:nowrap;
-}
-.sf-btn.active{border-color:currentColor;background:color-mix(in srgb,currentColor 15%,transparent)}
-.sf-btn:hover{opacity:.85}
-#btn-all{border-color:var(--acc);color:var(--acc)}
-#btn-all.active{background:rgba(226,75,74,.15)}
-#map-wrap{flex:1;position:relative;min-height:0}
-#map{width:100%;height:100%}
-#legend{
-  position:absolute;bottom:28px;right:10px;z-index:900;
-  background:var(--bg2);border:1px solid var(--bd);border-radius:8px;
-  padding:10px 12px;font-size:10px;min-width:140px;
-}
-#legend-title{font-weight:700;font-size:11px;margin-bottom:7px;color:var(--tx)}
-.leg-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;color:var(--tx2)}
-.leg-swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0}
-#stats-bar{
-  position:absolute;bottom:28px;left:10px;z-index:900;
-  background:var(--bg2);border:1px solid var(--bd);border-radius:8px;
-  padding:8px 12px;font-size:11px;display:flex;gap:14px;
-}
-.sb-item{text-align:center}
-.sb-val{font-size:16px;font-weight:700;color:var(--acc)}
-.sb-lbl{font-size:9px;color:var(--tx3);margin-top:1px}
 #theme-btn{
   margin-left:auto;padding:4px 8px;border-radius:5px;
   border:1px solid var(--bd);background:var(--bg3);
   color:var(--tx2);font-size:12px;cursor:pointer;flex-shrink:0;
 }
-#back-btn{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:4px 10px;border-radius:5px;border:1px solid var(--bd);
-  background:var(--bg3);color:var(--tx2);font-size:11px;
-  text-decoration:none;flex-shrink:0;
+
+/* ─ LAYOUT ─ */
+#main{flex:1;display:flex;min-height:0}
+#sidebar{
+  width:220px;min-width:220px;background:var(--bg2);
+  border-right:1px solid var(--bd);overflow-y:auto;
+  display:flex;flex-direction:column;gap:0;z-index:500;
+  flex-shrink:0;
 }
-.leaflet-popup-content-wrapper{background:var(--bg2) !important;border:1px solid var(--bd) !important;border-radius:8px !important;box-shadow:0 4px 20px rgba(0,0,0,.3) !important}
-.leaflet-popup-content{color:var(--tx) !important;font-size:12px !important;margin:10px 14px !important}
+@media(max-width:600px){
+  #sidebar{width:100%;min-width:0;max-height:180px;border-right:none;border-bottom:1px solid var(--bd);flex-direction:row;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap}
+  #main{flex-direction:column}
+  .filter-section{min-width:140px}
+}
+#map-wrap{flex:1;position:relative;min-height:0}
+#map{width:100%;height:100%}
+
+/* ─ SIDEBAR ─ */
+.filter-section{padding:10px 10px 6px;border-bottom:1px solid var(--bd)}
+.filter-title{
+  font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--tx3);margin-bottom:7px;
+}
+/* Secteur pills */
+.sec-btn{
+  display:flex;align-items:center;gap:6px;width:100%;padding:5px 8px;
+  border-radius:6px;border:1px solid transparent;background:transparent;
+  color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;
+  transition:all .12s;text-align:left;margin-bottom:3px;
+}
+.sec-btn .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sec-btn .nb{margin-left:auto;font-size:9px;opacity:.6;font-weight:400}
+.sec-btn:hover{background:var(--bg3)}
+.sec-btn.active{border-color:currentColor;background:color-mix(in srgb,currentColor 12%,transparent)}
+.sec-btn.active .dot{box-shadow:0 0 0 2px currentColor}
+
+/* Slider filters */
+.slider-wrap{margin-bottom:8px}
+.slider-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--tx2);margin-bottom:4px}
+.slider-lbl span{font-weight:700;color:var(--tx)}
+input[type=range]{
+  width:100%;height:4px;accent-color:var(--acc);
+  background:var(--bg3);border-radius:2px;cursor:pointer;
+}
+/* Mode affichage */
+.mode-btn{
+  display:flex;align-items:center;gap:6px;width:100%;padding:5px 8px;
+  border-radius:6px;border:1px solid transparent;background:transparent;
+  color:var(--tx2);font-size:11px;cursor:pointer;margin-bottom:3px;
+}
+.mode-btn:hover{background:var(--bg3)}
+.mode-btn.active{border-color:var(--acc);background:rgba(226,75,74,.1);color:var(--tx);font-weight:600}
+.mode-icon{font-size:13px;width:16px;text-align:center}
+
+/* ─ MAP OVERLAYS ─ */
+#stats-bar{
+  position:absolute;bottom:20px;left:10px;z-index:900;
+  background:var(--bg2);border:1px solid var(--bd);border-radius:8px;
+  padding:7px 11px;font-size:11px;display:flex;gap:12px;
+  box-shadow:var(--shadow);
+}
+.sb-item{text-align:center}
+.sb-val{font-size:15px;font-weight:700;color:var(--acc);line-height:1.1}
+.sb-lbl{font-size:9px;color:var(--tx3);margin-top:2px;white-space:nowrap}
+
+#legend{
+  position:absolute;bottom:20px;right:10px;z-index:900;
+  background:var(--bg2);border:1px solid var(--bd);border-radius:8px;
+  padding:9px 11px;font-size:10px;
+  box-shadow:var(--shadow);
+}
+#legend-title{font-weight:700;font-size:11px;margin-bottom:6px;color:var(--tx)}
+.leg-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;color:var(--tx2)}
+.leg-swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+
+/* ─ POPUP ─ */
+.leaflet-popup-content-wrapper{
+  background:var(--bg2) !important;border:1px solid var(--bd) !important;
+  border-radius:8px !important;box-shadow:0 4px 20px rgba(0,0,0,.3) !important;
+}
+.leaflet-popup-content{color:var(--tx) !important;font-size:12px !important;margin:10px 14px !important;max-width:260px}
 .leaflet-popup-tip{background:var(--bg2) !important}
+.pop-title{font-weight:700;font-size:13px;margin-bottom:8px}
+.pop-row{display:flex;justify-content:space-between;padding:2px 0;font-size:11px;border-bottom:1px solid var(--bd)}
+.pop-row:last-of-type{border-bottom:none}
+.pop-k{color:var(--tx2)}
+.pop-v{font-weight:600}
+.pop-sec-pills{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px}
+.pop-pill{border-radius:3px;padding:2px 6px;font-size:10px;font-weight:700}
+.pop-link{display:block;margin-top:8px;font-size:10px;text-decoration:none;color:var(--acc)}
+
+/* Alerte lisibilité */
+#readability-note{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:950;
+  background:var(--bg2);border:1px solid var(--bd);border-radius:7px;
+  padding:6px 12px;font-size:11px;color:var(--tx2);
+  box-shadow:var(--shadow);white-space:nowrap;display:none;
+}
 </style>
 </head>
 <body>
+
 <div id="topbar">
   <a href="index.html?tab=fed" id="back-btn">← Portail</a>
-  <h1>Carte <span>Fédérale</span></h1>
-  <div id="sec-filters">
-    <button class="sf-btn active" id="btn-all" onclick="setFilter('all')">🗺️ Tous</button>
-    <button class="sf-btn" id="btn-ad" onclick="setFilter('ad')" style="color:#378ADD">🏠 Aides à Domicile <span style="opacity:.6;font-weight:400">(545)</span></button>
-    <button class="sf-btn" id="btn-ss" onclick="setFilter('ss')" style="color:#E24B4A">🏥 Sécurité Sociale <span style="opacity:.6;font-weight:400">(307)</span></button>
-    <button class="sf-btn" id="btn-ml" onclick="setFilter('ml')" style="color:#639922">🎓 Missions Locales <span style="opacity:.6;font-weight:400">(167)</span></button>
-    <button class="sf-btn" id="btn-mut" onclick="setFilter('mut')" style="color:#8B5CF6">🤝 Mutualité <span style="opacity:.6;font-weight:400">(118)</span></button>
-    <button class="sf-btn" id="btn-msa" onclick="setFilter('msa')" style="color:#14B8A6">🌾 MSA <span style="opacity:.6;font-weight:400">(45)</span></button>
-    <button class="sf-btn" id="btn-gps" onclick="setFilter('gps')" style="color:#EC4899">🛡️ GPS <span style="opacity:.6;font-weight:400">(19)</span></button>
-    <button class="sf-btn" id="btn-rq" onclick="setFilter('rq')" style="color:#EF9F27">🏘️ Régies Quartier <span style="opacity:.6;font-weight:400">(21)</span></button>
-    <button class="sf-btn" id="btn-ft" onclick="setFilter('ft')" style="color:#6B7280">💼 France Travail <span style="opacity:.6;font-weight:400">(16)</span></button>
-  </div>
+  <h1>Carte <span>Fédérale</span> FNPOS-CGT</h1>
   <button id="theme-btn" onclick="toggleTheme()">☀️</button>
 </div>
-<div id="map-wrap">
-  <div id="map"></div>
-  <div id="stats-bar">
-    <div class="sb-item"><div class="sb-val" id="sb-structs">—</div><div class="sb-lbl">Structures</div></div>
-    <div class="sb-item"><div class="sb-val" id="sb-depts">—</div><div class="sb-lbl">Départements</div></div>
-    <div class="sb-item"><div class="sb-val" id="sb-insc">—</div><div class="sb-lbl">Inscrits</div></div>
-    <div class="sb-item"><div class="sb-val" id="sb-cgt">—</div><div class="sb-lbl">Score CGT moy.</div></div>
+
+<div id="main">
+  <!-- SIDEBAR FILTRES -->
+  <div id="sidebar">
+
+    <div class="filter-section">
+      <div class="filter-title">Secteur</div>
+      <button class="sec-btn active" id="btn-all" onclick="setSector('all')" style="color:#E24B4A">
+        <span class="dot" style="background:conic-gradient(#E24B4A 0%,#378ADD 20%,#F97316 38%,#639922 53%,#8B5CF6 67%,#14B8A6 79%,#EC4899 89%,#EF9F27 95%,#6B7280 100%)"></span>
+        Tous secteurs
+        <span class="nb">2979</span>
+      </button>
+      <button class="sec-btn" id="btn-aci" onclick="setSector('aci')" style="color:#E24B4A">
+        <span class="dot" style="background:#E24B4A"></span>
+        🏗️ ACI
+        <span class="nb">1741</span>
+      </button>
+      <button class="sec-btn" id="btn-ad" onclick="setSector('ad')" style="color:#378ADD">
+        <span class="dot" style="background:#378ADD"></span>
+        🏠 Aides à Domicile
+        <span class="nb">545</span>
+      </button>
+      <button class="sec-btn" id="btn-ss" onclick="setSector('ss')" style="color:#F97316">
+        <span class="dot" style="background:#F97316"></span>
+        🏥 Sécurité Sociale
+        <span class="nb">307</span>
+      </button>
+      <button class="sec-btn" id="btn-ml" onclick="setSector('ml')" style="color:#639922">
+        <span class="dot" style="background:#639922"></span>
+        🎓 Missions Locales
+        <span class="nb">167</span>
+      </button>
+      <button class="sec-btn" id="btn-mut" onclick="setSector('mut')" style="color:#8B5CF6">
+        <span class="dot" style="background:#8B5CF6"></span>
+        🤝 Mutualité
+        <span class="nb">118</span>
+      </button>
+      <button class="sec-btn" id="btn-msa" onclick="setSector('msa')" style="color:#14B8A6">
+        <span class="dot" style="background:#14B8A6"></span>
+        🌾 MSA
+        <span class="nb">45</span>
+      </button>
+      <button class="sec-btn" id="btn-gps" onclick="setSector('gps')" style="color:#EC4899">
+        <span class="dot" style="background:#EC4899"></span>
+        🛡️ GPS
+        <span class="nb">19</span>
+      </button>
+      <button class="sec-btn" id="btn-rq" onclick="setSector('rq')" style="color:#EF9F27">
+        <span class="dot" style="background:#EF9F27"></span>
+        🏘️ Régies Quartier
+        <span class="nb">21</span>
+      </button>
+      <button class="sec-btn" id="btn-ft" onclick="setSector('ft')" style="color:#6B7280">
+        <span class="dot" style="background:#6B7280"></span>
+        💼 France Travail
+        <span class="nb">16</span>
+      </button>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Mode d'affichage</div>
+      <button class="mode-btn active" id="mode-score" onclick="setMode('score')">
+        <span class="mode-icon">🎯</span>Score CGT %
+      </button>
+      <button class="mode-btn" id="mode-structs" onclick="setMode('structs')">
+        <span class="mode-icon">🏢</span>Nb structures
+      </button>
+      <button class="mode-btn" id="mode-presence" onclick="setMode('presence')">
+        <span class="mode-icon">👁️</span>Présence CGT
+      </button>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Filtre — Score CGT min. (%)</div>
+      <div class="slider-wrap">
+        <div class="slider-lbl">Score CGT ≥ <span id="lbl-score">0</span>%</div>
+        <input type="range" id="sl-score" min="0" max="60" value="0" step="5" oninput="onSlider()">
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Filtre — Structures min.</div>
+      <div class="slider-wrap">
+        <div class="slider-lbl">Structures ≥ <span id="lbl-structs">1</span></div>
+        <input type="range" id="sl-structs" min="1" max="50" value="1" step="1" oninput="onSlider()">
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Lisibilité</div>
+      <button class="mode-btn active" id="zoom-dept" onclick="setZoom('dept')">
+        <span class="mode-icon">🗺️</span>Départements
+      </button>
+      <button class="mode-btn" id="zoom-reg" onclick="setZoom('reg')">
+        <span class="mode-icon">📍</span>Régions
+      </button>
+    </div>
+
   </div>
-  <div id="legend">
-    <div id="legend-title">Score CGT %</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:#16a34a"></div>≥ 40 %</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:#65a30d"></div>30–40 %</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:#ca8a04"></div>20–30 %</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:#dc2626"></div>10–20 %</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:#9f1239"></div>&lt; 10 %</div>
-    <div class="leg-row"><div class="leg-swatch" style="background:#334155"></div>Non présent</div>
+
+  <!-- CARTE -->
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="readability-note">⚠️ Vue régionale pour meilleure lisibilité</div>
+    <div id="stats-bar">
+      <div class="sb-item"><div class="sb-val" id="sb-structs">—</div><div class="sb-lbl">Structures</div></div>
+      <div class="sb-item"><div class="sb-val" id="sb-depts">—</div><div class="sb-lbl">Depts</div></div>
+      <div class="sb-item"><div class="sb-val" id="sb-insc">—</div><div class="sb-lbl">Inscrits</div></div>
+      <div class="sb-item"><div class="sb-val" id="sb-cgt" style="color:#E24B4A">—</div><div class="sb-lbl">CGT moy.</div></div>
+    </div>
+    <div id="legend">
+      <div id="legend-title">Score CGT %</div>
+      <div id="legend-body"></div>
+    </div>
   </div>
 </div>
+
 <script>
-var DEPT_STATS={"ad":{"59":{"nb":29,"in":6370,"pa":28.6,"cgt":774,"cfdt":1097,"fo":375},"30":{"nb":8,"in":2558,"pa":32.3,"cgt":288,"cfdt":159,"fo":293},"66":{"nb":4,"in":335,"pa":53.3,"cgt":120,"cfdt":51,"fo":54},"24":{"nb":4,"in":485,"pa":63.0,"cgt":75,"cfdt":0,"fo":30},"83":{"nb":4,"in":1575,"pa":40.2,"cgt":259,"cfdt":246,"fo":140},"47":{"nb":18,"in":1363,"pa":11.9,"cgt":73,"cfdt":383,"fo":106},"35":{"nb":26,"in":2469,"pa":16.3,"cgt":195,"cfdt":695,"fo":245},"13":{"nb":12,"in":5427,"pa":10.0,"cgt":195,"cfdt":894,"fo":468},"49":{"nb":10,"in":1660,"pa":1.5,"cgt":12,"cfdt":754,"fo":0},"44":{"nb":7,"in":2810,"pa":15.2,"cgt":159,"cfdt":868,"fo":0},"69":{"nb":10,"in":1542,"pa":19.7,"cgt":135,"cfdt":486,"fo":32},"10":{"nb":4,"in":1055,"pa":42.1,"cgt":64,"cfdt":35,"fo":40},"84":{"nb":4,"in":1263,"pa":31.8,"cgt":152,"cfdt":195,"fo":48},"43":{"nb":12,"in":763,"pa":26.5,"cgt":114,"cfdt":82,"fo":234},"74":{"nb":7,"in":1206,"pa":1.9,"cgt":9,"cfdt":346,"fo":54},"65":{"nb":6,"in":727,"pa":57.0,"cgt":208,"cfdt":123,"fo":34},"38":{"nb":6,"in":1149,"pa":47.0,"cgt":185,"cfdt":169,"fo":0},"81":{"nb":5,"in":659,"pa":60.7,"cgt":207,"cfdt":62,"fo":72},"14":{"nb":13,"in":1130,"pa":22.1,"cgt":120,"cfdt":365,"fo":22},"56":{"nb":8,"in":2095,"pa":26.4,"cgt":197,"cfdt":465,"fo":83},"82":{"nb":7,"in":1336,"pa":3.9,"cgt":31,"cfdt":92,"fo":488},"25":{"nb":8,"in":2383,"pa":4.3,"cgt":34,"cfdt":582,"fo":0},"22":{"nb":8,"in":1598,"pa":36.2,"cgt":263,"cfdt":396,"fo":25},"71":{"nb":3,"in":789,"pa":83.0,"cgt":303,"cfdt":0,"fo":0},"17":{"nb":3,"in":402,"pa":28.9,"cgt":55,"cfdt":0,"fo":24},"70":{"nb":4,"in":268,"pa":100.0,"cgt":96,"cfdt":0,"fo":0},"40":{"nb":4,"in":224,"pa":4.3,"cgt":6,"cfdt":132,"fo":0},"55":{"nb":2,"in":126,"pa":0.0,"cgt":0,"cfdt":100,"fo":0},"77":{"nb":4,"in":612,"pa":31.5,"cgt":85,"cfdt":71,"fo":0},"29":{"nb":19,"in":3710,"pa":0.0,"cgt":0,"cfdt":1362,"fo":278},"31":{"nb":8,"in":2180,"pa":20.1,"cgt":156,"cfdt":559,"fo":60},"80":{"nb":4,"in":1288,"pa":1.6,"cgt":9,"cfdt":406,"fo":0},"20":{"nb":5,"in":2003,"pa":30.1,"cgt":369,"cfdt":0,"fo":51},"26":{"nb":6,"in":849,"pa":3.7,"cgt":12,"cfdt":246,"fo":0},"02":{"nb":14,"in":1492,"pa":34.7,"cgt":205,"cfdt":106,"fo":68},"62":{"nb":21,"in":3937,"pa":21.5,"cgt":379,"cfdt":752,"fo":252},"08":{"nb":4,"in":428,"pa":0.0,"cgt":0,"cfdt":32,"fo":158},"88":{"nb":6,"in":840,"pa":27.5,"cgt":100,"cfdt":177,"fo":44},"07":{"nb":5,"in":1486,"pa":23.3,"cgt":115,"cfdt":248,"fo":0},"45":{"nb":2,"in":296,"pa":0.0,"cgt":0,"cfdt":88,"fo":32},"76":{"nb":9,"in":2625,"pa":53.6,"cgt":566,"cfdt":404,"fo":86},"94":{"nb":4,"in":402,"pa":27.6,"cgt":61,"cfdt":88,"fo":72},"37":{"nb":7,"in":1636,"pa":13.2,"cgt":77,"cfdt":276,"fo":194},"42":{"nb":17,"in":2926,"pa":16.1,"cgt":156,"cfdt":662,"fo":49},"54":{"nb":8,"in":1993,"pa":17.2,"cgt":139,"cfdt":330,"fo":62},"53":{"nb":5,"in":187,"pa":9.6,"cgt":7,"cfdt":18,"fo":48},"34":{"nb":13,"in":3173,"pa":51.0,"cgt":569,"cfdt":258,"fo":241},"64":{"nb":5,"in":591,"pa":25.0,"cgt":66,"cfdt":108,"fo":90},"33":{"nb":11,"in":2455,"pa":62.3,"cgt":644,"cfdt":200,"fo":54},"75":{"nb":8,"in":4016,"pa":2.6,"cgt":42,"cfdt":128,"fo":591},"68":{"nb":5,"in":1822,"pa":19.4,"cgt":121,"cfdt":362,"fo":0},"86":{"nb":6,"in":304,"pa":40.5,"cgt":53,"cfdt":44,"fo":22},"12":{"nb":16,"in":1351,"pa":5.7,"cgt":41,"cfdt":0,"fo":676},"87":{"nb":3,"in":705,"pa":50.4,"cgt":170,"cfdt":36,"fo":131},"67":{"nb":4,"in":2295,"pa":20.8,"cgt":180,"cfdt":492,"fo":22},"01":{"nb":3,"in":1112,"pa":29.1,"cgt":122,"cfdt":246,"fo":7},"63":{"nb":2,"in":248,"pa":47.9,"cgt":46,"cfdt":0,"fo":50},"05":{"nb":3,"in":166,"pa":0.0,"cgt":0,"cfdt":82,"fo":0},"58":{"nb":2,"in":171,"pa":15.4,"cgt":16,"cfdt":88,"fo":0},"60":{"nb":2,"in":288,"pa":0.0,"cgt":0,"cfdt":156,"fo":0},"11":{"nb":1,"in":194,"pa":0.0,"cgt":0,"cfdt":78,"fo":0},"57":{"nb":3,"in":2294,"pa":0.0,"cgt":0,"cfdt":538,"fo":36},"36":{"nb":2,"in":332,"pa":59.3,"cgt":121,"cfdt":0,"fo":83},"03":{"nb":2,"in":245,"pa":52.7,"cgt":29,"cfdt":0,"fo":26},"16":{"nb":5,"in":263,"pa":0.0,"cgt":0,"cfdt":102,"fo":17},"48":{"nb":2,"in":556,"pa":0.0,"cgt":0,"cfdt":140,"fo":0},"78":{"nb":1,"in":44,"pa":100.0,"cgt":31,"cfdt":0,"fo":0},"32":{"nb":4,"in":406,"pa":2.2,"cgt":4,"cfdt":132,"fo":0},"95":{"nb":1,"in":106,"pa":100.0,"cgt":30,"cfdt":0,"fo":0},"93":{"nb":3,"in":326,"pa":13.1,"cgt":27,"cfdt":132,"fo":47},"41":{"nb":1,"in":1017,"pa":27.9,"cgt":80,"cfdt":0,"fo":0},"23":{"nb":2,"in":225,"pa":96.4,"cgt":53,"cfdt":2,"fo":0},"18":{"nb":3,"in":899,"pa":5.6,"cgt":25,"cfdt":382,"fo":0},"15":{"nb":2,"in":551,"pa":75.2,"cgt":176,"cfdt":58,"fo":0},"91":{"nb":7,"in":630,"pa":45.9,"cgt":134,"cfdt":124,"fo":15},"52":{"nb":2,"in":666,"pa":0.0,"cgt":0,"cfdt":276,"fo":0},"04":{"nb":2,"in":100,"pa":68.6,"cgt":48,"cfdt":22,"fo":0},"85":{"nb":11,"in":684,"pa":0.0,"cgt":0,"cfdt":384,"fo":48},"89":{"nb":6,"in":732,"pa":0.0,"cgt":0,"cfdt":240,"fo":0},"39":{"nb":1,"in":438,"pa":62.8,"cgt":103,"cfdt":61,"fo":0},"73":{"nb":2,"in":142,"pa":68.1,"cgt":47,"cfdt":22,"fo":0},"09":{"nb":1,"in":374,"pa":61.1,"cgt":99,"cfdt":0,"fo":0},"21":{"nb":1,"in":1542,"pa":0.0,"cgt":0,"cfdt":100,"fo":0},"90":{"nb":1,"in":12,"pa":100.0,"cgt":10,"cfdt":0,"fo":0},"51":{"nb":1,"in":434,"pa":0.0,"cgt":0,"cfdt":44,"fo":112},"27":{"nb":1,"in":50,"pa":0.0,"cgt":0,"cfdt":20,"fo":0},"50":{"nb":3,"in":2881,"pa":10.7,"cgt":47,"cfdt":394,"fo":0},"61":{"nb":3,"in":1081,"pa":25.8,"cgt":62,"cfdt":130,"fo":0},"79":{"nb":1,"in":262,"pa":0.0,"cgt":0,"cfdt":98,"fo":0},"92":{"nb":1,"in":198,"pa":0.0,"cgt":0,"cfdt":120,"fo":0},"72":{"nb":1,"in":918,"pa":0.0,"cgt":0,"cfdt":196,"fo":0},"19":{"nb":1,"in":243,"pa":67.1,"cgt":96,"cfdt":0,"fo":47}},"ft":{"75":{"nb":1,"in":1139,"pa":4.6,"cgt":40,"cfdt":337,"fo":237},"35":{"nb":1,"in":2403,"pa":17.1,"cgt":272,"cfdt":461,"fo":90},"93":{"nb":2,"in":11097,"pa":13.1,"cgt":947,"cfdt":1263,"fo":1792},"59":{"nb":1,"in":5329,"pa":13.1,"cgt":443,"cfdt":583,"fo":592},"44":{"nb":1,"in":2764,"pa":14.1,"cgt":262,"cfdt":392,"fo":677},"31":{"nb":1,"in":5266,"pa":7.3,"cgt":259,"cfdt":289,"fo":558},"21":{"nb":1,"in":2009,"pa":6.2,"cgt":84,"cfdt":465,"fo":42},"33":{"nb":1,"in":5072,"pa":3.5,"cgt":115,"cfdt":1050,"fo":374},"69":{"nb":1,"in":6210,"pa":12.9,"cgt":486,"cfdt":553,"fo":362},"92":{"nb":1,"in":647,"pa":14.6,"cgt":71,"cfdt":46,"fo":209},"76":{"nb":1,"in":2488,"pa":9.7,"cgt":174,"cfdt":336,"fo":331},"13":{"nb":1,"in":4681,"pa":20.9,"cgt":651,"cfdt":120,"fo":640},"20":{"nb":1,"in":538,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"45":{"nb":1,"in":1821,"pa":11.2,"cgt":137,"cfdt":518,"fo":359},"67":{"nb":1,"in":4646,"pa":2.5,"cgt":79,"cfdt":805,"fo":329}},"gps":{"75":{"nb":9,"in":2409,"pa":8.0,"cgt":138,"cfdt":676,"fo":70},"94":{"nb":2,"in":555,"pa":57.9,"cgt":209,"cfdt":0,"fo":152},"88":{"nb":1,"in":82,"pa":13.4,"cgt":9,"cfdt":58,"fo":0},"54":{"nb":1,"in":25,"pa":0.0,"cgt":0,"cfdt":0,"fo":9},"33":{"nb":1,"in":54,"pa":0.0,"cgt":0,"cfdt":10,"fo":10},"92":{"nb":1,"in":161,"pa":0.0,"cgt":0,"cfdt":23,"fo":0},"06":{"nb":1,"in":282,"pa":0.0,"cgt":0,"cfdt":44,"fo":2},"44":{"nb":1,"in":166,"pa":0.0,"cgt":0,"cfdt":13,"fo":65},"69":{"nb":1,"in":876,"pa":0.0,"cgt":0,"cfdt":155,"fo":0},"59":{"nb":1,"in":516,"pa":0.0,"cgt":0,"cfdt":169,"fo":118}},"ml":{"59":{"nb":15,"in":1332,"pa":36.6,"cgt":336,"cfdt":387,"fo":131},"21":{"nb":2,"in":140,"pa":31.2,"cgt":30,"cfdt":18,"fo":0},"78":{"nb":2,"in":142,"pa":0.0,"cgt":0,"cfdt":32,"fo":0},"72":{"nb":1,"in":145,"pa":12.9,"cgt":13,"cfdt":88,"fo":0},"87":{"nb":1,"in":96,"pa":0.0,"cgt":0,"cfdt":0,"fo":40},"29":{"nb":2,"in":148,"pa":100.0,"cgt":116,"cfdt":0,"fo":0},"63":{"nb":2,"in":72,"pa":100.0,"cgt":51,"cfdt":0,"fo":0},"64":{"nb":1,"in":70,"pa":0.0,"cgt":0,"cfdt":0,"fo":50},"76":{"nb":4,"in":638,"pa":3.6,"cgt":15,"cfdt":48,"fo":182},"38":{"nb":1,"in":43,"pa":100.0,"cgt":20,"cfdt":0,"fo":0},"56":{"nb":4,"in":164,"pa":54.9,"cgt":79,"cfdt":65,"fo":0},"03":{"nb":1,"in":25,"pa":100.0,"cgt":11,"cfdt":0,"fo":0},"84":{"nb":1,"in":138,"pa":0.0,"cgt":0,"cfdt":68,"fo":0},"42":{"nb":2,"in":132,"pa":0.0,"cgt":0,"cfdt":58,"fo":28},"62":{"nb":7,"in":563,"pa":11.2,"cgt":51,"cfdt":264,"fo":35},"83":{"nb":2,"in":97,"pa":25.8,"cgt":23,"cfdt":12,"fo":54},"34":{"nb":4,"in":339,"pa":36.4,"cgt":90,"cfdt":94,"fo":0},"17":{"nb":3,"in":137,"pa":57.0,"cgt":45,"cfdt":34,"fo":0},"31":{"nb":2,"in":403,"pa":0.0,"cgt":0,"cfdt":192,"fo":0},"91":{"nb":3,"in":117,"pa":46.8,"cgt":29,"cfdt":18,"fo":0},"60":{"nb":3,"in":102,"pa":67.9,"cgt":38,"cfdt":4,"fo":0},"22":{"nb":3,"in":108,"pa":71.1,"cgt":54,"cfdt":22,"fo":0},"80":{"nb":1,"in":72,"pa":50.0,"cgt":24,"cfdt":24,"fo":0},"54":{"nb":2,"in":37,"pa":100.0,"cgt":22,"cfdt":0,"fo":0},"33":{"nb":4,"in":231,"pa":19.1,"cgt":25,"cfdt":88,"fo":18},"88":{"nb":2,"in":53,"pa":46.3,"cgt":19,"cfdt":0,"fo":22},"35":{"nb":3,"in":179,"pa":100.0,"cgt":137,"cfdt":0,"fo":0},"30":{"nb":2,"in":136,"pa":10.0,"cgt":10,"cfdt":0,"fo":44},"57":{"nb":4,"in":273,"pa":14.5,"cgt":31,"cfdt":87,"fo":0},"20":{"nb":3,"in":110,"pa":0.0,"cgt":0,"cfdt":46,"fo":0},"66":{"nb":2,"in":298,"pa":0.0,"cgt":0,"cfdt":235,"fo":0},"26":{"nb":3,"in":170,"pa":0.0,"cgt":0,"cfdt":82,"fo":0},"44":{"nb":3,"in":192,"pa":45.4,"cgt":59,"cfdt":71,"fo":0},"86":{"nb":2,"in":71,"pa":2.3,"cgt":1,"cfdt":34,"fo":0},"73":{"nb":1,"in":60,"pa":59.2,"cgt":29,"cfdt":20,"fo":0},"25":{"nb":3,"in":133,"pa":77.0,"cgt":67,"cfdt":20,"fo":0},"92":{"nb":1,"in":18,"pa":100.0,"cgt":9,"cfdt":0,"fo":0},"14":{"nb":1,"in":77,"pa":100.0,"cgt":56,"cfdt":0,"fo":0},"89":{"nb":2,"in":112,"pa":0.0,"cgt":0,"cfdt":34,"fo":36},"67":{"nb":4,"in":213,"pa":33.1,"cgt":53,"cfdt":72,"fo":11},"07":{"nb":1,"in":25,"pa":100.0,"cgt":24,"cfdt":0,"fo":0},"79":{"nb":3,"in":166,"pa":0.0,"cgt":0,"cfdt":78,"fo":0},"13":{"nb":6,"in":543,"pa":39.0,"cgt":143,"cfdt":119,"fo":105},"61":{"nb":1,"in":26,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"69":{"nb":4,"in":271,"pa":35.6,"cgt":57,"cfdt":47,"fo":0},"81":{"nb":1,"in":98,"pa":0.0,"cgt":0,"cfdt":80,"fo":0},"68":{"nb":1,"in":98,"pa":0.0,"cgt":0,"cfdt":70,"fo":0},"71":{"nb":4,"in":111,"pa":48.7,"cgt":38,"cfdt":40,"fo":0},"24":{"nb":3,"in":66,"pa":77.8,"cgt":28,"cfdt":0,"fo":0},"06":{"nb":3,"in":274,"pa":0.0,"cgt":0,"cfdt":100,"fo":44},"50":{"nb":1,"in":140,"pa":0.0,"cgt":0,"cfdt":72,"fo":0},"40":{"nb":1,"in":126,"pa":0.0,"cgt":0,"cfdt":80,"fo":0},"55":{"nb":1,"in":23,"pa":100.0,"cgt":19,"cfdt":0,"fo":0},"74":{"nb":2,"in":72,"pa":27.3,"cgt":15,"cfdt":40,"fo":0},"77":{"nb":3,"in":251,"pa":36.7,"cgt":79,"cfdt":89,"fo":0},"36":{"nb":1,"in":28,"pa":0.0,"cgt":0,"cfdt":18,"fo":2},"10":{"nb":1,"in":17,"pa":100.0,"cgt":14,"cfdt":0,"fo":0},"49":{"nb":1,"in":97,"pa":66.7,"cgt":52,"cfdt":26,"fo":0},"93":{"nb":7,"in":317,"pa":69.6,"cgt":96,"cfdt":12,"fo":14},"48":{"nb":1,"in":21,"pa":30.0,"cgt":6,"cfdt":0,"fo":14},"95":{"nb":2,"in":114,"pa":26.4,"cgt":23,"cfdt":64,"fo":0},"85":{"nb":1,"in":44,"pa":0.0,"cgt":0,"cfdt":40,"fo":0},"27":{"nb":1,"in":52,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"94":{"nb":2,"in":39,"pa":50.0,"cgt":14,"cfdt":14,"fo":0},"11":{"nb":1,"in":34,"pa":70.0,"cgt":21,"cfdt":9,"fo":0},"82":{"nb":1,"in":58,"pa":100.0,"cgt":52,"cfdt":0,"fo":0},"52":{"nb":1,"in":14,"pa":100.0,"cgt":10,"cfdt":0,"fo":0},"28":{"nb":1,"in":34,"pa":0.0,"cgt":0,"cfdt":16,"fo":0},"65":{"nb":1,"in":60,"pa":0.0,"cgt":0,"cfdt":12,"fo":0},"75":{"nb":1,"in":189,"pa":61.9,"cgt":73,"cfdt":45,"fo":0}},"msa":{"93":{"nb":1,"in":745,"pa":28.0,"cgt":135,"cfdt":275,"fo":0},"52":{"nb":1,"in":522,"pa":0.0,"cgt":0,"cfdt":204,"fo":114},"94":{"nb":1,"in":420,"pa":45.8,"cgt":125,"cfdt":117,"fo":0},"33":{"nb":1,"in":804,"pa":0.0,"cgt":0,"cfdt":218,"fo":238},"54":{"nb":2,"in":590,"pa":0.0,"cgt":0,"cfdt":218,"fo":0},"51":{"nb":1,"in":730,"pa":0.0,"cgt":0,"cfdt":42,"fo":130},"56":{"nb":2,"in":138,"pa":22.6,"cgt":14,"cfdt":48,"fo":0},"62":{"nb":1,"in":226,"pa":0.0,"cgt":0,"cfdt":89,"fo":0},"68":{"nb":1,"in":598,"pa":0.0,"cgt":0,"cfdt":232,"fo":0},"73":{"nb":1,"in":656,"pa":0.0,"cgt":0,"cfdt":328,"fo":0},"38":{"nb":1,"in":172,"pa":0.0,"cgt":0,"cfdt":122,"fo":0},"87":{"nb":1,"in":572,"pa":0.0,"cgt":0,"cfdt":142,"fo":140},"25":{"nb":1,"in":286,"pa":10.3,"cgt":19,"cfdt":44,"fo":0},"72":{"nb":1,"in":826,"pa":0.0,"cgt":0,"cfdt":352,"fo":120},"21":{"nb":1,"in":461,"pa":35.0,"cgt":120,"cfdt":89,"fo":0},"14":{"nb":1,"in":808,"pa":0.0,"cgt":0,"cfdt":428,"fo":0},"41":{"nb":2,"in":706,"pa":0.0,"cgt":0,"cfdt":238,"fo":0},"64":{"nb":1,"in":379,"pa":23.3,"cgt":74,"cfdt":153,"fo":90},"63":{"nb":1,"in":894,"pa":4.6,"cgt":22,"cfdt":74,"fo":326},"80":{"nb":1,"in":834,"pa":0.0,"cgt":0,"cfdt":568,"fo":0},"32":{"nb":1,"in":399,"pa":41.3,"cgt":138,"cfdt":117,"fo":62},"84":{"nb":1,"in":674,"pa":0.0,"cgt":0,"cfdt":212,"fo":0},"13":{"nb":1,"in":563,"pa":27.5,"cgt":111,"cfdt":124,"fo":74},"11":{"nb":1,"in":644,"pa":0.0,"cgt":0,"cfdt":0,"fo":468},"59":{"nb":1,"in":621,"pa":24.2,"cgt":109,"cfdt":75,"fo":0},"17":{"nb":1,"in":407,"pa":44.8,"cgt":139,"cfdt":171,"fo":0},"48":{"nb":1,"in":582,"pa":29.7,"cgt":132,"cfdt":130,"fo":60},"12":{"nb":1,"in":509,"pa":13.2,"cgt":58,"cfdt":241,"fo":140},"26":{"nb":2,"in":624,"pa":10.3,"cgt":48,"cfdt":265,"fo":0},"27":{"nb":1,"in":331,"pa":32.9,"cgt":94,"cfdt":138,"fo":0},"86":{"nb":1,"in":314,"pa":50.0,"cgt":122,"cfdt":86,"fo":0},"69":{"nb":1,"in":443,"pa":8.5,"cgt":27,"cfdt":0,"fo":0},"24":{"nb":1,"in":378,"pa":18.3,"cgt":51,"cfdt":0,"fo":177},"29":{"nb":1,"in":587,"pa":27.1,"cgt":95,"cfdt":255,"fo":0},"28":{"nb":1,"in":674,"pa":0.0,"cgt":0,"cfdt":226,"fo":34},"85":{"nb":1,"in":962,"pa":0.0,"cgt":0,"cfdt":504,"fo":168},"35":{"nb":1,"in":1030,"pa":0.0,"cgt":0,"cfdt":184,"fo":228},"20":{"nb":1,"in":258,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"49":{"nb":1,"in":646,"pa":0.0,"cgt":0,"cfdt":348,"fo":0},"82":{"nb":2,"in":1951,"pa":0.1,"cgt":2,"cfdt":1052,"fo":366}},"mut":{"54":{"nb":4,"in":652,"pa":14.4,"cgt":52,"cfdt":77,"fo":234},"67":{"nb":1,"in":268,"pa":0.0,"cgt":0,"cfdt":146,"fo":0},"68":{"nb":1,"in":202,"pa":0.0,"cgt":0,"cfdt":0,"fo":32},"24":{"nb":1,"in":38,"pa":0.0,"cgt":0,"cfdt":18,"fo":0},"33":{"nb":2,"in":258,"pa":0.0,"cgt":0,"cfdt":40,"fo":0},"40":{"nb":1,"in":153,"pa":41.3,"cgt":31,"cfdt":0,"fo":0},"64":{"nb":1,"in":197,"pa":100.0,"cgt":98,"cfdt":0,"fo":0},"71":{"nb":1,"in":413,"pa":42.2,"cgt":81,"cfdt":77,"fo":0},"29":{"nb":2,"in":546,"pa":16.6,"cgt":27,"cfdt":136,"fo":0},"35":{"nb":1,"in":262,"pa":0.0,"cgt":0,"cfdt":218,"fo":0},"56":{"nb":3,"in":645,"pa":22.9,"cgt":58,"cfdt":180,"fo":15},"41":{"nb":1,"in":112,"pa":41.4,"cgt":41,"cfdt":58,"fo":0},"45":{"nb":2,"in":2433,"pa":21.4,"cgt":151,"cfdt":433,"fo":113},"10":{"nb":1,"in":20,"pa":100.0,"cgt":2,"cfdt":0,"fo":0},"51":{"nb":1,"in":942,"pa":0.0,"cgt":0,"cfdt":148,"fo":52},"70":{"nb":1,"in":126,"pa":0.0,"cgt":0,"cfdt":74,"fo":0},"75":{"nb":34,"in":25805,"pa":14.7,"cgt":2280,"cfdt":4918,"fo":2050},"78":{"nb":2,"in":456,"pa":0.0,"cgt":0,"cfdt":64,"fo":0},"92":{"nb":5,"in":3321,"pa":2.3,"cgt":44,"cfdt":325,"fo":223},"93":{"nb":1,"in":53,"pa":42.9,"cgt":15,"cfdt":20,"fo":0},"94":{"nb":2,"in":621,"pa":19.3,"cgt":76,"cfdt":168,"fo":0},"34":{"nb":4,"in":3565,"pa":22.9,"cgt":323,"cfdt":346,"fo":402},"66":{"nb":1,"in":42,"pa":0.0,"cgt":0,"cfdt":2,"fo":14},"87":{"nb":1,"in":954,"pa":65.4,"cgt":68,"cfdt":0,"fo":0},"12":{"nb":1,"in":1264,"pa":0.0,"cgt":0,"cfdt":378,"fo":60},"31":{"nb":7,"in":1401,"pa":35.3,"cgt":275,"cfdt":133,"fo":272},"32":{"nb":1,"in":40,"pa":0.0,"cgt":0,"cfdt":28,"fo":0},"65":{"nb":1,"in":250,"pa":0.0,"cgt":0,"cfdt":144,"fo":0},"81":{"nb":1,"in":792,"pa":38.2,"cgt":138,"cfdt":53,"fo":42},"82":{"nb":1,"in":434,"pa":31.3,"cgt":91,"cfdt":44,"fo":94},"76":{"nb":1,"in":1290,"pa":41.7,"cgt":165,"cfdt":101,"fo":75},"59":{"nb":4,"in":1395,"pa":8.4,"cgt":66,"cfdt":293,"fo":188},"06":{"nb":3,"in":1430,"pa":10.2,"cgt":88,"cfdt":558,"fo":45},"13":{"nb":3,"in":639,"pa":39.4,"cgt":176,"cfdt":0,"fo":199},"20":{"nb":2,"in":403,"pa":77.3,"cgt":157,"cfdt":0,"fo":0},"83":{"nb":1,"in":164,"pa":0.0,"cgt":0,"cfdt":74,"fo":0},"84":{"nb":1,"in":460,"pa":100.0,"cgt":111,"cfdt":0,"fo":0},"44":{"nb":3,"in":1454,"pa":18.5,"cgt":139,"cfdt":460,"fo":138},"49":{"nb":1,"in":28,"pa":0.0,"cgt":0,"cfdt":22,"fo":0},"60":{"nb":2,"in":420,"pa":0.0,"cgt":0,"cfdt":228,"fo":16},"80":{"nb":1,"in":35,"pa":100.0,"cgt":17,"cfdt":0,"fo":0},"16":{"nb":1,"in":114,"pa":0.0,"cgt":0,"cfdt":34,"fo":0},"79":{"nb":1,"in":301,"pa":92.9,"cgt":131,"cfdt":10,"fo":0},"69":{"nb":6,"in":2702,"pa":32.1,"cgt":344,"cfdt":182,"fo":241},"74":{"nb":2,"in":657,"pa":6.8,"cgt":26,"cfdt":39,"fo":320}},"rq":{"38":{"nb":2,"in":73,"pa":18.1,"cgt":8,"cfdt":4,"fo":26},"49":{"nb":2,"in":358,"pa":0.0,"cgt":0,"cfdt":178,"fo":0},"32":{"nb":1,"in":32,"pa":72.4,"cgt":21,"cfdt":8,"fo":0},"31":{"nb":2,"in":102,"pa":60.3,"cgt":44,"cfdt":0,"fo":13},"67":{"nb":1,"in":102,"pa":25.6,"cgt":20,"cfdt":58,"fo":0},"69":{"nb":2,"in":221,"pa":5.0,"cgt":7,"cfdt":134,"fo":0},"82":{"nb":1,"in":122,"pa":0.0,"cgt":0,"cfdt":70,"fo":0},"59":{"nb":1,"in":330,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"47":{"nb":1,"in":70,"pa":100.0,"cgt":24,"cfdt":0,"fo":0},"73":{"nb":1,"in":44,"pa":100.0,"cgt":28,"cfdt":0,"fo":0},"75":{"nb":2,"in":91,"pa":90.9,"cgt":60,"cfdt":0,"fo":0},"84":{"nb":1,"in":38,"pa":0.0,"cgt":0,"cfdt":0,"fo":20},"44":{"nb":1,"in":130,"pa":0.0,"cgt":0,"cfdt":43,"fo":0},"54":{"nb":1,"in":76,"pa":0.0,"cgt":0,"cfdt":34,"fo":0},"45":{"nb":1,"in":101,"pa":0.0,"cgt":0,"cfdt":10,"fo":0},"58":{"nb":1,"in":146,"pa":0.0,"cgt":0,"cfdt":62,"fo":0}},"ss":{"75":{"nb":13,"in":14238,"pa":23.0,"cgt":1893,"cfdt":1981,"fo":1187},"93":{"nb":7,"in":9031,"pa":31.7,"cgt":1699,"cfdt":1766,"fo":1010},"59":{"nb":9,"in":8873,"pa":22.9,"cgt":1328,"cfdt":1371,"fo":2063},"76":{"nb":9,"in":4959,"pa":29.5,"cgt":999,"cfdt":496,"fo":709},"44":{"nb":6,"in":3972,"pa":27.5,"cgt":685,"cfdt":1017,"fo":653},"13":{"nb":7,"in":8400,"pa":26.7,"cgt":1645,"cfdt":582,"fo":3533},"34":{"nb":11,"in":4243,"pa":36.4,"cgt":1062,"cfdt":394,"fo":747},"33":{"nb":6,"in":6235,"pa":17.1,"cgt":707,"cfdt":975,"fo":1604},"69":{"nb":6,"in":7845,"pa":35.3,"cgt":1809,"cfdt":788,"fo":1158},"35":{"nb":8,"in":4243,"pa":21.5,"cgt":557,"cfdt":1330,"fo":302},"67":{"nb":9,"in":6478,"pa":7.1,"cgt":290,"cfdt":2109,"fo":755},"21":{"nb":7,"in":3344,"pa":25.6,"cgt":504,"cfdt":1025,"fo":331},"45":{"nb":6,"in":3685,"pa":20.2,"cgt":515,"cfdt":405,"fo":939},"42":{"nb":4,"in":1381,"pa":40.9,"cgt":325,"cfdt":225,"fo":144},"80":{"nb":3,"in":1736,"pa":9.9,"cgt":123,"cfdt":433,"fo":428},"24":{"nb":2,"in":462,"pa":81.9,"cgt":249,"cfdt":0,"fo":55},"06":{"nb":4,"in":2184,"pa":22.8,"cgt":410,"cfdt":427,"fo":937},"95":{"nb":2,"in":2087,"pa":7.7,"cgt":103,"cfdt":805,"fo":312},"78":{"nb":2,"in":2090,"pa":6.1,"cgt":84,"cfdt":342,"fo":265},"92":{"nb":2,"in":2132,"pa":5.0,"cgt":65,"cfdt":708,"fo":310},"91":{"nb":2,"in":1560,"pa":41.1,"cgt":404,"cfdt":267,"fo":281},"94":{"nb":2,"in":3380,"pa":0.0,"cgt":0,"cfdt":622,"fo":964},"20":{"nb":4,"in":736,"pa":9.1,"cgt":59,"cfdt":69,"fo":147},"77":{"nb":3,"in":1820,"pa":29.2,"cgt":355,"cfdt":337,"fo":456},"37":{"nb":4,"in":1586,"pa":20.9,"cgt":228,"cfdt":335,"fo":186},"87":{"nb":5,"in":2376,"pa":26.9,"cgt":400,"cfdt":305,"fo":578},"57":{"nb":4,"in":3424,"pa":3.5,"cgt":81,"cfdt":97,"fo":592},"88":{"nb":3,"in":584,"pa":26.3,"cgt":127,"cfdt":162,"fo":43},"54":{"nb":6,"in":2867,"pa":30.0,"cgt":553,"cfdt":523,"fo":593},"08":{"nb":3,"in":1113,"pa":25.4,"cgt":198,"cfdt":179,"fo":0},"66":{"nb":4,"in":1066,"pa":25.6,"cgt":193,"cfdt":2,"fo":560},"31":{"nb":5,"in":3716,"pa":25.3,"cgt":654,"cfdt":230,"fo":1222},"09":{"nb":3,"in":258,"pa":73.9,"cgt":133,"cfdt":36,"fo":0},"30":{"nb":3,"in":1081,"pa":24.7,"cgt":181,"cfdt":139,"fo":399},"68":{"nb":4,"in":2158,"pa":4.9,"cgt":62,"cfdt":396,"fo":66},"29":{"nb":4,"in":1671,"pa":39.8,"cgt":416,"cfdt":474,"fo":128},"85":{"nb":2,"in":557,"pa":24.7,"cgt":86,"cfdt":185,"fo":0},"56":{"nb":3,"in":2326,"pa":0.0,"cgt":0,"cfdt":1076,"fo":224},"49":{"nb":3,"in":1502,"pa":4.3,"cgt":46,"cfdt":447,"fo":356},"83":{"nb":3,"in":2240,"pa":14.6,"cgt":208,"cfdt":334,"fo":693},"48":{"nb":1,"in":275,"pa":4.4,"cgt":10,"cfdt":125,"fo":91},"02":{"nb":2,"in":970,"pa":22.4,"cgt":172,"cfdt":258,"fo":7},"07":{"nb":2,"in":482,"pa":47.8,"cgt":163,"cfdt":120,"fo":58},"62":{"nb":3,"in":2089,"pa":17.8,"cgt":258,"cfdt":197,"fo":642},"25":{"nb":4,"in":1090,"pa":14.0,"cgt":109,"cfdt":168,"fo":444},"38":{"nb":2,"in":1658,"pa":27.2,"cgt":341,"cfdt":108,"fo":272},"60":{"nb":2,"in":1299,"pa":16.4,"cgt":135,"cfdt":409,"fo":0},"51":{"nb":3,"in":1835,"pa":4.3,"cgt":53,"cfdt":586,"fo":605},"86":{"nb":3,"in":950,"pa":84.8,"cgt":468,"cfdt":84,"fo":0},"18":{"nb":2,"in":551,"pa":14.3,"cgt":61,"cfdt":171,"fo":178},"28":{"nb":2,"in":920,"pa":0.0,"cgt":0,"cfdt":236,"fo":130},"36":{"nb":2,"in":464,"pa":18.3,"cgt":55,"cfdt":48,"fo":32},"41":{"nb":2,"in":524,"pa":15.2,"cgt":57,"cfdt":233,"fo":84},"03":{"nb":2,"in":544,"pa":25.7,"cgt":97,"cfdt":80,"fo":121},"04":{"nb":2,"in":278,"pa":39.5,"cgt":90,"cfdt":38,"fo":100},"10":{"nb":2,"in":482,"pa":52.6,"cgt":164,"cfdt":50,"fo":33},"11":{"nb":2,"in":462,"pa":47.4,"cgt":139,"cfdt":48,"fo":89},"14":{"nb":2,"in":993,"pa":36.0,"cgt":218,"cfdt":146,"fo":118},"15":{"nb":2,"in":327,"pa":12.2,"cgt":28,"cfdt":184,"fo":18},"17":{"nb":2,"in":1257,"pa":7.2,"cgt":64,"cfdt":140,"fo":228},"26":{"nb":2,"in":618,"pa":49.7,"cgt":170,"cfdt":0,"fo":76},"27":{"nb":2,"in":1406,"pa":0.0,"cgt":0,"cfdt":356,"fo":528},"43":{"nb":2,"in":293,"pa":40.7,"cgt":85,"cfdt":98,"fo":26},"52":{"nb":2,"in":542,"pa":0.0,"cgt":0,"cfdt":278,"fo":76},"53":{"nb":2,"in":744,"pa":0.0,"cgt":0,"cfdt":118,"fo":418},"61":{"nb":2,"in":384,"pa":51.7,"cgt":124,"cfdt":84,"fo":32},"63":{"nb":3,"in":1441,"pa":63.0,"cgt":543,"cfdt":0,"fo":213},"73":{"nb":2,"in":810,"pa":11.7,"cgt":67,"cfdt":50,"fo":454},"84":{"nb":2,"in":830,"pa":29.0,"cgt":182,"cfdt":154,"fo":213},"90":{"nb":1,"in":124,"pa":47.3,"cgt":44,"cfdt":0,"fo":0},"74":{"nb":2,"in":1029,"pa":11.7,"cgt":68,"cfdt":260,"fo":132},"12":{"nb":2,"in":496,"pa":32.6,"cgt":125,"cfdt":98,"fo":149},"32":{"nb":2,"in":374,"pa":19.9,"cgt":53,"cfdt":159,"fo":0},"46":{"nb":2,"in":229,"pa":34.1,"cgt":62,"cfdt":63,"fo":57},"65":{"nb":1,"in":174,"pa":43.3,"cgt":58,"cfdt":76,"fo":0},"81":{"nb":2,"in":755,"pa":24.4,"cgt":143,"cfdt":179,"fo":265},"82":{"nb":2,"in":289,"pa":56.8,"cgt":142,"cfdt":33,"fo":41},"22":{"nb":3,"in":830,"pa":41.9,"cgt":213,"cfdt":177,"fo":118},"19":{"nb":2,"in":381,"pa":70.9,"cgt":195,"cfdt":80,"fo":0},"23":{"nb":2,"in":310,"pa":28.3,"cgt":67,"cfdt":6,"fo":164},"39":{"nb":2,"in":319,"pa":49.0,"cgt":101,"cfdt":44,"fo":61},"58":{"nb":2,"in":306,"pa":60.8,"cgt":118,"cfdt":70,"fo":0},"70":{"nb":2,"in":405,"pa":12.9,"cgt":33,"cfdt":8,"fo":218},"71":{"nb":2,"in":662,"pa":54.5,"cgt":286,"cfdt":212,"fo":0},"89":{"nb":2,"in":846,"pa":0.0,"cgt":0,"cfdt":266,"fo":350},"01":{"nb":2,"in":664,"pa":56.1,"cgt":253,"cfdt":198,"fo":0},"50":{"nb":2,"in":780,"pa":37.9,"cgt":179,"cfdt":181,"fo":0},"16":{"nb":2,"in":393,"pa":76.0,"cgt":187,"cfdt":59,"fo":0},"79":{"nb":2,"in":506,"pa":21.8,"cgt":71,"cfdt":57,"fo":134},"40":{"nb":2,"in":743,"pa":29.7,"cgt":79,"cfdt":0,"fo":187},"47":{"nb":2,"in":427,"pa":40.1,"cgt":120,"cfdt":16,"fo":105},"64":{"nb":3,"in":1184,"pa":20.8,"cgt":159,"cfdt":197,"fo":409},"55":{"nb":2,"in":500,"pa":6.5,"cgt":24,"cfdt":234,"fo":83},"72":{"nb":2,"in":1448,"pa":0.0,"cgt":0,"cfdt":72,"fo":0},"05":{"nb":1,"in":203,"pa":54.4,"cgt":74,"cfdt":0,"fo":38}}};
-var SECS_META={"ad":{"label":"Aides à Domicile","color":"#378ADD","icon":"🏠","idcc":"IDCC 2941"},"ss":{"label":"Sécurité Sociale","color":"#E24B4A","icon":"🏥","idcc":"—"},"ml":{"label":"Missions Locales","color":"#639922","icon":"🎓","idcc":"IDCC 2190"},"mut":{"label":"Mutualité","color":"#8B5CF6","icon":"🤝","idcc":"IDCC 2128"},"msa":{"label":"MSA","color":"#14B8A6","icon":"🌾","idcc":"—"},"gps":{"label":"GPS","color":"#EC4899","icon":"🛡️","idcc":"—"},"rq":{"label":"Régies Quartier","color":"#EF9F27","icon":"🏘️","idcc":"IDCC 3105"},"ft":{"label":"France Travail","color":"#6B7280","icon":"💼","idcc":"IDCC 2847"}};
-var REPR_CGT={"ad":38.17,"ss":29.52,"ml":41.02,"mut":23.22,"msa":15.14,"gps":16.98,"rq":26.9,"ft":10.61};
+var DEPT_STATS={"ad":{"59":{"nb":29,"in":6370,"pa":28.6,"cgt":774,"cfdt":1097,"fo":375},"30":{"nb":8,"in":2558,"pa":32.3,"cgt":288,"cfdt":159,"fo":293},"66":{"nb":4,"in":335,"pa":53.3,"cgt":120,"cfdt":51,"fo":54},"24":{"nb":4,"in":485,"pa":63.0,"cgt":75,"cfdt":0,"fo":30},"83":{"nb":4,"in":1575,"pa":40.2,"cgt":259,"cfdt":246,"fo":140},"47":{"nb":18,"in":1363,"pa":11.9,"cgt":73,"cfdt":383,"fo":106},"35":{"nb":26,"in":2469,"pa":16.3,"cgt":195,"cfdt":695,"fo":245},"13":{"nb":12,"in":5427,"pa":10.0,"cgt":195,"cfdt":894,"fo":468},"49":{"nb":10,"in":1660,"pa":1.5,"cgt":12,"cfdt":754,"fo":0},"44":{"nb":7,"in":2810,"pa":15.2,"cgt":159,"cfdt":868,"fo":0},"69":{"nb":10,"in":1542,"pa":19.7,"cgt":135,"cfdt":486,"fo":32},"10":{"nb":4,"in":1055,"pa":42.1,"cgt":64,"cfdt":35,"fo":40},"84":{"nb":4,"in":1263,"pa":31.8,"cgt":152,"cfdt":195,"fo":48},"43":{"nb":12,"in":763,"pa":26.5,"cgt":114,"cfdt":82,"fo":234},"74":{"nb":7,"in":1206,"pa":1.9,"cgt":9,"cfdt":346,"fo":54},"65":{"nb":6,"in":727,"pa":57.0,"cgt":208,"cfdt":123,"fo":34},"38":{"nb":6,"in":1149,"pa":47.0,"cgt":185,"cfdt":169,"fo":0},"81":{"nb":5,"in":659,"pa":60.7,"cgt":207,"cfdt":62,"fo":72},"14":{"nb":13,"in":1130,"pa":22.1,"cgt":120,"cfdt":365,"fo":22},"56":{"nb":8,"in":2095,"pa":26.4,"cgt":197,"cfdt":465,"fo":83},"82":{"nb":7,"in":1336,"pa":3.9,"cgt":31,"cfdt":92,"fo":488},"25":{"nb":8,"in":2383,"pa":4.3,"cgt":34,"cfdt":582,"fo":0},"22":{"nb":8,"in":1598,"pa":36.2,"cgt":263,"cfdt":396,"fo":25},"71":{"nb":3,"in":789,"pa":83.0,"cgt":303,"cfdt":0,"fo":0},"17":{"nb":3,"in":402,"pa":28.9,"cgt":55,"cfdt":0,"fo":24},"70":{"nb":4,"in":268,"pa":100.0,"cgt":96,"cfdt":0,"fo":0},"40":{"nb":4,"in":224,"pa":4.3,"cgt":6,"cfdt":132,"fo":0},"55":{"nb":2,"in":126,"pa":0.0,"cgt":0,"cfdt":100,"fo":0},"77":{"nb":4,"in":612,"pa":31.5,"cgt":85,"cfdt":71,"fo":0},"29":{"nb":19,"in":3710,"pa":0.0,"cgt":0,"cfdt":1362,"fo":278},"31":{"nb":8,"in":2180,"pa":20.1,"cgt":156,"cfdt":559,"fo":60},"80":{"nb":4,"in":1288,"pa":1.6,"cgt":9,"cfdt":406,"fo":0},"20":{"nb":5,"in":2003,"pa":30.1,"cgt":369,"cfdt":0,"fo":51},"26":{"nb":6,"in":849,"pa":3.7,"cgt":12,"cfdt":246,"fo":0},"02":{"nb":14,"in":1492,"pa":34.7,"cgt":205,"cfdt":106,"fo":68},"62":{"nb":21,"in":3937,"pa":21.5,"cgt":379,"cfdt":752,"fo":252},"08":{"nb":4,"in":428,"pa":0.0,"cgt":0,"cfdt":32,"fo":158},"88":{"nb":6,"in":840,"pa":27.5,"cgt":100,"cfdt":177,"fo":44},"07":{"nb":5,"in":1486,"pa":23.3,"cgt":115,"cfdt":248,"fo":0},"45":{"nb":2,"in":296,"pa":0.0,"cgt":0,"cfdt":88,"fo":32},"76":{"nb":9,"in":2625,"pa":53.6,"cgt":566,"cfdt":404,"fo":86},"94":{"nb":4,"in":402,"pa":27.6,"cgt":61,"cfdt":88,"fo":72},"37":{"nb":7,"in":1636,"pa":13.2,"cgt":77,"cfdt":276,"fo":194},"42":{"nb":17,"in":2926,"pa":16.1,"cgt":156,"cfdt":662,"fo":49},"54":{"nb":8,"in":1993,"pa":17.2,"cgt":139,"cfdt":330,"fo":62},"53":{"nb":5,"in":187,"pa":9.6,"cgt":7,"cfdt":18,"fo":48},"34":{"nb":13,"in":3173,"pa":51.0,"cgt":569,"cfdt":258,"fo":241},"64":{"nb":5,"in":591,"pa":25.0,"cgt":66,"cfdt":108,"fo":90},"33":{"nb":11,"in":2455,"pa":62.3,"cgt":644,"cfdt":200,"fo":54},"75":{"nb":8,"in":4016,"pa":2.6,"cgt":42,"cfdt":128,"fo":591},"68":{"nb":5,"in":1822,"pa":19.4,"cgt":121,"cfdt":362,"fo":0},"86":{"nb":6,"in":304,"pa":40.5,"cgt":53,"cfdt":44,"fo":22},"12":{"nb":16,"in":1351,"pa":5.7,"cgt":41,"cfdt":0,"fo":676},"87":{"nb":3,"in":705,"pa":50.4,"cgt":170,"cfdt":36,"fo":131},"67":{"nb":4,"in":2295,"pa":20.8,"cgt":180,"cfdt":492,"fo":22},"01":{"nb":3,"in":1112,"pa":29.1,"cgt":122,"cfdt":246,"fo":7},"63":{"nb":2,"in":248,"pa":47.9,"cgt":46,"cfdt":0,"fo":50},"05":{"nb":3,"in":166,"pa":0.0,"cgt":0,"cfdt":82,"fo":0},"58":{"nb":2,"in":171,"pa":15.4,"cgt":16,"cfdt":88,"fo":0},"60":{"nb":2,"in":288,"pa":0.0,"cgt":0,"cfdt":156,"fo":0},"11":{"nb":1,"in":194,"pa":0.0,"cgt":0,"cfdt":78,"fo":0},"57":{"nb":3,"in":2294,"pa":0.0,"cgt":0,"cfdt":538,"fo":36},"36":{"nb":2,"in":332,"pa":59.3,"cgt":121,"cfdt":0,"fo":83},"03":{"nb":2,"in":245,"pa":52.7,"cgt":29,"cfdt":0,"fo":26},"16":{"nb":5,"in":263,"pa":0.0,"cgt":0,"cfdt":102,"fo":17},"48":{"nb":2,"in":556,"pa":0.0,"cgt":0,"cfdt":140,"fo":0},"78":{"nb":1,"in":44,"pa":100.0,"cgt":31,"cfdt":0,"fo":0},"32":{"nb":4,"in":406,"pa":2.2,"cgt":4,"cfdt":132,"fo":0},"95":{"nb":1,"in":106,"pa":100.0,"cgt":30,"cfdt":0,"fo":0},"93":{"nb":3,"in":326,"pa":13.1,"cgt":27,"cfdt":132,"fo":47},"41":{"nb":1,"in":1017,"pa":27.9,"cgt":80,"cfdt":0,"fo":0},"23":{"nb":2,"in":225,"pa":96.4,"cgt":53,"cfdt":2,"fo":0},"18":{"nb":3,"in":899,"pa":5.6,"cgt":25,"cfdt":382,"fo":0},"15":{"nb":2,"in":551,"pa":75.2,"cgt":176,"cfdt":58,"fo":0},"91":{"nb":7,"in":630,"pa":45.9,"cgt":134,"cfdt":124,"fo":15},"52":{"nb":2,"in":666,"pa":0.0,"cgt":0,"cfdt":276,"fo":0},"04":{"nb":2,"in":100,"pa":68.6,"cgt":48,"cfdt":22,"fo":0},"85":{"nb":11,"in":684,"pa":0.0,"cgt":0,"cfdt":384,"fo":48},"89":{"nb":6,"in":732,"pa":0.0,"cgt":0,"cfdt":240,"fo":0},"39":{"nb":1,"in":438,"pa":62.8,"cgt":103,"cfdt":61,"fo":0},"73":{"nb":2,"in":142,"pa":68.1,"cgt":47,"cfdt":22,"fo":0},"09":{"nb":1,"in":374,"pa":61.1,"cgt":99,"cfdt":0,"fo":0},"21":{"nb":1,"in":1542,"pa":0.0,"cgt":0,"cfdt":100,"fo":0},"90":{"nb":1,"in":12,"pa":100.0,"cgt":10,"cfdt":0,"fo":0},"51":{"nb":1,"in":434,"pa":0.0,"cgt":0,"cfdt":44,"fo":112},"27":{"nb":1,"in":50,"pa":0.0,"cgt":0,"cfdt":20,"fo":0},"50":{"nb":3,"in":2881,"pa":10.7,"cgt":47,"cfdt":394,"fo":0},"61":{"nb":3,"in":1081,"pa":25.8,"cgt":62,"cfdt":130,"fo":0},"79":{"nb":1,"in":262,"pa":0.0,"cgt":0,"cfdt":98,"fo":0},"92":{"nb":1,"in":198,"pa":0.0,"cgt":0,"cfdt":120,"fo":0},"72":{"nb":1,"in":918,"pa":0.0,"cgt":0,"cfdt":196,"fo":0},"19":{"nb":1,"in":243,"pa":67.1,"cgt":96,"cfdt":0,"fo":47}},"ft":{"75":{"nb":1,"in":1139,"pa":4.6,"cgt":40,"cfdt":337,"fo":237},"35":{"nb":1,"in":2403,"pa":17.1,"cgt":272,"cfdt":461,"fo":90},"93":{"nb":2,"in":11097,"pa":13.1,"cgt":947,"cfdt":1263,"fo":1792},"59":{"nb":1,"in":5329,"pa":13.1,"cgt":443,"cfdt":583,"fo":592},"44":{"nb":1,"in":2764,"pa":14.1,"cgt":262,"cfdt":392,"fo":677},"31":{"nb":1,"in":5266,"pa":7.3,"cgt":259,"cfdt":289,"fo":558},"21":{"nb":1,"in":2009,"pa":6.2,"cgt":84,"cfdt":465,"fo":42},"33":{"nb":1,"in":5072,"pa":3.5,"cgt":115,"cfdt":1050,"fo":374},"69":{"nb":1,"in":6210,"pa":12.9,"cgt":486,"cfdt":553,"fo":362},"92":{"nb":1,"in":647,"pa":14.6,"cgt":71,"cfdt":46,"fo":209},"76":{"nb":1,"in":2488,"pa":9.7,"cgt":174,"cfdt":336,"fo":331},"13":{"nb":1,"in":4681,"pa":20.9,"cgt":651,"cfdt":120,"fo":640},"20":{"nb":1,"in":538,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"45":{"nb":1,"in":1821,"pa":11.2,"cgt":137,"cfdt":518,"fo":359},"67":{"nb":1,"in":4646,"pa":2.5,"cgt":79,"cfdt":805,"fo":329}},"gps":{"75":{"nb":9,"in":2409,"pa":8.0,"cgt":138,"cfdt":676,"fo":70},"94":{"nb":2,"in":555,"pa":57.9,"cgt":209,"cfdt":0,"fo":152},"88":{"nb":1,"in":82,"pa":13.4,"cgt":9,"cfdt":58,"fo":0},"54":{"nb":1,"in":25,"pa":0.0,"cgt":0,"cfdt":0,"fo":9},"33":{"nb":1,"in":54,"pa":0.0,"cgt":0,"cfdt":10,"fo":10},"92":{"nb":1,"in":161,"pa":0.0,"cgt":0,"cfdt":23,"fo":0},"06":{"nb":1,"in":282,"pa":0.0,"cgt":0,"cfdt":44,"fo":2},"44":{"nb":1,"in":166,"pa":0.0,"cgt":0,"cfdt":13,"fo":65},"69":{"nb":1,"in":876,"pa":0.0,"cgt":0,"cfdt":155,"fo":0},"59":{"nb":1,"in":516,"pa":0.0,"cgt":0,"cfdt":169,"fo":118}},"ml":{"59":{"nb":15,"in":1332,"pa":36.6,"cgt":336,"cfdt":387,"fo":131},"21":{"nb":2,"in":140,"pa":31.2,"cgt":30,"cfdt":18,"fo":0},"78":{"nb":2,"in":142,"pa":0.0,"cgt":0,"cfdt":32,"fo":0},"72":{"nb":1,"in":145,"pa":12.9,"cgt":13,"cfdt":88,"fo":0},"87":{"nb":1,"in":96,"pa":0.0,"cgt":0,"cfdt":0,"fo":40},"29":{"nb":2,"in":148,"pa":100.0,"cgt":116,"cfdt":0,"fo":0},"63":{"nb":2,"in":72,"pa":100.0,"cgt":51,"cfdt":0,"fo":0},"64":{"nb":1,"in":70,"pa":0.0,"cgt":0,"cfdt":0,"fo":50},"76":{"nb":4,"in":638,"pa":3.6,"cgt":15,"cfdt":48,"fo":182},"38":{"nb":1,"in":43,"pa":100.0,"cgt":20,"cfdt":0,"fo":0},"56":{"nb":4,"in":164,"pa":54.9,"cgt":79,"cfdt":65,"fo":0},"03":{"nb":1,"in":25,"pa":100.0,"cgt":11,"cfdt":0,"fo":0},"84":{"nb":1,"in":138,"pa":0.0,"cgt":0,"cfdt":68,"fo":0},"42":{"nb":2,"in":132,"pa":0.0,"cgt":0,"cfdt":58,"fo":28},"62":{"nb":7,"in":563,"pa":11.2,"cgt":51,"cfdt":264,"fo":35},"83":{"nb":2,"in":97,"pa":25.8,"cgt":23,"cfdt":12,"fo":54},"34":{"nb":4,"in":339,"pa":36.4,"cgt":90,"cfdt":94,"fo":0},"17":{"nb":3,"in":137,"pa":57.0,"cgt":45,"cfdt":34,"fo":0},"31":{"nb":2,"in":403,"pa":0.0,"cgt":0,"cfdt":192,"fo":0},"91":{"nb":3,"in":117,"pa":46.8,"cgt":29,"cfdt":18,"fo":0},"60":{"nb":3,"in":102,"pa":67.9,"cgt":38,"cfdt":4,"fo":0},"22":{"nb":3,"in":108,"pa":71.1,"cgt":54,"cfdt":22,"fo":0},"80":{"nb":1,"in":72,"pa":50.0,"cgt":24,"cfdt":24,"fo":0},"54":{"nb":2,"in":37,"pa":100.0,"cgt":22,"cfdt":0,"fo":0},"33":{"nb":4,"in":231,"pa":19.1,"cgt":25,"cfdt":88,"fo":18},"88":{"nb":2,"in":53,"pa":46.3,"cgt":19,"cfdt":0,"fo":22},"35":{"nb":3,"in":179,"pa":100.0,"cgt":137,"cfdt":0,"fo":0},"30":{"nb":2,"in":136,"pa":10.0,"cgt":10,"cfdt":0,"fo":44},"57":{"nb":4,"in":273,"pa":14.5,"cgt":31,"cfdt":87,"fo":0},"20":{"nb":3,"in":110,"pa":0.0,"cgt":0,"cfdt":46,"fo":0},"66":{"nb":2,"in":298,"pa":0.0,"cgt":0,"cfdt":235,"fo":0},"26":{"nb":3,"in":170,"pa":0.0,"cgt":0,"cfdt":82,"fo":0},"44":{"nb":3,"in":192,"pa":45.4,"cgt":59,"cfdt":71,"fo":0},"86":{"nb":2,"in":71,"pa":2.3,"cgt":1,"cfdt":34,"fo":0},"73":{"nb":1,"in":60,"pa":59.2,"cgt":29,"cfdt":20,"fo":0},"25":{"nb":3,"in":133,"pa":77.0,"cgt":67,"cfdt":20,"fo":0},"92":{"nb":1,"in":18,"pa":100.0,"cgt":9,"cfdt":0,"fo":0},"14":{"nb":1,"in":77,"pa":100.0,"cgt":56,"cfdt":0,"fo":0},"89":{"nb":2,"in":112,"pa":0.0,"cgt":0,"cfdt":34,"fo":36},"67":{"nb":4,"in":213,"pa":33.1,"cgt":53,"cfdt":72,"fo":11},"07":{"nb":1,"in":25,"pa":100.0,"cgt":24,"cfdt":0,"fo":0},"79":{"nb":3,"in":166,"pa":0.0,"cgt":0,"cfdt":78,"fo":0},"13":{"nb":6,"in":543,"pa":39.0,"cgt":143,"cfdt":119,"fo":105},"61":{"nb":1,"in":26,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"69":{"nb":4,"in":271,"pa":35.6,"cgt":57,"cfdt":47,"fo":0},"81":{"nb":1,"in":98,"pa":0.0,"cgt":0,"cfdt":80,"fo":0},"68":{"nb":1,"in":98,"pa":0.0,"cgt":0,"cfdt":70,"fo":0},"71":{"nb":4,"in":111,"pa":48.7,"cgt":38,"cfdt":40,"fo":0},"24":{"nb":3,"in":66,"pa":77.8,"cgt":28,"cfdt":0,"fo":0},"06":{"nb":3,"in":274,"pa":0.0,"cgt":0,"cfdt":100,"fo":44},"50":{"nb":1,"in":140,"pa":0.0,"cgt":0,"cfdt":72,"fo":0},"40":{"nb":1,"in":126,"pa":0.0,"cgt":0,"cfdt":80,"fo":0},"55":{"nb":1,"in":23,"pa":100.0,"cgt":19,"cfdt":0,"fo":0},"74":{"nb":2,"in":72,"pa":27.3,"cgt":15,"cfdt":40,"fo":0},"77":{"nb":3,"in":251,"pa":36.7,"cgt":79,"cfdt":89,"fo":0},"36":{"nb":1,"in":28,"pa":0.0,"cgt":0,"cfdt":18,"fo":2},"10":{"nb":1,"in":17,"pa":100.0,"cgt":14,"cfdt":0,"fo":0},"49":{"nb":1,"in":97,"pa":66.7,"cgt":52,"cfdt":26,"fo":0},"93":{"nb":7,"in":317,"pa":69.6,"cgt":96,"cfdt":12,"fo":14},"48":{"nb":1,"in":21,"pa":30.0,"cgt":6,"cfdt":0,"fo":14},"95":{"nb":2,"in":114,"pa":26.4,"cgt":23,"cfdt":64,"fo":0},"85":{"nb":1,"in":44,"pa":0.0,"cgt":0,"cfdt":40,"fo":0},"27":{"nb":1,"in":52,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"94":{"nb":2,"in":39,"pa":50.0,"cgt":14,"cfdt":14,"fo":0},"11":{"nb":1,"in":34,"pa":70.0,"cgt":21,"cfdt":9,"fo":0},"82":{"nb":1,"in":58,"pa":100.0,"cgt":52,"cfdt":0,"fo":0},"52":{"nb":1,"in":14,"pa":100.0,"cgt":10,"cfdt":0,"fo":0},"28":{"nb":1,"in":34,"pa":0.0,"cgt":0,"cfdt":16,"fo":0},"65":{"nb":1,"in":60,"pa":0.0,"cgt":0,"cfdt":12,"fo":0},"75":{"nb":1,"in":189,"pa":61.9,"cgt":73,"cfdt":45,"fo":0}},"msa":{"93":{"nb":1,"in":745,"pa":28.0,"cgt":135,"cfdt":275,"fo":0},"52":{"nb":1,"in":522,"pa":0.0,"cgt":0,"cfdt":204,"fo":114},"94":{"nb":1,"in":420,"pa":45.8,"cgt":125,"cfdt":117,"fo":0},"33":{"nb":1,"in":804,"pa":0.0,"cgt":0,"cfdt":218,"fo":238},"54":{"nb":2,"in":590,"pa":0.0,"cgt":0,"cfdt":218,"fo":0},"51":{"nb":1,"in":730,"pa":0.0,"cgt":0,"cfdt":42,"fo":130},"56":{"nb":2,"in":138,"pa":22.6,"cgt":14,"cfdt":48,"fo":0},"62":{"nb":1,"in":226,"pa":0.0,"cgt":0,"cfdt":89,"fo":0},"68":{"nb":1,"in":598,"pa":0.0,"cgt":0,"cfdt":232,"fo":0},"73":{"nb":1,"in":656,"pa":0.0,"cgt":0,"cfdt":328,"fo":0},"38":{"nb":1,"in":172,"pa":0.0,"cgt":0,"cfdt":122,"fo":0},"87":{"nb":1,"in":572,"pa":0.0,"cgt":0,"cfdt":142,"fo":140},"25":{"nb":1,"in":286,"pa":10.3,"cgt":19,"cfdt":44,"fo":0},"72":{"nb":1,"in":826,"pa":0.0,"cgt":0,"cfdt":352,"fo":120},"21":{"nb":1,"in":461,"pa":35.0,"cgt":120,"cfdt":89,"fo":0},"14":{"nb":1,"in":808,"pa":0.0,"cgt":0,"cfdt":428,"fo":0},"41":{"nb":2,"in":706,"pa":0.0,"cgt":0,"cfdt":238,"fo":0},"64":{"nb":1,"in":379,"pa":23.3,"cgt":74,"cfdt":153,"fo":90},"63":{"nb":1,"in":894,"pa":4.6,"cgt":22,"cfdt":74,"fo":326},"80":{"nb":1,"in":834,"pa":0.0,"cgt":0,"cfdt":568,"fo":0},"32":{"nb":1,"in":399,"pa":41.3,"cgt":138,"cfdt":117,"fo":62},"84":{"nb":1,"in":674,"pa":0.0,"cgt":0,"cfdt":212,"fo":0},"13":{"nb":1,"in":563,"pa":27.5,"cgt":111,"cfdt":124,"fo":74},"11":{"nb":1,"in":644,"pa":0.0,"cgt":0,"cfdt":0,"fo":468},"59":{"nb":1,"in":621,"pa":24.2,"cgt":109,"cfdt":75,"fo":0},"17":{"nb":1,"in":407,"pa":44.8,"cgt":139,"cfdt":171,"fo":0},"48":{"nb":1,"in":582,"pa":29.7,"cgt":132,"cfdt":130,"fo":60},"12":{"nb":1,"in":509,"pa":13.2,"cgt":58,"cfdt":241,"fo":140},"26":{"nb":2,"in":624,"pa":10.3,"cgt":48,"cfdt":265,"fo":0},"27":{"nb":1,"in":331,"pa":32.9,"cgt":94,"cfdt":138,"fo":0},"86":{"nb":1,"in":314,"pa":50.0,"cgt":122,"cfdt":86,"fo":0},"69":{"nb":1,"in":443,"pa":8.5,"cgt":27,"cfdt":0,"fo":0},"24":{"nb":1,"in":378,"pa":18.3,"cgt":51,"cfdt":0,"fo":177},"29":{"nb":1,"in":587,"pa":27.1,"cgt":95,"cfdt":255,"fo":0},"28":{"nb":1,"in":674,"pa":0.0,"cgt":0,"cfdt":226,"fo":34},"85":{"nb":1,"in":962,"pa":0.0,"cgt":0,"cfdt":504,"fo":168},"35":{"nb":1,"in":1030,"pa":0.0,"cgt":0,"cfdt":184,"fo":228},"20":{"nb":1,"in":258,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"49":{"nb":1,"in":646,"pa":0.0,"cgt":0,"cfdt":348,"fo":0},"82":{"nb":2,"in":1951,"pa":0.1,"cgt":2,"cfdt":1052,"fo":366}},"mut":{"54":{"nb":4,"in":652,"pa":14.4,"cgt":52,"cfdt":77,"fo":234},"67":{"nb":1,"in":268,"pa":0.0,"cgt":0,"cfdt":146,"fo":0},"68":{"nb":1,"in":202,"pa":0.0,"cgt":0,"cfdt":0,"fo":32},"24":{"nb":1,"in":38,"pa":0.0,"cgt":0,"cfdt":18,"fo":0},"33":{"nb":2,"in":258,"pa":0.0,"cgt":0,"cfdt":40,"fo":0},"40":{"nb":1,"in":153,"pa":41.3,"cgt":31,"cfdt":0,"fo":0},"64":{"nb":1,"in":197,"pa":100.0,"cgt":98,"cfdt":0,"fo":0},"71":{"nb":1,"in":413,"pa":42.2,"cgt":81,"cfdt":77,"fo":0},"29":{"nb":2,"in":546,"pa":16.6,"cgt":27,"cfdt":136,"fo":0},"35":{"nb":1,"in":262,"pa":0.0,"cgt":0,"cfdt":218,"fo":0},"56":{"nb":3,"in":645,"pa":22.9,"cgt":58,"cfdt":180,"fo":15},"41":{"nb":1,"in":112,"pa":41.4,"cgt":41,"cfdt":58,"fo":0},"45":{"nb":2,"in":2433,"pa":21.4,"cgt":151,"cfdt":433,"fo":113},"10":{"nb":1,"in":20,"pa":100.0,"cgt":2,"cfdt":0,"fo":0},"51":{"nb":1,"in":942,"pa":0.0,"cgt":0,"cfdt":148,"fo":52},"70":{"nb":1,"in":126,"pa":0.0,"cgt":0,"cfdt":74,"fo":0},"75":{"nb":34,"in":25805,"pa":14.7,"cgt":2280,"cfdt":4918,"fo":2050},"78":{"nb":2,"in":456,"pa":0.0,"cgt":0,"cfdt":64,"fo":0},"92":{"nb":5,"in":3321,"pa":2.3,"cgt":44,"cfdt":325,"fo":223},"93":{"nb":1,"in":53,"pa":42.9,"cgt":15,"cfdt":20,"fo":0},"94":{"nb":2,"in":621,"pa":19.3,"cgt":76,"cfdt":168,"fo":0},"34":{"nb":4,"in":3565,"pa":22.9,"cgt":323,"cfdt":346,"fo":402},"66":{"nb":1,"in":42,"pa":0.0,"cgt":0,"cfdt":2,"fo":14},"87":{"nb":1,"in":954,"pa":65.4,"cgt":68,"cfdt":0,"fo":0},"12":{"nb":1,"in":1264,"pa":0.0,"cgt":0,"cfdt":378,"fo":60},"31":{"nb":7,"in":1401,"pa":35.3,"cgt":275,"cfdt":133,"fo":272},"32":{"nb":1,"in":40,"pa":0.0,"cgt":0,"cfdt":28,"fo":0},"65":{"nb":1,"in":250,"pa":0.0,"cgt":0,"cfdt":144,"fo":0},"81":{"nb":1,"in":792,"pa":38.2,"cgt":138,"cfdt":53,"fo":42},"82":{"nb":1,"in":434,"pa":31.3,"cgt":91,"cfdt":44,"fo":94},"76":{"nb":1,"in":1290,"pa":41.7,"cgt":165,"cfdt":101,"fo":75},"59":{"nb":4,"in":1395,"pa":8.4,"cgt":66,"cfdt":293,"fo":188},"06":{"nb":3,"in":1430,"pa":10.2,"cgt":88,"cfdt":558,"fo":45},"13":{"nb":3,"in":639,"pa":39.4,"cgt":176,"cfdt":0,"fo":199},"20":{"nb":2,"in":403,"pa":77.3,"cgt":157,"cfdt":0,"fo":0},"83":{"nb":1,"in":164,"pa":0.0,"cgt":0,"cfdt":74,"fo":0},"84":{"nb":1,"in":460,"pa":100.0,"cgt":111,"cfdt":0,"fo":0},"44":{"nb":3,"in":1454,"pa":18.5,"cgt":139,"cfdt":460,"fo":138},"49":{"nb":1,"in":28,"pa":0.0,"cgt":0,"cfdt":22,"fo":0},"60":{"nb":2,"in":420,"pa":0.0,"cgt":0,"cfdt":228,"fo":16},"80":{"nb":1,"in":35,"pa":100.0,"cgt":17,"cfdt":0,"fo":0},"16":{"nb":1,"in":114,"pa":0.0,"cgt":0,"cfdt":34,"fo":0},"79":{"nb":1,"in":301,"pa":92.9,"cgt":131,"cfdt":10,"fo":0},"69":{"nb":6,"in":2702,"pa":32.1,"cgt":344,"cfdt":182,"fo":241},"74":{"nb":2,"in":657,"pa":6.8,"cgt":26,"cfdt":39,"fo":320}},"rq":{"38":{"nb":2,"in":73,"pa":18.1,"cgt":8,"cfdt":4,"fo":26},"49":{"nb":2,"in":358,"pa":0.0,"cgt":0,"cfdt":178,"fo":0},"32":{"nb":1,"in":32,"pa":72.4,"cgt":21,"cfdt":8,"fo":0},"31":{"nb":2,"in":102,"pa":60.3,"cgt":44,"cfdt":0,"fo":13},"67":{"nb":1,"in":102,"pa":25.6,"cgt":20,"cfdt":58,"fo":0},"69":{"nb":2,"in":221,"pa":5.0,"cgt":7,"cfdt":134,"fo":0},"82":{"nb":1,"in":122,"pa":0.0,"cgt":0,"cfdt":70,"fo":0},"59":{"nb":1,"in":330,"pa":0.0,"cgt":0,"cfdt":0,"fo":0},"47":{"nb":1,"in":70,"pa":100.0,"cgt":24,"cfdt":0,"fo":0},"73":{"nb":1,"in":44,"pa":100.0,"cgt":28,"cfdt":0,"fo":0},"75":{"nb":2,"in":91,"pa":90.9,"cgt":60,"cfdt":0,"fo":0},"84":{"nb":1,"in":38,"pa":0.0,"cgt":0,"cfdt":0,"fo":20},"44":{"nb":1,"in":130,"pa":0.0,"cgt":0,"cfdt":43,"fo":0},"54":{"nb":1,"in":76,"pa":0.0,"cgt":0,"cfdt":34,"fo":0},"45":{"nb":1,"in":101,"pa":0.0,"cgt":0,"cfdt":10,"fo":0},"58":{"nb":1,"in":146,"pa":0.0,"cgt":0,"cfdt":62,"fo":0}},"ss":{"75":{"nb":13,"in":14238,"pa":23.0,"cgt":1893,"cfdt":1981,"fo":1187},"93":{"nb":7,"in":9031,"pa":31.7,"cgt":1699,"cfdt":1766,"fo":1010},"59":{"nb":9,"in":8873,"pa":22.9,"cgt":1328,"cfdt":1371,"fo":2063},"76":{"nb":9,"in":4959,"pa":29.5,"cgt":999,"cfdt":496,"fo":709},"44":{"nb":6,"in":3972,"pa":27.5,"cgt":685,"cfdt":1017,"fo":653},"13":{"nb":7,"in":8400,"pa":26.7,"cgt":1645,"cfdt":582,"fo":3533},"34":{"nb":11,"in":4243,"pa":36.4,"cgt":1062,"cfdt":394,"fo":747},"33":{"nb":6,"in":6235,"pa":17.1,"cgt":707,"cfdt":975,"fo":1604},"69":{"nb":6,"in":7845,"pa":35.3,"cgt":1809,"cfdt":788,"fo":1158},"35":{"nb":8,"in":4243,"pa":21.5,"cgt":557,"cfdt":1330,"fo":302},"67":{"nb":9,"in":6478,"pa":7.1,"cgt":290,"cfdt":2109,"fo":755},"21":{"nb":7,"in":3344,"pa":25.6,"cgt":504,"cfdt":1025,"fo":331},"45":{"nb":6,"in":3685,"pa":20.2,"cgt":515,"cfdt":405,"fo":939},"42":{"nb":4,"in":1381,"pa":40.9,"cgt":325,"cfdt":225,"fo":144},"80":{"nb":3,"in":1736,"pa":9.9,"cgt":123,"cfdt":433,"fo":428},"24":{"nb":2,"in":462,"pa":81.9,"cgt":249,"cfdt":0,"fo":55},"06":{"nb":4,"in":2184,"pa":22.8,"cgt":410,"cfdt":427,"fo":937},"95":{"nb":2,"in":2087,"pa":7.7,"cgt":103,"cfdt":805,"fo":312},"78":{"nb":2,"in":2090,"pa":6.1,"cgt":84,"cfdt":342,"fo":265},"92":{"nb":2,"in":2132,"pa":5.0,"cgt":65,"cfdt":708,"fo":310},"91":{"nb":2,"in":1560,"pa":41.1,"cgt":404,"cfdt":267,"fo":281},"94":{"nb":2,"in":3380,"pa":0.0,"cgt":0,"cfdt":622,"fo":964},"20":{"nb":4,"in":736,"pa":9.1,"cgt":59,"cfdt":69,"fo":147},"77":{"nb":3,"in":1820,"pa":29.2,"cgt":355,"cfdt":337,"fo":456},"37":{"nb":4,"in":1586,"pa":20.9,"cgt":228,"cfdt":335,"fo":186},"87":{"nb":5,"in":2376,"pa":26.9,"cgt":400,"cfdt":305,"fo":578},"57":{"nb":4,"in":3424,"pa":3.5,"cgt":81,"cfdt":97,"fo":592},"88":{"nb":3,"in":584,"pa":26.3,"cgt":127,"cfdt":162,"fo":43},"54":{"nb":6,"in":2867,"pa":30.0,"cgt":553,"cfdt":523,"fo":593},"08":{"nb":3,"in":1113,"pa":25.4,"cgt":198,"cfdt":179,"fo":0},"66":{"nb":4,"in":1066,"pa":25.6,"cgt":193,"cfdt":2,"fo":560},"31":{"nb":5,"in":3716,"pa":25.3,"cgt":654,"cfdt":230,"fo":1222},"09":{"nb":3,"in":258,"pa":73.9,"cgt":133,"cfdt":36,"fo":0},"30":{"nb":3,"in":1081,"pa":24.7,"cgt":181,"cfdt":139,"fo":399},"68":{"nb":4,"in":2158,"pa":4.9,"cgt":62,"cfdt":396,"fo":66},"29":{"nb":4,"in":1671,"pa":39.8,"cgt":416,"cfdt":474,"fo":128},"85":{"nb":2,"in":557,"pa":24.7,"cgt":86,"cfdt":185,"fo":0},"56":{"nb":3,"in":2326,"pa":0.0,"cgt":0,"cfdt":1076,"fo":224},"49":{"nb":3,"in":1502,"pa":4.3,"cgt":46,"cfdt":447,"fo":356},"83":{"nb":3,"in":2240,"pa":14.6,"cgt":208,"cfdt":334,"fo":693},"48":{"nb":1,"in":275,"pa":4.4,"cgt":10,"cfdt":125,"fo":91},"02":{"nb":2,"in":970,"pa":22.4,"cgt":172,"cfdt":258,"fo":7},"07":{"nb":2,"in":482,"pa":47.8,"cgt":163,"cfdt":120,"fo":58},"62":{"nb":3,"in":2089,"pa":17.8,"cgt":258,"cfdt":197,"fo":642},"25":{"nb":4,"in":1090,"pa":14.0,"cgt":109,"cfdt":168,"fo":444},"38":{"nb":2,"in":1658,"pa":27.2,"cgt":341,"cfdt":108,"fo":272},"60":{"nb":2,"in":1299,"pa":16.4,"cgt":135,"cfdt":409,"fo":0},"51":{"nb":3,"in":1835,"pa":4.3,"cgt":53,"cfdt":586,"fo":605},"86":{"nb":3,"in":950,"pa":84.8,"cgt":468,"cfdt":84,"fo":0},"18":{"nb":2,"in":551,"pa":14.3,"cgt":61,"cfdt":171,"fo":178},"28":{"nb":2,"in":920,"pa":0.0,"cgt":0,"cfdt":236,"fo":130},"36":{"nb":2,"in":464,"pa":18.3,"cgt":55,"cfdt":48,"fo":32},"41":{"nb":2,"in":524,"pa":15.2,"cgt":57,"cfdt":233,"fo":84},"03":{"nb":2,"in":544,"pa":25.7,"cgt":97,"cfdt":80,"fo":121},"04":{"nb":2,"in":278,"pa":39.5,"cgt":90,"cfdt":38,"fo":100},"10":{"nb":2,"in":482,"pa":52.6,"cgt":164,"cfdt":50,"fo":33},"11":{"nb":2,"in":462,"pa":47.4,"cgt":139,"cfdt":48,"fo":89},"14":{"nb":2,"in":993,"pa":36.0,"cgt":218,"cfdt":146,"fo":118},"15":{"nb":2,"in":327,"pa":12.2,"cgt":28,"cfdt":184,"fo":18},"17":{"nb":2,"in":1257,"pa":7.2,"cgt":64,"cfdt":140,"fo":228},"26":{"nb":2,"in":618,"pa":49.7,"cgt":170,"cfdt":0,"fo":76},"27":{"nb":2,"in":1406,"pa":0.0,"cgt":0,"cfdt":356,"fo":528},"43":{"nb":2,"in":293,"pa":40.7,"cgt":85,"cfdt":98,"fo":26},"52":{"nb":2,"in":542,"pa":0.0,"cgt":0,"cfdt":278,"fo":76},"53":{"nb":2,"in":744,"pa":0.0,"cgt":0,"cfdt":118,"fo":418},"61":{"nb":2,"in":384,"pa":51.7,"cgt":124,"cfdt":84,"fo":32},"63":{"nb":3,"in":1441,"pa":63.0,"cgt":543,"cfdt":0,"fo":213},"73":{"nb":2,"in":810,"pa":11.7,"cgt":67,"cfdt":50,"fo":454},"84":{"nb":2,"in":830,"pa":29.0,"cgt":182,"cfdt":154,"fo":213},"90":{"nb":1,"in":124,"pa":47.3,"cgt":44,"cfdt":0,"fo":0},"74":{"nb":2,"in":1029,"pa":11.7,"cgt":68,"cfdt":260,"fo":132},"12":{"nb":2,"in":496,"pa":32.6,"cgt":125,"cfdt":98,"fo":149},"32":{"nb":2,"in":374,"pa":19.9,"cgt":53,"cfdt":159,"fo":0},"46":{"nb":2,"in":229,"pa":34.1,"cgt":62,"cfdt":63,"fo":57},"65":{"nb":1,"in":174,"pa":43.3,"cgt":58,"cfdt":76,"fo":0},"81":{"nb":2,"in":755,"pa":24.4,"cgt":143,"cfdt":179,"fo":265},"82":{"nb":2,"in":289,"pa":56.8,"cgt":142,"cfdt":33,"fo":41},"22":{"nb":3,"in":830,"pa":41.9,"cgt":213,"cfdt":177,"fo":118},"19":{"nb":2,"in":381,"pa":70.9,"cgt":195,"cfdt":80,"fo":0},"23":{"nb":2,"in":310,"pa":28.3,"cgt":67,"cfdt":6,"fo":164},"39":{"nb":2,"in":319,"pa":49.0,"cgt":101,"cfdt":44,"fo":61},"58":{"nb":2,"in":306,"pa":60.8,"cgt":118,"cfdt":70,"fo":0},"70":{"nb":2,"in":405,"pa":12.9,"cgt":33,"cfdt":8,"fo":218},"71":{"nb":2,"in":662,"pa":54.5,"cgt":286,"cfdt":212,"fo":0},"89":{"nb":2,"in":846,"pa":0.0,"cgt":0,"cfdt":266,"fo":350},"01":{"nb":2,"in":664,"pa":56.1,"cgt":253,"cfdt":198,"fo":0},"50":{"nb":2,"in":780,"pa":37.9,"cgt":179,"cfdt":181,"fo":0},"16":{"nb":2,"in":393,"pa":76.0,"cgt":187,"cfdt":59,"fo":0},"79":{"nb":2,"in":506,"pa":21.8,"cgt":71,"cfdt":57,"fo":134},"40":{"nb":2,"in":743,"pa":29.7,"cgt":79,"cfdt":0,"fo":187},"47":{"nb":2,"in":427,"pa":40.1,"cgt":120,"cfdt":16,"fo":105},"64":{"nb":3,"in":1184,"pa":20.8,"cgt":159,"cfdt":197,"fo":409},"55":{"nb":2,"in":500,"pa":6.5,"cgt":24,"cfdt":234,"fo":83},"72":{"nb":2,"in":1448,"pa":0.0,"cgt":0,"cfdt":72,"fo":0},"05":{"nb":1,"in":203,"pa":54.4,"cgt":74,"cfdt":0,"fo":38}},"aci":{"1":{"nb":15,"in":0,"pa":null},"2":{"nb":20,"in":0,"pa":null},"3":{"nb":12,"in":0,"pa":null},"4":{"nb":8,"in":0,"pa":null},"5":{"nb":13,"in":0,"pa":null},"6":{"nb":9,"in":0,"pa":null},"7":{"nb":13,"in":0,"pa":null},"8":{"nb":14,"in":0,"pa":null},"9":{"nb":7,"in":0,"pa":null},"10":{"nb":14,"in":0,"pa":null},"11":{"nb":17,"in":0,"pa":null},"12":{"nb":8,"in":0,"pa":null},"13":{"nb":51,"in":0,"pa":null},"14":{"nb":25,"in":0,"pa":null},"15":{"nb":7,"in":0,"pa":null},"16":{"nb":17,"in":0,"pa":null},"17":{"nb":21,"in":0,"pa":null},"18":{"nb":6,"in":0,"pa":null},"19":{"nb":11,"in":0,"pa":null},"20":{"nb":16,"in":0,"pa":null},"21":{"nb":11,"in":0,"pa":null},"22":{"nb":7,"in":0,"pa":null},"23":{"nb":10,"in":0,"pa":null},"24":{"nb":13,"in":0,"pa":null},"25":{"nb":15,"in":0,"pa":null},"26":{"nb":22,"in":0,"pa":null},"27":{"nb":27,"in":0,"pa":null},"28":{"nb":8,"in":0,"pa":null},"29":{"nb":23,"in":0,"pa":null},"30":{"nb":17,"in":0,"pa":null},"31":{"nb":22,"in":0,"pa":null},"32":{"nb":11,"in":0,"pa":null},"33":{"nb":25,"in":0,"pa":null},"34":{"nb":24,"in":0,"pa":null},"35":{"nb":21,"in":0,"pa":null},"36":{"nb":3,"in":0,"pa":null},"37":{"nb":9,"in":0,"pa":null},"38":{"nb":31,"in":0,"pa":null},"39":{"nb":19,"in":0,"pa":null},"40":{"nb":20,"in":0,"pa":null},"41":{"nb":4,"in":0,"pa":null},"42":{"nb":14,"in":0,"pa":null},"43":{"nb":11,"in":0,"pa":null},"44":{"nb":29,"in":0,"pa":null},"45":{"nb":13,"in":0,"pa":null},"46":{"nb":9,"in":0,"pa":null},"47":{"nb":10,"in":0,"pa":null},"48":{"nb":3,"in":0,"pa":null},"49":{"nb":22,"in":0,"pa":null},"50":{"nb":22,"in":0,"pa":null},"51":{"nb":16,"in":0,"pa":null},"52":{"nb":13,"in":0,"pa":null},"53":{"nb":9,"in":0,"pa":null},"54":{"nb":30,"in":0,"pa":null},"55":{"nb":15,"in":0,"pa":null},"56":{"nb":13,"in":0,"pa":null},"57":{"nb":20,"in":0,"pa":null},"58":{"nb":2,"in":0,"pa":null},"59":{"nb":67,"in":0,"pa":null},"60":{"nb":29,"in":0,"pa":null},"61":{"nb":21,"in":0,"pa":null},"62":{"nb":45,"in":0,"pa":null},"63":{"nb":15,"in":0,"pa":null},"64":{"nb":13,"in":0,"pa":null},"65":{"nb":5,"in":0,"pa":null},"66":{"nb":19,"in":0,"pa":null},"67":{"nb":16,"in":0,"pa":null},"68":{"nb":15,"in":0,"pa":null},"69":{"nb":29,"in":0,"pa":null},"70":{"nb":7,"in":0,"pa":null},"71":{"nb":12,"in":0,"pa":null},"72":{"nb":16,"in":0,"pa":null},"73":{"nb":11,"in":0,"pa":null},"74":{"nb":19,"in":0,"pa":null},"75":{"nb":29,"in":0,"pa":null},"76":{"nb":43,"in":0,"pa":null},"77":{"nb":13,"in":0,"pa":null},"78":{"nb":12,"in":0,"pa":null},"79":{"nb":11,"in":0,"pa":null},"80":{"nb":13,"in":0,"pa":null},"81":{"nb":10,"in":0,"pa":null},"82":{"nb":13,"in":0,"pa":null},"83":{"nb":19,"in":0,"pa":null},"84":{"nb":12,"in":0,"pa":null},"85":{"nb":14,"in":0,"pa":null},"86":{"nb":18,"in":0,"pa":null},"87":{"nb":13,"in":0,"pa":null},"88":{"nb":24,"in":0,"pa":null},"89":{"nb":11,"in":0,"pa":null},"90":{"nb":4,"in":0,"pa":null},"91":{"nb":21,"in":0,"pa":null},"92":{"nb":15,"in":0,"pa":null},"93":{"nb":39,"in":0,"pa":null},"94":{"nb":18,"in":0,"pa":null},"95":{"nb":10,"in":0,"pa":null},"97":{"nb":143,"in":0,"pa":null}}};
+var SECS_META={"aci":{"label":"ACI","color":"#E24B4A","icon":"🏗️","idcc":"IDCC 3016"},"ad":{"label":"Aides à Domicile","color":"#378ADD","icon":"🏠","idcc":"IDCC 2941"},"ss":{"label":"Sécurité Sociale","color":"#F97316","icon":"🏥","idcc":"—"},"ml":{"label":"Missions Locales","color":"#639922","icon":"🎓","idcc":"IDCC 2190"},"mut":{"label":"Mutualité","color":"#8B5CF6","icon":"🤝","idcc":"IDCC 2128"},"msa":{"label":"MSA","color":"#14B8A6","icon":"🌾","idcc":"—"},"gps":{"label":"GPS","color":"#EC4899","icon":"🛡️","idcc":"—"},"rq":{"label":"Régies Quartier","color":"#EF9F27","icon":"🏘️","idcc":"IDCC 3105"},"ft":{"label":"France Travail","color":"#6B7280","icon":"💼","idcc":"IDCC 2847"}};
+var REPR_CGT={"aci":34.59,"ad":38.17,"ss":29.52,"ml":41.02,"mut":23.22,"gps":16.98,"msa":15.14,"rq":26.9,"ft":10.61};
 
-var _curFilter = 'all';
-var _geoLayer = null;
-var _map = null;
+var _sector='all', _mode='score', _zoomMode='dept';
+var _minScore=0, _minStructs=1;
+var _geoLayerDept=null, _geoLayerReg=null, _map=null;
+var _activeLayers=[];
 
-function pa2color(pa){
-  if(pa === null || pa === undefined) return '#334155';
-  if(pa >= 40) return '#16a34a';
-  if(pa >= 30) return '#65a30d';
-  if(pa >= 20) return '#ca8a04';
-  if(pa >= 10) return '#dc2626';
-  if(pa > 0)   return '#9f1239';
-  return '#334155';
+/* ── Couleurs ── */
+function scoreColor(pa){
+  if(pa===null||pa===undefined||pa<0) return '#1e2740';
+  if(pa>=50) return '#15803d';
+  if(pa>=40) return '#16a34a';
+  if(pa>=30) return '#65a30d';
+  if(pa>=20) return '#ca8a04';
+  if(pa>=10) return '#dc2626';
+  if(pa>0)   return '#9f1239';
+  return '#1e2740';
+}
+function structsColor(nb){
+  if(!nb||nb<1) return '#1e2740';
+  if(nb>=50) return '#0891b2';
+  if(nb>=20) return '#0ea5e9';
+  if(nb>=10) return '#38bdf8';
+  if(nb>=5)  return '#7dd3fc';
+  if(nb>=2)  return '#bae6fd';
+  return '#e0f2fe';
+}
+function presenceColor(present){
+  return present ? '#16a34a' : '#1e2740';
 }
 
-function getDeptData(dept, filter){
-  var code = dept.replace(/^0/,''); // '01' → '1', '75' → '75'
-  if(code === '20') code = '2A';
-  var data = {};
-  if(filter === 'all'){
-    var totalNb=0, totalIn=0, totalCgt=0, totalSve=0;
-    var secPresent = [];
-    for(var sk in DEPT_STATS){
-      var d = DEPT_STATS[sk][code] || DEPT_STATS[sk][dept];
-      if(d && d.nb > 0){
-        totalNb  += d.nb;
-        totalIn  += d['in'];
-        totalCgt += d.cgt;
-        totalSve += d['in'];
-        secPresent.push(sk);
-      }
-    }
-    data = {nb:totalNb, 'in':totalIn, pa: totalSve>0?Math.round(totalCgt/totalSve*100):null, secs:secPresent};
-  } else {
-    var d = (DEPT_STATS[filter]||{})[code] || (DEPT_STATS[filter]||{})[dept];
-    data = d ? {nb:d.nb,'in':d['in'],pa:d.pa,cgt:d.cgt,cfdt:d.cfdt,fo:d.fo} : {nb:0,'in':0,pa:null};
+/* ── Données dept ── */
+function getDept(code){
+  var c=code; if(/^0/.test(c)) c=c.replace(/^0/,'');
+  if(c==='20') c='2A';
+  var r={nb:0,'in':0,cgt:0,sve:0,secs:[]};
+  var secs = _sector==='all' ? Object.keys(DEPT_STATS) : [_sector];
+  for(var i=0;i<secs.length;i++){
+    var sk=secs[i];
+    var d=(DEPT_STATS[sk]||{})[c]||(DEPT_STATS[sk]||{})[code];
+    if(!d) continue;
+    r.nb  += d.nb||0;
+    r['in'] += d['in']||0;
+    r.cgt += d.cgt||0;
+    r.sve += d['in']||0;
+    if((d.nb||0)>0) r.secs.push(sk);
   }
-  return data;
+  r.pa = r.sve>0 ? Math.round(r.cgt/r.sve*100*10)/10 : null;
+  return r;
 }
 
-function makePop(feature, filter){
-  var dept = feature.properties.code;
-  var nom  = feature.properties.nom;
-  var data = getDeptData(dept, filter);
-  var h = '<div style="font-weight:700;font-size:13px;margin-bottom:8px">'+nom+' ('+dept+')</div>';
-  if(!data.nb){
-    h += '<div style="color:var(--tx3);font-size:11px">Aucune structure présente</div>';
-  } else {
-    h += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
-    if(filter === 'all'){
-      h += '<tr><td style="padding:2px 0;color:var(--tx2)">Structures</td><td style="text-align:right;font-weight:700">'+data.nb+'</td></tr>';
-      h += '<tr><td style="padding:2px 0;color:var(--tx2)">Inscrits</td><td style="text-align:right">'+data['in'].toLocaleString('fr-FR')+'</td></tr>';
-      h += '<tr><td style="padding:2px 0;color:var(--tx2)">Score CGT moy.</td><td style="text-align:right;color:#E24B4A;font-weight:700">'+(data.pa!==null?data.pa+'%':'—')+'</td></tr>';
-      h += '</table>';
-      if(data.secs && data.secs.length){
-        h += '<div style="margin-top:8px;font-size:10px;color:var(--tx3)">Secteurs présents :</div>';
-        h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
-        for(var i=0;i<data.secs.length;i++){
-          var sm = SECS_META[data.secs[i]];
-          h += '<span style="background:'+sm.color+'22;color:'+sm.color+';border-radius:3px;padding:2px 5px;font-size:10px;font-weight:700">'+data.secs[i].toUpperCase()+'</span>';
-        }
-        h += '</div>';
-      }
-    } else {
-      var sm = SECS_META[filter];
-      h += '<tr><td style="padding:2px 0;color:var(--tx2)">Structures '+sm.label+'</td><td style="text-align:right;font-weight:700">'+data.nb+'</td></tr>';
-      h += '<tr><td style="padding:2px 0;color:var(--tx2)">Inscrits</td><td style="text-align:right">'+data['in'].toLocaleString('fr-FR')+'</td></tr>';
-      h += '<tr><td style="padding:2px 0;color:var(--tx2)">Score CGT</td><td style="text-align:right;color:'+sm.color+';font-weight:700">'+(data.pa!==null?data.pa+'%':'—')+'</td></tr>';
-      if(data.cgt !== undefined){
-        h += '<tr><td style="padding:2px 0;color:var(--tx2)">Voix CGT</td><td style="text-align:right;color:#E24B4A">'+data.cgt+'</td></tr>';
-        h += '<tr><td style="padding:2px 0;color:var(--tx2)">Voix CFDT</td><td style="text-align:right;color:#378ADD">'+data.cfdt+'</td></tr>';
-        h += '<tr><td style="padding:2px 0;color:var(--tx2)">Voix FO</td><td style="text-align:right;color:#EF9F27">'+data.fo+'</td></tr>';
-      }
-      h += '</table>';
-      var href = 'app-secteur.html?sec='+filter+'&readonly';
-      h += '<div style="margin-top:8px"><a href="'+href+'" style="color:'+sm.color+';font-size:10px;text-decoration:none">→ Tableau de bord '+sm.label+'</a></div>';
+/* ── Style ── */
+function getStyle(feature){
+  var code=feature.properties.code;
+  var d=getDept(code);
+  var passes = (d.nb>=_minStructs) && (d.pa===null||d.pa>=_minScore||_mode!=='score');
+  if(!passes||d.nb<1){
+    return{fillColor:'#1e2740',fillOpacity:.15,color:'#1a2035',weight:.7,opacity:.7};
+  }
+  var col, opa=.75;
+  if(_mode==='score')    col=scoreColor(d.pa);
+  if(_mode==='structs')  col=structsColor(d.nb);
+  if(_mode==='presence') col=presenceColor(d.nb>0);
+  return{fillColor:col,fillOpacity:opa,color:'#0f1117',weight:.8,opacity:.9};
+}
+
+/* ── Popup ── */
+function makePopup(feature){
+  var code=feature.properties.code, nom=feature.properties.nom;
+  var d=getDept(code);
+  var h='<div class="pop-title">'+nom+' ('+code+')</div>';
+  if(!d.nb){
+    return h+'<div style="color:var(--tx3);font-size:11px">Aucune structure répertoriée</div>';
+  }
+  h+='<div class="pop-row"><span class="pop-k">Structures</span><span class="pop-v">'+d.nb+'</span></div>';
+  h+='<div class="pop-row"><span class="pop-k">Inscrits</span><span class="pop-v">'+d['in'].toLocaleString('fr-FR')+'</span></div>';
+  if(d.pa!==null) h+='<div class="pop-row"><span class="pop-k">Score CGT</span><span class="pop-v" style="color:#E24B4A">'+d.pa+'%</span></div>';
+  if(_sector==='all'&&d.secs.length){
+    h+='<div class="pop-sec-pills">';
+    for(var i=0;i<d.secs.length;i++){
+      var sk=d.secs[i], sm=SECS_META[sk];
+      var sec_d=(DEPT_STATS[sk]||{})[code]||(DEPT_STATS[sk]||{})[code.replace(/^0/,'')];
+      var secNb=sec_d?sec_d.nb:0, secPa=sec_d?sec_d.pa:null;
+      h+='<span class="pop-pill" style="background:'+sm.color+'22;color:'+sm.color+'">';
+      h+=sm.icon+' '+sk.toUpperCase()+' · '+secNb+(secPa!==null?' · '+secPa+'%':'')+' (no CGT)</span>';
     }
+    h+='</div>';
+  }
+  if(_sector!=='all'){
+    var sm=SECS_META[_sector];
+    var href=_sector==='aci'?'app.html?readonly':('app-secteur.html?sec='+_sector+'&readonly');
+    h+='<a href="'+href+'" class="pop-link">→ Tableau de bord '+sm.label+'</a>';
   }
   return h;
 }
 
-function renderLayer(filter){
-  if(!_geoLayer) return;
-  _geoLayer.eachLayer(function(layer){
-    var dept = layer.feature.properties.code;
-    var data = getDeptData(dept, filter);
-    var col  = pa2color(data.pa);
-    layer.setStyle({
-      fillColor: col, fillOpacity: data.nb > 0 ? 0.72 : 0.18,
-      color: '#1a2035', weight: 0.8, opacity: 0.9
-    });
-    layer.unbindPopup();
-    layer.bindPopup(makePop(layer.feature, filter), {maxWidth:260, className:'fed-pop'});
+/* ── Rendu ── */
+function render(){
+  if(!_geoLayerDept&&!_geoLayerReg) return;
+  var layer=_zoomMode==='dept'?_geoLayerDept:_geoLayerReg;
+  if(!layer) return;
+  layer.eachLayer(function(l){
+    var st=getStyle(l.feature);
+    l.setStyle(st);
+    l.unbindPopup();
+    l.bindPopup(makePopup(l.feature),{maxWidth:280});
   });
-  updateStats(filter);
+  updateStats();
+  updateLegend();
 }
 
-function updateStats(filter){
-  var totalNb=0, totalIn=0, totalCgtVoix=0, totalSve=0, deptCount=0;
-  var secMap = filter === 'all' ? DEPT_STATS : {[filter]:DEPT_STATS[filter]||{}};
-  var depts = {};
-  for(var sk in secMap){
-    for(var dept in secMap[sk]){
-      var d = secMap[sk][dept];
-      if(!depts[dept]) depts[dept] = {nb:0,'in':0,cgt:0,sve:0};
-      depts[dept].nb   += d.nb;
-      depts[dept]['in']+= d['in'];
-      depts[dept].cgt  += d.cgt;
-      depts[dept].sve  += d['in'];
+/* ── Stats bar ── */
+function updateStats(){
+  var totalNb=0,totalIn=0,totalCgt=0,totalSve=0,depts=0;
+  var secs=_sector==='all'?Object.keys(DEPT_STATS):[_sector];
+  var seen={};
+  for(var i=0;i<secs.length;i++){
+    var sk=secs[i];
+    for(var dept in (DEPT_STATS[sk]||{})){
+      var d=DEPT_STATS[sk][dept];
+      if(!d||d.nb<_minStructs) continue;
+      if(!seen[dept]) seen[dept]=true,depts++;
+      totalNb  +=d.nb;
+      totalIn  +=d['in'];
+      totalCgt +=d.cgt||0;
+      totalSve +=d['in'];
     }
   }
-  for(var dept in depts){
-    if(depts[dept].nb > 0){
-      deptCount++;
-      totalNb    += depts[dept].nb;
-      totalIn    += depts[dept]['in'];
-      totalCgtVoix += depts[dept].cgt;
-      totalSve   += depts[dept].sve;
-    }
-  }
-  var pa = totalSve > 0 ? Math.round(totalCgtVoix/totalSve*100) : 0;
-  document.getElementById('sb-structs').textContent = totalNb.toLocaleString('fr-FR');
-  document.getElementById('sb-depts').textContent = deptCount;
-  document.getElementById('sb-insc').textContent = totalIn.toLocaleString('fr-FR');
-  document.getElementById('sb-cgt').textContent = pa + '%';
+  var pa=totalSve>0?Math.round(totalCgt/totalSve*100)+'%':'—';
+  document.getElementById('sb-structs').textContent=totalNb.toLocaleString('fr-FR');
+  document.getElementById('sb-depts').textContent=depts;
+  document.getElementById('sb-insc').textContent=totalIn.toLocaleString('fr-FR');
+  document.getElementById('sb-cgt').textContent=pa;
 }
 
-function setFilter(filter){
-  _curFilter = filter;
-  document.querySelectorAll('.sf-btn').forEach(function(b){ b.classList.remove('active'); });
-  var btn = document.getElementById('btn-'+(filter==='all'?'all':filter));
+/* ── Légende ── */
+function updateLegend(){
+  var lt=document.getElementById('legend-title');
+  var lb=document.getElementById('legend-body');
+  if(_mode==='score'){
+    lt.textContent='Score CGT %';
+    lb.innerHTML='<div class="leg-row"><div class="leg-swatch" style="background:#15803d"></div>≥ 50 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#16a34a"></div>40–50 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#65a30d"></div>30–40 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#ca8a04"></div>20–30 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#dc2626"></div>10–20 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#9f1239"></div>&lt; 10 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#1e2740"></div>Non présent</div>';
+  } else if(_mode==='structs'){
+    lt.textContent='Nb structures';
+    lb.innerHTML='<div class="leg-row"><div class="leg-swatch" style="background:#0891b2"></div>≥ 50</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#0ea5e9"></div>20–49</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#38bdf8"></div>10–19</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#7dd3fc"></div>5–9</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#bae6fd"></div>2–4</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#e0f2fe"></div>1</div>';
+  } else {
+    lt.textContent='Présence CGT';
+    lb.innerHTML='<div class="leg-row"><div class="leg-swatch" style="background:#16a34a"></div>Présente</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#1e2740"></div>Absente</div>';
+  }
+}
+
+/* ── Contrôles ── */
+function setSector(sk){
+  _sector=sk;
+  document.querySelectorAll('.sec-btn').forEach(function(b){b.classList.remove('active')});
+  var btn=document.getElementById('btn-'+sk);
   if(btn) btn.classList.add('active');
-  var lt = document.getElementById('legend-title');
-  if(lt) lt.textContent = filter === 'all' ? 'Score CGT % (moy.)' : (SECS_META[filter]?SECS_META[filter].label+' — CGT %':'Score CGT %');
-  renderLayer(filter);
+  render();
 }
-
+function setMode(m){
+  _mode=m;
+  document.querySelectorAll('.mode-btn[id^=mode]').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('mode-'+m).classList.add('active');
+  render();
+}
+function setZoom(z){
+  _zoomMode=z;
+  document.querySelectorAll('.mode-btn[id^=zoom]').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('zoom-'+z).classList.add('active');
+  var note=document.getElementById('readability-note');
+  if(z==='reg') note.style.display='block'; else note.style.display='none';
+  // Basculer les layers
+  if(_geoLayerDept&&_geoLayerReg){
+    if(z==='dept'){
+      if(!_map.hasLayer(_geoLayerDept)){_map.addLayer(_geoLayerDept);}
+      if(_map.hasLayer(_geoLayerReg)){_map.removeLayer(_geoLayerReg);}
+    } else {
+      if(_map.hasLayer(_geoLayerDept)){_map.removeLayer(_geoLayerDept);}
+      if(!_map.hasLayer(_geoLayerReg)){_map.addLayer(_geoLayerReg);}
+    }
+  }
+  render();
+}
+function onSlider(){
+  _minScore=parseInt(document.getElementById('sl-score').value)||0;
+  _minStructs=parseInt(document.getElementById('sl-structs').value)||1;
+  document.getElementById('lbl-score').textContent=_minScore;
+  document.getElementById('lbl-structs').textContent=_minStructs;
+  render();
+}
 function toggleTheme(){
   document.body.classList.toggle('light');
-  var isLight = document.body.classList.contains('light');
-  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀️';
-  try{ localStorage.setItem('fnpos_theme', isLight?'light':'dark'); }catch(e){}
-  if(_map) _map.eachLayer(function(l){ if(l._url && l._url.includes('openstreetmap')){
-    l.setUrl(isLight
-      ? 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
-      : 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png');
-  }});
+  var isL=document.body.classList.contains('light');
+  document.getElementById('theme-btn').textContent=isL?'🌙':'☀️';
+  try{localStorage.setItem('fnpos_theme',isL?'light':'dark');}catch(e){}
+  if(_map) _map.eachLayer(function(l){
+    if(l._url&&l._url.includes('carto')){
+      l.setUrl(isL
+        ?'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
+        :'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png');
+    }
+  });
 }
 
-// Init
-document.addEventListener('DOMContentLoaded', function(){
-  try{
-    var saved = localStorage.getItem('fnpos_theme');
-    if(saved === 'light') document.body.classList.add('light');
-  }catch(e){}
+/* ── Init carte ── */
+document.addEventListener('DOMContentLoaded',function(){
+  try{var sv=localStorage.getItem('fnpos_theme');if(sv==='light'){document.body.classList.add('light');document.getElementById('theme-btn').textContent='🌙';}}catch(e){}
+  var isL=document.body.classList.contains('light');
 
-  _map = L.map('map', {zoomControl:true, attributionControl:false});
-  var isLight = document.body.classList.contains('light');
+  _map=L.map('map',{zoomControl:true,attributionControl:false});
   L.tileLayer(
-    isLight
-      ? 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
-      : 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+    isL?'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
+       :'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
     {maxZoom:10}
   ).addTo(_map);
 
-  fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson')
-    .then(function(r){ return r.json(); })
-    .then(function(geo){
-      _geoLayer = L.geoJSON(geo, {
-        style:function(f){
-          var d = getDeptData(f.properties.code, 'all');
-          return {fillColor:pa2color(d.pa),fillOpacity:d.nb>0?0.72:0.18,
-                  color:'#1a2035',weight:0.8,opacity:0.9};
-        },
-        onEachFeature:function(f, layer){
-          layer.bindPopup(makePop(f,'all'),{maxWidth:260});
-          layer.on('mouseover',function(e){
-            e.target.setStyle({weight:2,color:'#fff',fillOpacity:0.85});
-          });
-          layer.on('mouseout',function(e){
-            _geoLayer.resetStyle(e.target);
-            renderLayer(_curFilter);
-          });
-        }
-      }).addTo(_map);
-      _map.fitBounds(_geoLayer.getBounds());
-      updateStats('all');
-    })
-    .catch(function(){ console.warn('GeoJSON non disponible'); });
+  var mkLayer=function(geo){
+    return L.geoJSON(geo,{
+      style:function(f){return getStyle(f);},
+      onEachFeature:function(f,layer){
+        layer.bindPopup(makePopup(f),{maxWidth:280});
+        layer.on('mouseover',function(e){
+          e.target.setStyle({weight:2,color:'#fff',fillOpacity:.9});
+          e.target.bringToFront();
+        });
+        layer.on('mouseout',function(e){ render(); });
+      }
+    });
+  };
+
+  var DEPT_URL='https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson';
+  var REG_URL='https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions-version-simplifiee.geojson';
+
+  var p1=fetch(DEPT_URL).then(function(r){return r.json();});
+  var p2=fetch(REG_URL).then(function(r){return r.json();});
+
+  Promise.all([p1,p2]).then(function(results){
+    _geoLayerDept=mkLayer(results[0]);
+    _geoLayerReg=mkLayer(results[1]);
+    _geoLayerDept.addTo(_map);
+    _map.fitBounds(_geoLayerDept.getBounds());
+    render();
+  }).catch(function(e){
+    console.warn('GeoJSON error',e);
+    fetch(DEPT_URL).then(function(r){return r.json();}).then(function(geo){
+      _geoLayerDept=mkLayer(geo);
+      _geoLayerDept.addTo(_map);
+      _map.fitBounds(_geoLayerDept.getBounds());
+      render();
+    });
+  });
 });
 </script>
 </body>
