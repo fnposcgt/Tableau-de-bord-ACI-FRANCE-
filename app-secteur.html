@@ -601,6 +601,7 @@ function roCheckPwd(){
   </div>
 </div>
 <div class="nav">
+  <button class="nb" onclick="goTab('federation')">&#127963; F&#233;d&#233;ration</button>
   <button class="nb" onclick="goTab('conquete')">&#128640; Conqu&#234;te</button>
   <button class="nb" onclick="goTab('tableau')">&#128203; Tableau</button>
   <button class="nb on" onclick="goTab('carte')">&#128506; Carte</button>
@@ -2735,6 +2736,7 @@ function goTab(name){
     var m=b.getAttribute("onclick");
     b.classList.toggle("on", !!(m && m.indexOf("'"+name+"'")+1));
   });
+  if(name==="federation"){window.setTimeout(renderFederation,80);}
   if(name==="syndicats"){window.setTimeout(function(){renderReprPanel();buildReprCharts();},80);}
   if(name==="ciblage")window.setTimeout(buildCiblage,80);
   if(name==="contacts")window.setTimeout(function(){buildContacts();collapseAllContacts();},80);
@@ -4586,6 +4588,145 @@ function reprYearFilter(yearIdx){
 }
 
 
+
+function renderFederation(){
+  var SECS_ORDER = ['aci','ad','ss','ml','mut','gps','msa','rq','ft'];
+  var SECS_LABELS = {
+    aci:'ACI', ad:'Aide à Domicile', ss:'Sécurité Sociale',
+    ml:'Missions Locales', mut:'Mutualité', gps:'GPS',
+    msa:'MSA', rq:'Régies de Quartier', ft:'France Travail'
+  };
+  var ACI_GS = {nb:2168,total_insc:15137,nb_elections:132};
+
+  /* Calculer les stats fédé */
+  var totalStructs=ACI_GS.nb, totalInsc=ACI_GS.total_insc, totalElec=ACI_GS.nb_elections;
+  var secsCgt1 = 0;
+  for(var i=0;i<SECS_ORDER.length;i++){
+    var sk=SECS_ORDER[i];
+    if(sk==='aci') continue;
+    var gs=GS_BY_SEC[sk]||{};
+    totalStructs += (gs.nb||0);
+    totalInsc    += (gs.total_insc||0);
+    totalElec    += (gs.nb_elections||0);
+  }
+  for(var i=0;i<SECS_ORDER.length;i++){
+    var sk=SECS_ORDER[i];
+    var rd = REPR_DATA_ALL[sk];
+    if(rd && rd.top && rd.top[0] && rd.top[0].key==='cgt') secsCgt1++;
+  }
+
+  /* KPIs */
+  var kg = document.getElementById('fed-kpi-grid');
+  if(kg){
+    kg.innerHTML = [
+      {l:'Secteurs FNPOS-CGT',   v:SECS_ORDER.length,        s:'branches couvertes'},
+      {l:'Total structures',      v:totalStructs.toLocaleString('fr-FR'), s:'toutes branches'},
+      {l:'Total inscrits',        v:totalInsc.toLocaleString('fr-FR'),    s:'aux élections'},
+      {l:'CGT 1re organisation',  v:secsCgt1+' / '+SECS_ORDER.length,   s:'secteurs'}
+    ].map(function(k){
+      return '<div class="kpi"><div class="kl">'+k.l+'</div>'
+            +'<div class="kv">'+k.v+'</div>'
+            +'<div class="ks">'+k.s+'</div></div>';
+    }).join('');
+  }
+
+  /* Tableau synthèse */
+  var thead = document.getElementById('fed-thead');
+  var tbody = document.getElementById('fed-tbody');
+  if(thead && tbody){
+    thead.innerHTML = '<tr style="background:var(--bg3);font-size:10px">'
+      +'<th style="padding:5px 6px;text-align:left">Secteur</th>'
+      +'<th style="padding:5px 6px;text-align:right">Structures</th>'
+      +'<th style="padding:5px 6px;text-align:right">Inscrits</th>'
+      +'<th style="padding:5px 6px;text-align:right">CGT %</th>'
+      +'<th style="padding:5px 6px;text-align:center">Rang CGT</th>'
+      +'<th style="padding:5px 6px;text-align:center">Syndicat</th>'
+      +'</tr>';
+    var rows='';
+    for(var i=0;i<SECS_ORDER.length;i++){
+      var sk=SECS_ORDER[i];
+      var gs = sk==='aci'? ACI_GS : (GS_BY_SEC[sk]||{});
+      var rd = REPR_DATA_ALL[sk];
+      var cgtRate = rd&&rd.orgs&&rd.orgs.cgt ? rd.orgs.cgt.rate : '-';
+      var cgtRank = rd&&rd.orgs&&rd.orgs.cgt ? rd.orgs.cgt.rank : '-';
+      var top1nom = rd&&rd.top&&rd.top[0] ? rd.top[0].nom : '-';
+      var top1col = rd&&rd.top&&rd.top[0] ? rd.top[0].color : '#888';
+      var isCur = (sk===_secKey);
+      rows += '<tr onclick="window.location=\'app-secteur.html?sec='+sk+'\'" style="cursor:pointer;border-bottom:1px solid var(--bg3)'+(isCur?';background:rgba(226,75,74,.08)':'')+'">'
+        +'<td style="padding:5px 6px;font-weight:'+(isCur?'700':'400')+'">'+SECS_LABELS[sk]+(isCur?' ✓':'')+' </td>'
+        +'<td style="padding:5px 6px;text-align:right">'+(gs.nb||0)+'</td>'
+        +'<td style="padding:5px 6px;text-align:right">'+(gs.total_insc||0).toLocaleString('fr-FR')+'</td>'
+        +'<td style="padding:5px 6px;text-align:right;color:#E24B4A;font-weight:700">'+(cgtRate!=='-'?cgtRate.toFixed(2).replace('.',',')+'\u00a0%':'-')+'</td>'
+        +'<td style="padding:5px 6px;text-align:center">'+cgtRank+'</td>'
+        +'<td style="padding:5px 6px;text-align:center;color:'+top1col+';font-weight:700">'+top1nom+'</td>'
+        +'</tr>';
+    }
+    tbody.innerHTML = rows;
+  }
+
+  /* Charts */
+  window.setTimeout(function(){
+    killChart('fed-cgt'); killChart('fed-structs');
+    var labels=[],cgtData=[],colors=[],nbData=[],inscData=[];
+    for(var i=0;i<SECS_ORDER.length;i++){
+      var sk=SECS_ORDER[i];
+      var rd=REPR_DATA_ALL[sk];
+      var gs=sk==='aci'?ACI_GS:(GS_BY_SEC[sk]||{});
+      labels.push(sk.toUpperCase());
+      var cgt=rd&&rd.orgs&&rd.orgs.cgt?rd.orgs.cgt.rate:0;
+      cgtData.push(cgt||0);
+      colors.push('#E24B4A');
+      nbData.push(gs.nb||0);
+      inscData.push(gs.total_insc||0);
+    }
+    var tc='rgba(0,0,0,0.6)',gc='rgba(0,0,0,.05)';
+    var cgtRef=document.getElementById('ch-fed-cgt');
+    if(cgtRef){
+      chartCache['fed-cgt']=new Chart(cgtRef,{
+        type:'bar',
+        data:{labels:labels,datasets:[{label:'CGT %',data:cgtData,backgroundColor:colors,borderRadius:3}]},
+        options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+          plugins:{legend:{display:false}},
+          scales:{x:{ticks:{color:tc,font:{size:9},callback:function(v){return v+'%';}},grid:{color:gc},min:0,max:55},
+                  y:{ticks:{color:tc,font:{size:9}}}}}
+      });
+    }
+    var stRef=document.getElementById('ch-fed-structs');
+    if(stRef){
+      chartCache['fed-structs']=new Chart(stRef,{
+        type:'bar',
+        data:{labels:labels,datasets:[
+          {label:'Structures',data:nbData,backgroundColor:'#378ADD',borderRadius:3,yAxisID:'y'},
+          {label:'Inscrits',data:inscData,backgroundColor:'rgba(239,159,39,.7)',borderRadius:3,yAxisID:'y2'}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:'top',labels:{font:{size:9},color:tc,padding:6,boxWidth:8}}},
+          scales:{
+            x:{ticks:{color:tc,font:{size:9}},grid:{display:false}},
+            y:{ticks:{color:tc,font:{size:9}},grid:{color:gc},position:'left'},
+            y2:{ticks:{color:tc,font:{size:9}},grid:{display:false},position:'right'}
+          }}
+      });
+    }
+  }, 80);
+
+  /* Liens rapides */
+  var fl=document.getElementById('fed-links');
+  if(fl){
+    var lh='';
+    for(var i=0;i<SECS_ORDER.length;i++){
+      var sk=SECS_ORDER[i];
+      var rd=REPR_DATA_ALL[sk];
+      var col=rd&&rd.top&&rd.top[0]?rd.top[0].color:'#888';
+      var isCur=(sk===_secKey);
+      lh+='<a href="app-secteur.html?sec='+sk+'" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;border:1px solid '+(isCur?'#E24B4A':'var(--bd)')+';background:'+(isCur?'rgba(226,75,74,.1)':'var(--bg2)')+';text-decoration:none;font-size:11px;font-weight:'+(isCur?'700':'400')+';color:var(--tx)">'
+           +'<span style="width:7px;height:7px;border-radius:2px;background:'+col+';display:inline-block"></span>'
+           +sk.toUpperCase()+'</a>';
+    }
+    fl.innerHTML = lh;
+  }
+}
+
 function renderReprPanel(){
   var d = REPR_DATA;
   if(!d) return;
@@ -5296,7 +5437,7 @@ function toggleThemeApp() {
   } catch(e) {}
 })();
 
-conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();buildCal();buildExpPreview();buildAlerts();ejsLoadConfig();
+window.setTimeout(renderFederation,150);conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();buildCal();buildExpPreview();buildAlerts();ejsLoadConfig();
 /* Retour depuis onglet Fédération */
 (function(){
   var params = new URLSearchParams(window.location.search);
@@ -5460,6 +5601,27 @@ if(GS_URL) gsLoad();
     </div>
   </div>
 </div>
+<div class="tp" id="tp-federation" style="display:none">
+  <div id="fed-kpi-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px"></div>
+  <div class="cc" style="margin-bottom:12px">
+    <div class="ct">Synthèse par secteur</div>
+    <div style="overflow-x:auto">
+      <table id="fed-table" style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead id="fed-thead"></thead>
+        <tbody id="fed-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="cgrid" style="margin-bottom:12px">
+    <div class="cc"><div class="ct">Score CGT par secteur (%)</div><div style="position:relative;height:220px"><canvas id="ch-fed-cgt"></canvas></div></div>
+    <div class="cc"><div class="ct">Structures &amp; Inscrits</div><div style="position:relative;height:220px"><canvas id="ch-fed-structs"></canvas></div></div>
+  </div>
+  <div class="cc" style="margin-bottom:10px">
+    <div class="ct">Accès rapide par secteur</div>
+    <div id="fed-links" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
+  </div>
+</div>
+
 <div class="tp" id="tp-conquete">
   <div class="krow">
     <div class="kpi">
