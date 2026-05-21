@@ -276,15 +276,19 @@ var _geoLayerDept=null, _geoLayerReg=null, _map=null;
 var _activeLayers=[];
 
 /* ── Couleurs ── */
-function scoreColor(pa){
-  if(pa===null||pa===undefined||pa<0) return '#1e2740';
+function scoreColor(pa, hasStructs){
+  if(pa===null||pa===undefined){
+    /* Structures présentes mais score non disponible (ex. ACI via Supabase) */
+    return hasStructs ? '#4a6fa5' : '#1e2740';
+  }
+  if(pa<0) return '#1e2740';
   if(pa>=50) return '#15803d';
   if(pa>=40) return '#16a34a';
   if(pa>=30) return '#65a30d';
   if(pa>=20) return '#ca8a04';
   if(pa>=10) return '#dc2626';
   if(pa>0)   return '#9f1239';
-  return '#1e2740';
+  return '#334155';
 }
 function structsColor(nb){
   if(!nb||nb<1) return '#1e2740';
@@ -303,19 +307,21 @@ function presenceColor(present){
 function getDept(code){
   var c=code; if(/^0/.test(c)) c=c.replace(/^0/,'');
   if(c==='20') c='2A';
-  var r={nb:0,'in':0,cgt:0,sve:0,secs:[]};
+  var r={nb:0,'in':0,cgt:0,sve:0,secs:[],paNull:false};
   var secs = _sector==='all' ? Object.keys(DEPT_STATS) : [_sector];
   for(var i=0;i<secs.length;i++){
     var sk=secs[i];
     var d=(DEPT_STATS[sk]||{})[c]||(DEPT_STATS[sk]||{})[code];
     if(!d) continue;
-    r.nb  += d.nb||0;
-    r['in'] += d['in']||0;
-    r.cgt += d.cgt||0;
-    r.sve += d['in']||0;
+    r.nb   += d.nb||0;
+    r['in']+= d['in']||0;
+    r.cgt  += d.cgt||0;
+    r.sve  += d['in']||0;
+    /* ACI n'a pas de score embarqué (pa:null = données Supabase) */
+    if(d.pa===null && (d.nb||0)>0) r.paNull=true;
     if((d.nb||0)>0) r.secs.push(sk);
   }
-  r.pa = r.sve>0 ? Math.round(r.cgt/r.sve*100*10)/10 : null;
+  r.pa = r.sve>0 ? Math.round(r.cgt/r.sve*100*10)/10 : (r.paNull ? null : null);
   return r;
 }
 
@@ -323,12 +329,13 @@ function getDept(code){
 function getStyle(feature){
   var code=feature.properties.code;
   var d=getDept(code);
-  var passes = (d.nb>=_minStructs) && (d.pa===null||d.pa>=_minScore||_mode!=='score');
+  var passesScore = (_mode!=='score') || (d.pa===null && d.nb>0) || (d.pa!==null && d.pa>=_minScore);
+  var passes = (d.nb>=_minStructs) && passesScore;
   if(!passes||d.nb<1){
     return{fillColor:'#1e2740',fillOpacity:.15,color:'#1a2035',weight:.7,opacity:.7};
   }
   var col, opa=.75;
-  if(_mode==='score')    col=scoreColor(d.pa);
+  if(_mode==='score')    col=scoreColor(d.pa, d.nb>0);
   if(_mode==='structs')  col=structsColor(d.nb);
   if(_mode==='presence') col=presenceColor(d.nb>0);
   return{fillColor:col,fillOpacity:opa,color:'#0f1117',weight:.8,opacity:.9};
@@ -345,6 +352,7 @@ function makePopup(feature){
   h+='<div class="pop-row"><span class="pop-k">Structures</span><span class="pop-v">'+d.nb+'</span></div>';
   h+='<div class="pop-row"><span class="pop-k">Inscrits</span><span class="pop-v">'+d['in'].toLocaleString('fr-FR')+'</span></div>';
   if(d.pa!==null) h+='<div class="pop-row"><span class="pop-k">Score CGT</span><span class="pop-v" style="color:#E24B4A">'+d.pa+'%</span></div>';
+  else if(d.nb>0) h+='<div class="pop-row"><span class="pop-k">Score CGT</span><span class="pop-v" style="color:#4a6fa5">Score via Supabase</span></div>';
   if(_sector==='all'&&d.secs.length){
     h+='<div class="pop-sec-pills">';
     for(var i=0;i<d.secs.length;i++){
@@ -415,6 +423,7 @@ function updateLegend(){
       +'<div class="leg-row"><div class="leg-swatch" style="background:#ca8a04"></div>20–30 %</div>'
       +'<div class="leg-row"><div class="leg-swatch" style="background:#dc2626"></div>10–20 %</div>'
       +'<div class="leg-row"><div class="leg-swatch" style="background:#9f1239"></div>&lt; 10 %</div>'
+      +'<div class="leg-row"><div class="leg-swatch" style="background:#4a6fa5"></div>ACI (score live)</div>'
       +'<div class="leg-row"><div class="leg-swatch" style="background:#1e2740"></div>Non présent</div>';
   } else if(_mode==='structs'){
     lt.textContent='Nb structures';
