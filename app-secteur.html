@@ -2749,7 +2749,14 @@ function goTab(name){
   if(name==="adherents")window.setTimeout(buildAdherents,80);
   if(name==="conquete")window.setTimeout(renderConquete,80);
   if(name==="outils")window.setTimeout(renderBiblioTab,80);
-  if(name==="carte")window.setTimeout(drawMap,80);
+  if(name==="carte")window.setTimeout(function(){
+    /* Invalider la taille si Leaflet déjà initialisé, sinon initialiser */
+    var refreshed=false;
+    if(window._leafMap){try{window._leafMap.invalidateSize(true);refreshed=true;}catch(e){}}
+    if(!refreshed) drawMap();
+  },80);
+  if(name==="tableau")window.setTimeout(function(){buildTable(true);},80);
+  if(name==="calendrier")window.setTimeout(buildCal,80);
   try{localStorage.setItem(SEC.ls+'_active_tab',name);}catch(e){}
 }
 var cqPage=0, cqPageSize=25;
@@ -3760,7 +3767,7 @@ function _initLfMap(){
   if(_lfMap)return;
   var el=document.getElementById("leaflet-map");
   if(!el)return;
-  _lfMap=L.map("leaflet-map",{scrollWheelZoom:false,zoomControl:true,attributionControl:false,minZoom:4,maxZoom:9,zoomSnap:0.5});
+  window._leafMap=_lfMap=L.map("leaflet-map",{scrollWheelZoom:false,zoomControl:true,attributionControl:false,minZoom:4,maxZoom:9,zoomSnap:0.5});
   _lfMap.fitBounds([[41.2,-5.5],[51.2,10.2]]);
 }
 function _clearLfLabels(){
