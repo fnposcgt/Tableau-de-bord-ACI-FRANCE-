@@ -4558,27 +4558,36 @@ var REPR_DATA_ALL = {
 var REPR_DATA = REPR_DATA_ALL[_secKey] || REPR_DATA_ALL.aci;
 
 
+
+function getReprOrg(key){
+  if(!REPR_DATA) return null;
+  if(REPR_DATA[key]&&REPR_DATA[key].nom) return REPR_DATA[key];
+  if(REPR_DATA.orgs&&REPR_DATA.orgs[key]) return REPR_DATA.orgs[key];
+  if(REPR_DATA.top){for(var i=0;i<REPR_DATA.top.length;i++){if(REPR_DATA.top[i].key===key)return REPR_DATA.top[i];}}
+  return null;
+}
 function reprFilter(key){
-  var d=REPR_DATA[key];if(!d)return;
-  var k2=(key==="solidaires")?"so":key.substring(0,2);
-  var list=STRUCTS.filter(function(s){return gi(s,k2)>0;});
-  list.sort(function(a,b){return gi(b,k2)-gi(a,k2);});
-  var rateStr=d.rate.toFixed(2).replace(".",",")+" %";
-  openSynModal(d.nom+" &mdash; "+rateStr+" national ("+d.rank+" orga) &mdash; "+list.length+" structures",d.color,list,key);
+  var d=getReprOrg(key);if(!d)return;
+  var k2=(key==='solidaires'||key==='so')?'so':key.substring(0,2);
+  var list=STRUCTS.filter(function(s){return gi(s,k2)>0||(k2==='cg'&&s.ok&&gi(s,'vo')>0);});
+  list.sort(function(a,b){return gi(b,k2)-gi(a,k2)||gf(b,'pa')-gf(a,'pa');});
+  var rate=d.rate||d.repr||0;
+  var rateStr=rate?rate.toFixed(2).replace('.',',')+'\u00a0%':'\u2014';
+  openSynModal((d.nom||d.label||key.toUpperCase())+' \u2014 '+rateStr+' national \u2014 '+list.length+' structure'+(list.length>1?'s':''),d.color||'#888',list,key);
 }
 
 function reprCollegeFilter(key,coll){
-  var d=REPR_DATA[key];if(!d)return;
+  var d=getReprOrg(key);if(!d)return;
   var k2=(key==="solidaires")?"so":key.substring(0,2);
   var list=STRUCTS.filter(function(s){return gi(s,k2)>0;});
   list.sort(function(a,b){return gi(b,k2)-gi(a,k2);});
-  var cPct=d.collEval["c"+coll];
+  var cPct=d.collEval?d.collEval["c"+coll]:null;
   var cStr=(cPct||0).toString().replace(".",",")+" %";
   openSynModal(d.nom+" au "+coll+(coll===1?"er":"e")+" coll\u00e8ge (national: "+cStr+") &mdash; "+list.length+" structures",d.color,list,key);
 }
 
 function reprPresenceFilter(coll){
-  var list=STRUCTS.filter(function(s){return gi(s,"cg")===0&&gf(s,"pa")>0;});
+  var list=STRUCTS.filter(function(s){return (gi(s,"cg")===0&&gf(s,"pa")>0)||(s.ok&&gi(s,"vo")>0&&gi(s,"cg")===0);});
   list.sort(function(a,b){return gf(b,"in")-gf(a,"in");});
   var pct={1:"53 %",2:"43 %",5:"47 %"}[coll]||"";
   openSynModal("Structures sans voix CGT &mdash; "+coll+(coll===1?"er":"e")+" coll\u00e8ge (pr\u00e9sence nationale CGT: "+pct+") &mdash; "+list.length+" r\u00e9sultats","#E24B4A",list,null);
@@ -4590,7 +4599,7 @@ function reprYearFilter(yearIdx){
   var keys=["cgt","cfdt","fo","solidaires"];
   var msg="Taux de repr\u00e9sentativit\u00e9 "+year+" (national):\n";
   for(var i=0;i<keys.length;i++){
-    var d=REPR_DATA[keys[i]];
+    var d=getReprOrg(keys[i]);
     msg+="\n  "+d.nom+": "+d.evol[yearIdx].toString().replace(".",",")+" %";
   }
   msg+="\n\n(Donn\u00e9es agr\u00e9g\u00e9es nationales)";
