@@ -549,6 +549,18 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
 .btn-sve{padding:3px 9px;border-radius:5px;border:1px solid var(--bd2);
   background:var(--bg);color:var(--tx2);font-size:11px;cursor:pointer;white-space:nowrap}
 .btn-sve.on{background:#F59E0B;color:#fff;border-color:#F59E0B;font-weight:700}
+
+/* Bouton retour haut de page */
+#btn-top{
+  position:fixed;bottom:80px;right:14px;z-index:2000;
+  width:38px;height:38px;border-radius:50%;
+  background:var(--bg2);border:1px solid var(--bd2);
+  color:var(--tx2);font-size:16px;font-weight:700;
+  cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);
+  display:none;align-items:center;justify-content:center;
+  transition:opacity .2s;opacity:0;
+}
+#btn-top.visible{display:flex;opacity:1}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1186,8 +1198,7 @@ function printFiche() {
     + "  href+=sep+'subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(msg);"
     + "  window.location.href=href;"
     + "}"
-    + "<\/script>"
-    + "</body></html>";
+    + "<\/script>\n</body></html>";
   var blob = new Blob([html], {type:"text/html;charset=utf-8"});
   var url  = URL.createObjectURL(blob);
   window.open(url, "_blank");
@@ -1347,7 +1358,7 @@ function openFiche(siret) {
         var pct2 = Math.round(synData[i].v / tv * 100);
         var isWin = gan && gan.toLowerCase() === synData[i].k.toLowerCase();
         h += '<span style="font-size:10px;color:' + (UC[synData[i].k]||"#888") + ';font-weight:' + (isWin?800:600) + '">';
-        h += (isWin ? "\u2605 " : "") + (ULN[synData[i].k]||synData[i].k) + " " + pct2 + "%</span>";
+        h += (isWin ? "\u2605 " : "") + (ULN[synData[i].k]||synData[i].k) + pct2 + "%</span>";
       }
       h += '</div></div>';
     }
@@ -1431,7 +1442,7 @@ function openFiche(siret) {
     h += '<div class="fiche-stitle">Adh\u00e9rents</div>';
     for(var ai = 0; ai < adhList.length; ai++){
       var adh = adhList[ai];
-      var fullNom = (adh.civ ? adh.civ + " " : "") + adh.pre + " " + adh.nom;
+      var fullNom = (adh.civ ? adh.civ + " " : "") + adh.pre + adh.nom;
       h += '<div class="fiche-cnt-row" style="'+(adh.arc==="OUI"?"opacity:.55;font-style:italic":"")+'">';
       h += '<span class="fiche-badge2" style="background:#6c54a4;flex-shrink:0">Adh\u00e9rent</span>';
       h += '<span style="font-weight:600">' + fullNom + '</span>';
@@ -1647,8 +1658,7 @@ function gsAddNote(siret) {
         var d = new Date();
         var dateStr = d.getDate().toString().padStart(2,"0") + "/"
                     + (d.getMonth()+1).toString().padStart(2,"0") + "/"
-                    + d.getFullYear() + " "
-                    + d.getHours().toString().padStart(2,"0") + ":"
+                    + d.getFullYear() + d.getHours().toString().padStart(2,"0") + ":"
                     + d.getMinutes().toString().padStart(2,"0");
         GS_NOTES[siret].push({
           date: dateStr,
@@ -3345,7 +3355,7 @@ function printDoc(){
     document.body.appendChild(iframe);
     var iDoc=iframe.contentDocument||iframe.contentWindow.document;
     iDoc.open();
-    iDoc.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>'+doc.titre+'</title><style>'+css+'</style></head><body>'+content+'</body></html>');
+    iDoc.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>'+doc.titre+'</title><style>'+css+'</style></head><body>'+content+'\n</body></html>');
     iDoc.close();
     iframe.onload=function(){
       iframe.contentWindow.focus();
@@ -3399,7 +3409,7 @@ function saveDoc(){
       'h3{margin:16px 0 6px}.doc-highlight{background:#fff3cd;border-left:3px solid #EF9F27;padding:8px 12px;margin:12px 0;font-weight:600}'+
       '.doc-red{background:#ffeaea;border-left:3px solid #E24B4A;padding:8px 12px;margin:12px 0;font-weight:600}'+
       'ul{margin:6px 0 10px 18px}li{margin-bottom:4px}p{margin-bottom:10px;color:#444}</style></head>'+
-      '<body>'+doc.html+'<hr style="margin-top:30px;border-color:#ddd"><p style="font-size:10px;color:#888">Document CGT ACI France</p></body></html>';
+      '<body>'+doc.html+'<hr style="margin-top:30px;border-color:#ddd"><p style="font-size:10px;color:#888">Document CGT ACI France</p>\n</body></html>';
     var blob=new Blob([content],{type:'text/html;charset=utf-8'});
     var a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
@@ -5076,7 +5086,7 @@ function buildCal(){
     var nav = document.getElementById("cal-grid-nav");
     var lbl = document.getElementById("cal-month-lbl");
     if(nav){ nav.style.display="flex"; }
-    if(lbl){ lbl.textContent = CAL_MONTHS[calMonth] + " " + calYear; }
+    if(lbl){ lbl.textContent = CAL_MONTHS[calMonth] + calYear; }
     document.getElementById("cal-grid-body").innerHTML = buildCalGrid(data.map(function(d){return d.s;}), calYear, calMonth);
     document.getElementById("calgrid").innerHTML = "";
     document.getElementById("calgrid").style.display = "none";
@@ -7361,7 +7371,34 @@ function emInit() { emPopulateFilters(); emRefreshList(); }
 var _origGoTab = window.goTab;
 window.goTab = function(name) { _origGoTab(name); if (name === 'emailing') window.setTimeout(emInit, 80); };
 </script>
-</script>
 
+
+
+
+<button id="btn-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut">&#8679;</button>
+<script>
+/* Bouton retour haut de page */
+(function(){
+  var btn=null;
+  function initTopBtn(){
+    btn=document.getElementById('btn-top');
+    if(!btn)return;
+    window.addEventListener('scroll',function(){
+      if(btn)btn.classList.toggle('visible',window.scrollY>250);
+    },{passive:true});
+    var ids=['cib-table-wrap','cib-body','calgrid','conquete-list'];
+    for(var i=0;i<ids.length;i++){
+      (function(id){var el=document.getElementById(id);
+        if(el)el.addEventListener('scroll',function(){
+          if(btn)btn.classList.toggle('visible',el.scrollTop>200);
+        },{passive:true});
+      })(ids[i]);
+    }
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',initTopBtn);
+  } else { initTopBtn(); }
+})();
+</script>
 </body>
 </html>
