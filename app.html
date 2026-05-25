@@ -663,7 +663,6 @@ function roCheckPwd(){
 <!-- TABLEAU -->
 <div class="tp" id="tp-tableau">
   <div class="fbar">
-    <button id="sve-tab" class="btn-sve" onclick="toggleSve('tab')" title="Uniquement structures sans SVE">&#128683; 0 SVE</button>
     <input type="text" id="fsearch" placeholder="Rechercher..." oninput="buildTable()" style="width:200px">
     <label>R&eacute;gion <select id="freg" onchange="buildTable()"><option value="">Toutes</option></select></label>
     <label>CCN ACI <select id="fccn" onchange="buildTable()"><option value="">Tous</option><option value="OUI">OUI</option><option value="">Non renseign&eacute;</option></select></label>
@@ -777,7 +776,6 @@ function roCheckPwd(){
 <!-- CALENDRIER -->
 <div class="tp" id="tp-calendrier">
   <div class="fbar">
-    <button id="sve-cal" class="btn-sve" onclick="toggleSve('cal')" title="Structures sans date d'élection">&#128683; 0 SVE</button>
     <label>R&eacute;gion <select id="cal-reg" onchange="buildCal()"><option value="">Toutes</option></select></label>
     <label>Horizon <select id="cal-hor" onchange="buildCal()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="24">24 mois</option><option value="9999">Tout</option></select></label>
     <label><input type="checkbox" id="cal-past" onchange="buildCal()"> Inclure pass&eacute;es</label>
@@ -799,7 +797,6 @@ function roCheckPwd(){
 <!-- CIBLAGE CGT -->
 <div class="tp" id="tp-ciblage">
   <div class="fbar">
-    <button id="sve-cib" class="btn-sve" onclick="toggleSve('cib')" title="Structures sans SVE">&#128683; 0 SVE</button>
     <label>Filtre <select id="cib-mode" onchange="buildCiblage()">
       <option value="sans">Sans CGT (0 voix)</option>
       <option value="min">CGT minoritaire</option>
@@ -3566,7 +3563,50 @@ function getCibData(){
   }
   return out;
 }
+
+/* ── Section 0 SVE dans Ciblage ── */
+function buildSveSection(){
+  var el = document.getElementById('cib-sve-section');
+  if(!el) return;
+  var sves = STRUCTS.filter(function(s){ return s.ok && s.si && s.n; });
+  if(!sves.length){ el.style.display='none'; return; }
+  sves.sort(function(a,b){ return (a.r||'').localeCompare(b.r||'')||(a.n||'').localeCompare(b.n||''); });
+  var h = '<div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:8px">'
+    + '&#128683; ' + sves.length + ' structure' + (sves.length>1?'s':'')
+    + ' sans voix CGT (SVE enregistr\u00e9)</div>';
+  var lastReg = '';
+  for(var i=0;i<sves.length;i++){
+    var s=sves[i];
+    var reg=s.r||'';
+    if(reg!==lastReg){
+      h+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;'
+        +'color:var(--tx3);margin:8px 0 4px;padding-bottom:2px;border-bottom:1px solid var(--bd)">'+reg+'</div>';
+      lastReg=reg;
+    }
+    var pr=g(s,'pr')||''; var da=g(s,'da')||'';
+    var in_=gi(s,'in'); var vo=gi(s,'vo');
+    h+='<div class="ccard" style="cursor:pointer;border-left-color:#F59E0B" onclick="openFiche(\''+s.si+'\')">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-weight:700;font-size:12px;color:var(--tx)">'
+      +s.n+' <span class="ok-badge">SVE</span></div>'
+      +'<div style="font-size:10px;color:var(--tx2);margin-top:2px">'
+      +s.v+(s.d?' &bull; Dept '+s.d:'')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0">'
+      +(in_?'<div style="font-size:10px;color:var(--tx2)">'+in_+' inscrits</div>':'')
+      +(pr?'<div style="font-size:10px;color:#F59E0B;font-weight:700">&#128197; '+pr+'</div>':'')
+      +(da?'<div style="font-size:9px;color:var(--tx3)">Dern. \u00e9l. '+da+'</div>':'')
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }
+  el.innerHTML = h;
+  el.style.display = '';
+}
+
 function buildCiblage(){
+  buildSveSection();
   var data=getCibData();
   data.sort(function(a,b){
     var va,vb;
@@ -5212,7 +5252,6 @@ if(GS_URL) gsLoad();
   <div class="mwrap">
     <div class="ph">Pilotage des Implantations</div>
     <div class="fbar" style="margin-bottom:10px;">
-      <button id="sve-cq" class="btn-sve" onclick="toggleSve('cq')" title="Structures sans SVE">&#128683; 0 SVE</button>
       <input type="text" id="cq-search" placeholder="Rechercher..." oninput="renderConquete()" style="width:170px">
       <label>R&eacute;gion <select id="cq-reg-filter" onchange="renderConquete()"><option value="">Toutes</option></select></label>
       <label>CCN ACI <select id="cq-aci-filter" onchange="renderConquete()">
