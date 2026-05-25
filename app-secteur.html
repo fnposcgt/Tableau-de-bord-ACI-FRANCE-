@@ -5535,8 +5535,10 @@ window.setTimeout(renderFederation,150);buildRS();conqueteLoad();buildKPIs();fil
 if(!IS_READONLY){var _btnAC=document.getElementById("btn-add-contact-top");if(_btnAC)_btnAC.style.display="";}
 editsLoad();
 (function(){
-  var savedTab=localStorage.getItem(SEC.ls+'_active_tab');
-  if(savedTab && savedTab!=='tableau') window.setTimeout(function(){goTab(savedTab);},120);
+  var urlTab=''; try{urlTab=new URLSearchParams(window.location.search).get('tab')||'';}catch(e){}
+      var savedTab=localStorage.getItem(SEC.ls+'_active_tab');
+  var initTab=urlTab||(savedTab&&savedTab!=='tableau'?savedTab:'');
+  if(initTab) window.setTimeout(function(){goTab(initTab);},120);
 })();
 if(GS_URL) gsLoad();
 (function(){
