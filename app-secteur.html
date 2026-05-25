@@ -542,6 +542,10 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
   padding:1px 5px;font-size:9px;font-weight:700;vertical-align:middle;
   margin-left:4px;letter-spacing:.03em}
 .ok-badge-row{background:rgba(245,158,11,.06) !important}
+
+.btn-sve{padding:3px 9px;border-radius:5px;border:1px solid var(--bd2);
+  background:var(--bg);color:var(--tx2);font-size:11px;cursor:pointer;white-space:nowrap}
+.btn-sve.on{background:#F59E0B;color:#fff;border-color:#F59E0B;font-weight:700}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -663,6 +667,7 @@ function roCheckPwd(){
 <!-- TABLEAU -->
 <div class="tp" id="tp-tableau">
   <div class="fbar">
+    <button id="sve-tab" class="btn-sve" onclick="toggleSve('tab')" title="Afficher uniquement les structures sans SVE">&#128683; 0 SVE</button>
     <input type="text" id="fsearch" placeholder="Rechercher..." oninput="buildTable()" style="width:200px">
     <label>R&eacute;gion <select id="freg" onchange="buildTable()"><option value="">Toutes</option></select></label>
     <label>CCN <select id="fccn" onchange="buildTable()"><option value="">Tous</option><option value="OUI">OUI</option><option value="">Non renseign&eacute;</option></select></label>
@@ -734,6 +739,7 @@ function roCheckPwd(){
 <!-- CALENDRIER -->
 <div class="tp" id="tp-calendrier">
   <div class="fbar">
+    <button id="sve-cal" class="btn-sve" onclick="toggleSve('cal')" title="Structures sans date d'élection">&#128683; 0 SVE</button>
     <label>R&eacute;gion <select id="cal-reg" onchange="buildCal()"><option value="">Toutes</option></select></label>
     <label>Horizon <select id="cal-hor" onchange="buildCal()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="24">24 mois</option><option value="9999">Tout</option></select></label>
     <label><input type="checkbox" id="cal-past" onchange="buildCal()"> Inclure pass&eacute;es</label>
@@ -755,6 +761,7 @@ function roCheckPwd(){
 <!-- CIBLAGE CGT -->
 <div class="tp" id="tp-ciblage">
   <div class="fbar">
+    <button id="sve-cib" class="btn-sve" onclick="toggleSve('cib')" title="Uniquement structures sans SVE">&#128683; 0 SVE</button>
     <label>Filtre <select id="cib-mode" onchange="buildCiblage()">
       <option value="sans">Sans CGT (0 voix)</option>
       <option value="min">CGT minoritaire</option>
@@ -2838,6 +2845,7 @@ function renderConquete(){
     'OCCITANIE':'#a85020','PACA':'#1d7a8a','PAYS DE LA LOIRE':'#3a7a5a'};
   var filtered=STRUCTS.filter(function(s){
     if(!s.si||!s.n) return false;
+    if(isSveOnly("cq")&&gi(s,"vo")>0) return false;
     if(regVal&&(s.r||'')!==regVal) return false;
     if(stVal!==''&&(conqueteStatus[s.si]||0)!==parseInt(stVal)) return false;
     if(aciVal==='OUI'&&(s.cc||'')==='OUI') return true;
@@ -3540,7 +3548,8 @@ function buildAlerts(){
   var now=Date.now()/1000;
   var hot=[],warn=[],soon=[];
   for(var i=0;i<STRUCTS.length;i++){
-    var s=STRUCTS[i];var pr=g(s,"pr");if(!pr)continue;
+    var s=STRUCTS[i];if(isSveOnly("cal")&&(gi(s,"vo")>0||g(s,"pr")))continue;
+    var pr=g(s,"pr");if(!pr&&!isSveOnly("cal"))continue;
     var parts=pr.split("/");if(parts.length!==3)continue;
     var ts=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0])).getTime()/1000;
     var days=Math.round((ts-now)/86400);
@@ -3580,6 +3589,7 @@ function getCibData(){
   for(var i=0;i<STRUCTS.length;i++){
     var s=STRUCTS[i];
     if(reg&&g(s,"r")!==reg)continue;
+    if(isSveOnly("cib")&&gi(s,"vo")>0)continue;
     var cgt=gi(s,"cg"),total=gi(s,"cg")+gi(s,"cf")+gi(s,"fo")+gi(s,"ct")+gi(s,"ck")+gi(s,"so");
     var hasCgt=(cgt>0);
     var cgtMaj=(cgt>0&&cgt===Math.max(cgt,gi(s,"cf"),gi(s,"fo"),gi(s,"ct"),gi(s,"ck"),gi(s,"so")));
@@ -4139,6 +4149,7 @@ function getFiltered(){
     if(ccnF==="OUI"&&ccn!=="OUI")continue;
     if(syn&&gan!==syn)continue;
     if(par>0&&pa<par)continue;
+    if(isSveOnly("tab")&&gi(s,"vo")>0)continue;
     if(tfN&&nom.toLowerCase().indexOf(tfN)===-1)continue;
     if(tfR&&region!==tfR)continue;
     if(tfCp&&formatCP(g(s,'cp')||'').indexOf(tfCp)<0)continue;
@@ -4565,6 +4576,20 @@ var REPR_DATA_ALL = {
 var REPR_DATA = REPR_DATA_ALL[_secKey] || REPR_DATA_ALL.aci;
 
 
+
+
+/* Filtre 0 SVE (structures sans suffrages enregistrés) */
+var _sveFilter = {};
+function toggleSve(tab){
+  _sveFilter[tab] = !_sveFilter[tab];
+  var btn = document.getElementById('sve-'+tab);
+  if(btn) btn.classList.toggle('on', !!_sveFilter[tab]);
+  if(tab==='tab')   buildTable();
+  if(tab==='cib')   buildCiblage();
+  if(tab==='cq')    renderConquete();
+  if(tab==='cal')   buildCal();
+}
+function isSveOnly(tab){ return !!_sveFilter[tab]; }
 
 function getReprOrg(key){
   if(!REPR_DATA) return null;
@@ -5674,7 +5699,8 @@ if(GS_URL) gsLoad();
   <div class="mwrap">
     <div class="ph">Pilotage des Implantations</div>
     <div class="fbar" style="margin-bottom:10px;">
-      <input type="text" id="cq-search" placeholder="Rechercher..." oninput="renderConquete()" style="width:170px">
+      <input type="text" <button id="sve-cq" class="btn-sve" onclick="toggleSve('cq')" title="Structures sans SVE">&#128683; 0 SVE</button>
+      id="cq-search" placeholder="Rechercher..." oninput="renderConquete()" style="width:170px">
       <label>R&eacute;gion <select id="cq-reg-filter" onchange="renderConquete()"><option value="">Toutes</option></select></label>
       <label>CCN <span class="cq-ccn-lbl">ACI</span> <select id="cq-aci-filter" onchange="renderConquete()">
         <option value="">Tous</option>
