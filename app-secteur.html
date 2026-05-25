@@ -5699,8 +5699,8 @@ if(GS_URL) gsLoad();
   <div class="mwrap">
     <div class="ph">Pilotage des Implantations</div>
     <div class="fbar" style="margin-bottom:10px;">
-      <input type="text" <button id="sve-cq" class="btn-sve" onclick="toggleSve('cq')" title="Structures sans SVE">&#128683; 0 SVE</button>
-      id="cq-search" placeholder="Rechercher..." oninput="renderConquete()" style="width:170px">
+      <button id="sve-cq" class="btn-sve" onclick="toggleSve('cq')" title="Structures sans SVE">&#128683; 0 SVE</button>
+      <input type="text" id="cq-search" placeholder="Rechercher..." oninput="renderConquete()" style="width:170px">
       <label>R&eacute;gion <select id="cq-reg-filter" onchange="renderConquete()"><option value="">Toutes</option></select></label>
       <label>CCN <span class="cq-ccn-lbl">ACI</span> <select id="cq-aci-filter" onchange="renderConquete()">
         <option value="">Tous</option>
