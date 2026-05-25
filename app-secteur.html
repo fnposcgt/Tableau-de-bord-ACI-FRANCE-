@@ -5582,6 +5582,16 @@ editsLoad();
       var savedTab=localStorage.getItem(SEC.ls+'_active_tab');
   var initTab=urlTab||(savedTab&&savedTab!=='tableau'?savedTab:'');
   if(initTab) window.setTimeout(function(){goTab(initTab);},120);
+  /* Ouvrir fiche depuis URL ?fiche=SIRET */
+  try {
+    var _ficheParam = new URLSearchParams(window.location.search).get('fiche');
+    if(_ficheParam) {
+      window.setTimeout(function(){
+        if(typeof openFiche === 'function') openFiche(_ficheParam);
+      }, 400);
+    }
+  } catch(e) {}
+
 })();
 if(GS_URL) gsLoad();
 (function(){
