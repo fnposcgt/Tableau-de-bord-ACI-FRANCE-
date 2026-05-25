@@ -1,11 +1,13 @@
 {
-  "name": "ACI France - Tableau de Bord",
-  "short_name": "ACI France",
-  "description": "Outil de suivi et de gestion ACI France",
+  "name": "FNPOS-CGT — Tableaux de bord",
+  "short_name": "FNPOS-CGT",
+  "description": "Outil de suivi syndical — ACI et secteurs fédéraux",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f4f0",
-  "theme_color": "#CC0000",
+  "orientation": "any",
+  "background_color": "#0f1117",
+  "theme_color": "#E24B4A",
   "icons": [
     {
       "src": "./logo-cgt.png",
@@ -18,5 +20,27 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Tableau de bord ACI",
+      "short_name": "ACI",
+      "url": "./app.html",
+      "icons": [{ "src": "./logo-cgt.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Portail Fédéral",
+      "short_name": "Fédération",
+      "url": "./index.html?tab=fed",
+      "icons": [{ "src": "./logo-cgt.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Secteurs",
+      "short_name": "Secteurs",
+      "url": "./app-secteur.html",
+      "icons": [{ "src": "./logo-cgt.png", "sizes": "96x96" }]
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "fr"
 }
