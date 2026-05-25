@@ -6309,6 +6309,12 @@ async function checkLockPwd() {
       localStorage.removeItem('aci_lock_hash');
     }
   } catch(e) {}
+  /* Proposer enregistrement biométrique si disponible et pas encore fait */
+  if(window.PublicKeyCredential && !localStorage.getItem('aci_bio_cred_id')) {
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(avail) {
+      if(avail) biometricRegister(hash);
+    });
+  }
   lockUnlockApp();
 }
 

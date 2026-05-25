@@ -6802,6 +6802,12 @@ async function checkLockPwd() {
       localStorage.removeItem(SEC.ls+'_lock_hash');
     }
   } catch(e) {}
+  /* Proposer enregistrement biométrique si disponible et pas encore fait */
+  if(window.PublicKeyCredential && !localStorage.getItem(SEC.ls+'_bio_cred_id')) {
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(avail) {
+      if(avail) biometricRegister(hash);
+    });
+  }
   lockUnlockApp();
 }
 
