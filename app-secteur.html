@@ -585,22 +585,19 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
     setTimeout(function(){document.getElementById('ro-pwd').focus();},200);
   }
 })();
-function roCheckPwd(){
-  var v = document.getElementById('ro-pwd').value;
-  if(v === 'Org@soc93100'){
-    document.getElementById('ro-overlay').style.display = 'none';
-    document.getElementById('wrap').style.display = '';
-    if(typeof syncStart === 'function') syncStart();
-    setTimeout(function(){
-      if(typeof drawMap === 'function') drawMap();
-      var savedTab = '';
-      try{ savedTab = localStorage.getItem(SEC.ls+'_active_tab') || ''; }catch(e){}
-      if(savedTab && typeof goTab === 'function') goTab(savedTab);
-    }, 80);
+async function roCheckPwd(){
+  var pwd = document.getElementById('ro-pwd').value;
+  var err = document.getElementById('ro-err');
+  var enc = new TextEncoder();
+  var buf = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
+  var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  if(hash === '1a3d7c79379f2de1c9bf353ba7260e79d0434df8096e89ec08387a105f810b3c'){
+    document.getElementById('ro-overlay').style.display='none';
+    document.getElementById('wrap').style.display='';
   } else {
-    document.getElementById('ro-err').style.display = 'block';
-    document.getElementById('ro-pwd').value = '';
-    document.getElementById('ro-pwd').focus();
+    err.style.display='block';
+    err.textContent='Mot de passe incorrect.';
+    document.getElementById('ro-pwd').value='';
   }
 }
 </script>
@@ -897,43 +894,43 @@ function roCheckPwd(){
 /* ── Config multi-secteurs ── */
 var SECTORS = {
   /* pwd = mot de passe ADMIN (personnalisable par secteur) */
-  /* Consultation ?readonly = Org@soc93100 pour tous */
+  /* Consultation ?readonly : voir hash SHA-256 */
   aci: {name:"Ateliers Chantiers d'Insertion", short:"ACI",
         sub:"Insertion par l'activité économique · IAE · SIAE",
         idcc:"CCN des ateliers et chantiers d'insertion — IDCC 3016",
-        pwd:"Org@soc93100", sync:"aci_sync", ls:"aci"},
+        pwd:'__HASH_PROTECTED__', sync:"aci_sync", ls:"aci"},
   ml:  {name:"Missions Locales", short:"ML",
         sub:"Jeunesse · Accompagnement · Emploi",
         idcc:"CCN des missions locales et PAIO — IDCC 2190",
-        pwd:"Org@ML93100", sync:"ml_sync", ls:"ml"},
+        hash:"a5c0ed1882ca3a63b020c40cbf60febe5b660ed102da2801bf60c42d8a7fb621", sync:"ml_sync", ls:"ml"},
   ss:  {name:"Sécurité Sociale", short:"SS",
         sub:"Protection sociale · Organismes nationaux",
         idcc:"",
-        pwd:"Org@SS93100", sync:"ss_sync", ls:"ss"},
+        hash:"6faab0f7f3400c418325e753e32ba6679050c05db8d25f80adc23f0d06e0109e", sync:"ss_sync", ls:"ss"},
   ad:  {name:"Aides à Domicile", short:"AD",
         sub:"Aide, accompagnement, soins et services à domicile",
         idcc:"CCN branche aide et services à domicile — IDCC 2941",
-        pwd:"Org@AD93100", sync:"ad_sync", ls:"ad"},
+        hash:"479d00ccf14b3509a793fc7641c0f8edad04f4d9b6ca3a077d8b157d7c0af97a", sync:"ad_sync", ls:"ad"},
   rq:  {name:"Régies de Quartier", short:"RQ",
         sub:"Développement social urbain",
         idcc:"CCN des régies de quartier — IDCC 3105",
-        pwd:"Org@RQ93100", sync:"rq_sync", ls:"rq"},
+        hash:"d8a315333aa788a9385f4a2a0c6d9617e84a6c3d2c74d99738fc0b3178f70929", sync:"rq_sync", ls:"rq"},
   mut: {name:"Mutualité", short:"MUT",
         sub:"Organismes mutualistes",
         idcc:"CCN de la mutualité — IDCC 2128",
-        pwd:"Org@MUT93100", sync:"mut_sync", ls:"mut"},
+        hash:"221d79736a39f949f8333c0fd6f31c994252c3cd27f09151a150a65fcf66580b", sync:"mut_sync", ls:"mut"},
   gps: {name:"GPS", short:"GPS",
         sub:"Groupements · Prévoyance · Solidarité",
         idcc:"",
-        pwd:"Org@GPS93100", sync:"gps_sync", ls:"gps"},
+        hash:"d679a55f62806b0bd3f384e0e903dca5f81c90bc49a08cf4dc20dfda67402963", sync:"gps_sync", ls:"gps"},
   msa: {name:"MSA", short:"MSA",
         sub:"Mutualité Sociale Agricole",
         idcc:"",
-        pwd:"Org@MSA93100", sync:"msa_sync", ls:"msa"},
+        hash:"4c30acc67fd447984370923dab362a4ecc0e4c9bc60831b57d8eeb1b6776a85d", sync:"msa_sync", ls:"msa"},
   ft:  {name:"France Travail", short:"FT",
         sub:"Emploi · Insertion professionnelle",
         idcc:"CCN de Pôle emploi — IDCC 2847",
-        pwd:"Org@FT93100", sync:"ft_sync", ls:"ft"}
+        hash:"15bfce0a3944de16809a3a9893c9bf933b532684b9d00a45aa6ea27d35c3cfcc", sync:"ft_sync", ls:"ft"}
 };
 var _sp = new URLSearchParams(window.location.search);
 var _secKey = (_sp.get('sec')||'aci').toLowerCase();
@@ -6770,7 +6767,7 @@ function biometricUnlock() {
   } catch(e) {}
 
   try {
-    var savedPwd = localStorage.getItem(SEC.ls+'_lock_pwd');
+    var savedPwd = localStorage.getItem(SEC.ls+'_lock_hash');
     if(savedPwd) {
       document.getElementById('lock-inp').value = savedPwd;
       document.getElementById('lock-remember').checked = true;
@@ -6781,37 +6778,30 @@ function biometricUnlock() {
   } catch(e) {}
 })();
 
-function checkLockPwd() {
+async function checkLockPwd() {
   var inp      = document.getElementById('lock-inp');
   var err      = document.getElementById('lock-err');
-  var btn      = document.getElementById('lock-btn');
   var remember = document.getElementById('lock-remember');
   if(!inp) return;
   var pwd = inp.value;
-
-  if(pwd !== SEC.pwd) {
-    if(err) { err.style.color = '#E24B4A'; err.textContent = 'Mot de passe incorrect.'; }
-    inp.value = '';
-    inp.style.borderColor = '#E24B4A';
-    inp.focus();
-    setTimeout(function() { inp.style.borderColor = ''; if(err) err.textContent = ''; }, 2000);
+  var enc = new TextEncoder();
+  var buf = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
+  var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  /* Comparer avec le hash du secteur courant */
+  var expectedHash = SEC ? SEC.hash : '';
+  if(!expectedHash || hash !== expectedHash) {
+    if(err) { err.style.color='#E24B4A'; err.textContent='Mot de passe incorrect.'; }
+    inp.value = ''; inp.style.borderColor = '#E24B4A'; inp.focus();
+    setTimeout(function(){ inp.style.borderColor=''; if(err) err.textContent=''; }, 2000);
     return;
   }
-
   try {
     if(remember && remember.checked) {
-      localStorage.setItem(SEC.ls+'_lock_pwd', pwd);
+      localStorage.setItem(SEC.ls+'_lock_hash', hash);
     } else {
-      localStorage.removeItem(SEC.ls+'_lock_pwd');
+      localStorage.removeItem(SEC.ls+'_lock_hash');
     }
   } catch(e) {}
-
-  if(window.PublicKeyCredential && !localStorage.getItem(SEC.ls+'_bio_cred_id')) {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-      if(available) { biometricRegister(pwd); }
-    });
-  }
-
   lockUnlockApp();
 }
 

@@ -579,22 +579,19 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
     setTimeout(function(){document.getElementById('ro-pwd').focus();},200);
   }
 })();
-function roCheckPwd(){
-  var v = document.getElementById('ro-pwd').value;
-  if(v === 'Org@soc93100'){
-    document.getElementById('ro-overlay').style.display = 'none';
-    document.getElementById('wrap').style.display = '';
-    if(typeof syncStart === 'function') syncStart();
-    setTimeout(function(){
-      if(typeof drawMap === 'function') drawMap();
-      var savedTab = '';
-      try{ savedTab = localStorage.getItem('aci_active_tab') || ''; }catch(e){}
-      if(savedTab && typeof goTab === 'function') goTab(savedTab);
-    }, 80);
+async function roCheckPwd(){
+  var pwd = document.getElementById('ro-pwd').value;
+  var err = document.getElementById('ro-err');
+  var enc = new TextEncoder();
+  var buf = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
+  var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  if(hash === '1a3d7c79379f2de1c9bf353ba7260e79d0434df8096e89ec08387a105f810b3c'){
+    document.getElementById('ro-overlay').style.display='none';
+    document.getElementById('wrap').style.display='';
   } else {
-    document.getElementById('ro-err').style.display = 'block';
-    document.getElementById('ro-pwd').value = '';
-    document.getElementById('ro-pwd').focus();
+    err.style.display='block';
+    err.textContent='Mot de passe incorrect.';
+    document.getElementById('ro-pwd').value='';
   }
 }
 </script>
@@ -6278,7 +6275,7 @@ function biometricUnlock() {
   } catch(e) {}
 
   try {
-    var savedPwd = localStorage.getItem('aci_lock_pwd');
+    var savedPwd = localStorage.getItem('aci_lock_hash');
     if(savedPwd) {
       document.getElementById('lock-inp').value = savedPwd;
       document.getElementById('lock-remember').checked = true;
@@ -6289,37 +6286,29 @@ function biometricUnlock() {
   } catch(e) {}
 })();
 
-function checkLockPwd() {
+async function checkLockPwd() {
   var inp      = document.getElementById('lock-inp');
   var err      = document.getElementById('lock-err');
-  var btn      = document.getElementById('lock-btn');
   var remember = document.getElementById('lock-remember');
   if(!inp) return;
   var pwd = inp.value;
-
-  if(pwd !== 'Org@soc93100') {
-    if(err) { err.style.color = '#E24B4A'; err.textContent = 'Mot de passe incorrect.'; }
-    inp.value = '';
-    inp.style.borderColor = '#E24B4A';
-    inp.focus();
-    setTimeout(function() { inp.style.borderColor = ''; if(err) err.textContent = ''; }, 2000);
+  /* SHA-256 */
+  var enc = new TextEncoder();
+  var buf = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
+  var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  if(hash !== '1a3d7c79379f2de1c9bf353ba7260e79d0434df8096e89ec08387a105f810b3c') {
+    if(err) { err.style.color='#E24B4A'; err.textContent='Mot de passe incorrect.'; }
+    inp.value = ''; inp.style.borderColor = '#E24B4A'; inp.focus();
+    setTimeout(function(){ inp.style.borderColor=''; if(err) err.textContent=''; }, 2000);
     return;
   }
-
   try {
     if(remember && remember.checked) {
-      localStorage.setItem('aci_lock_pwd', pwd);
+      localStorage.setItem('aci_lock_hash', hash);
     } else {
-      localStorage.removeItem('aci_lock_pwd');
+      localStorage.removeItem('aci_lock_hash');
     }
   } catch(e) {}
-
-  if(window.PublicKeyCredential && !localStorage.getItem('aci_bio_cred_id')) {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(available) {
-      if(available) { biometricRegister(pwd); }
-    });
-  }
-
   lockUnlockApp();
 }
 
