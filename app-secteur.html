@@ -4220,6 +4220,22 @@ function okBadge(s){
 }
 
 function buildTable(keepPage){
+  /* -- Repeupler les selects région à chaque rebuild -- */
+  (function(){
+    var _regs=[];
+    for(var _i=0;_i<STRUCTS.length;_i++){var _r=STRUCTS[_i].r||'';if(_r&&_regs.indexOf(_r)===-1)_regs.push(_r);}
+    _regs.sort();
+    var _opts='<option value="">Toutes</option>';
+    for(var _j=0;_j<_regs.length;_j++)_opts+='<option value="'+_regs[_j]+'">'+_regs[_j]+'</option>';
+    var _ids=['tf-r','freg','ch-reg','cal-reg','cib-reg','cnt-reg','cq-reg-filter'];
+    for(var _k=0;_k<_ids.length;_k++){
+      var _el=document.getElementById(_ids[_k]);
+      if(!_el)continue;
+      var _cur=_el.value;
+      _el.innerHTML=_opts;
+      if(_cur)_el.value=_cur;
+    }
+  })();
   if(!keepPage) tPage=0;
   var data=getFiltered();
   data.sort(function(a,b){
