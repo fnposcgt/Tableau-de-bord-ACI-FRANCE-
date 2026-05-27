@@ -134,7 +134,7 @@ td.cel{position:relative}td.cel:hover{outline:2px dashed #1D9E75;outline-offset:
 .cnt-info a{color:var(--tx2);text-decoration:none}
 .cnt-info a:hover{color:var(--tx);text-decoration:underline}
 .role-badge{display:inline-block;font-size:8px;padding:1px 5px;border-radius:3px;color:#fff;font-weight:700;vertical-align:middle;margin-left:4px}
-.rb-ref{background:#E24B4A}.rb-cef{background:#185fa5}.rb-resp{background:#0f6e56}
+.rb-ref{background:#E24B4A}.rb-cef{background:#185fa5}.rb-resp{background:#0f6e56}.rb-rsr{background:#8e44ad;color:#fff}
 
 /* ── UD & UL ── */
 .ud-search-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:8px 10px;background:var(--bg2);border-radius:var(--r)}
@@ -816,6 +816,7 @@ async function roCheckPwd(){
       <option value="referents">R&eacute;f&eacute;rents groupe &eacute;lections</option>
       <option value="membres_cef">Membres CEF</option>
       <option value="responsables">Responsables de r&eacute;gion</option>
+      <option value="resp_synd_reg" class="ml-only">Responsables Syndicat R&eacute;gional</option>
     </select></label>
     <input type="text" id="cnt-search" placeholder="Rechercher un nom..." oninput="buildContacts()" style="width:180px">
     <button class="ebtn" style="display:none" id="btn-add-contact-top" onclick="editContactOpen(document.getElementById('cnt-reg').value||'','referents',-1)">&#43; Contact</button>
@@ -5130,19 +5131,21 @@ function buildContacts(){
   for(var ri=0;ri<regs.length;ri++){
     var reg=regs[ri];
     var data=CONTACTS_BY_REGION[reg]||{referents:[],membres_cef:[],responsables:[]};
-    var refs=roleF==="membres_cef"||roleF==="responsables"?[]:data.referents||[];
-    var cefs=roleF==="referents"||roleF==="responsables"?[]:data.membres_cef||[];
+    var refs=roleF==="membres_cef"||roleF==="responsables"||roleF==="resp_synd_reg"?[]:data.referents||[];
+    var cefs=roleF==="referents"||roleF==="responsables"||roleF==="resp_synd_reg"?[]:data.membres_cef||[];
+    var rsrs=roleF!=="all"&&roleF!=="resp_synd_reg"?[]:data.resp_synd_reg||[];
     refs=matchQ(refs);cefs=matchQ(cefs);
     var oldRegs=RESPONSABLES_ANCIENNES_REGIONS[reg]||[];
     var nbOldWithResps=0;
     for(var oi=0;oi<oldRegs.length;oi++){if(oldRegs[oi].responsables.length>0)nbOldWithResps++;}
     var hasResps=(roleF==="all"||roleF==="responsables")&&nbOldWithResps>0;
-    if(!refs.length&&!cefs.length&&!hasResps)continue;
-    total+=refs.length+cefs.length;
+    if(!refs.length&&!cefs.length&&!hasResps&&!rsrs.length)continue;
+    total+=refs.length+cefs.length+rsrs.length;
     var h='<div class="cnt-region-block">';
     var _m=[];var _rArr=STRUCTS.filter(function(s){return(s.r||'')===(reg);});
     if(refs.length)_m.push(refs.length+' r\u00e9f.');
     if(cefs.length)_m.push(cefs.length+' CEF');
+    if(rsrs.length)_m.push(rsrs.length+' synd. r\u00e9g.');
     var _nR=0;for(var _o2=0;_o2<oldRegs.length;_o2++)_nR+=oldRegs[_o2].responsables.length;
     if(_nR)_m.push(_nR+' resp.');
     var _nA=0;for(var _ra=0;_ra<_rArr.length;_ra++)_nA+=(ADHERENTS[_rArr[_ra].si||'']||[]).length;
@@ -5165,6 +5168,12 @@ function buildContacts(){
       h+='<div class="cnt-role-col">';
       h+='<div class="cnt-role-title"><span class="role-badge rb-cef">CEF</span> Membres CEF'+(IS_READONLY?'':'<button class="btn-add-small" style="margin-left:8px" onclick="editContactOpen(\''+reg.replace(/\'/g,"\\\'")+'\',\'membres_cef\',-1)">&#43;</button>')+'</div>';
       for(var i=0;i<cefs.length;i++)h+=renderContactCard(cefs[i],reg,"membres_cef",i);
+      h+='</div>';
+    }
+    if((roleF==="all"||roleF==="resp_synd_reg")&&rsrs.length>0){
+      h+='<div class="cnt-role-col">';
+      h+='<div class="cnt-role-title"><span class="role-badge rb-rsr">Synd. R\u00e9g.</span> Responsables Syndicat R\u00e9gional'+(IS_READONLY?'':'<button class="btn-add-small" style="margin-left:8px" onclick="editContactOpen(\''+reg.replace(/\'/g,"\\'")+'\',\'resp_synd_reg\',-1)">&#43;</button>')+'</div>';
+      for(var i=0;i<rsrs.length;i++)h+=renderContactCard(rsrs[i],reg,"resp_synd_reg",i);
       h+='</div>';
     }
     if(hasResps){
@@ -5578,7 +5587,14 @@ function toggleThemeApp() {
   } catch(e) {}
 })();
 
-window.setTimeout(renderFederation,150);buildRS();conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();buildCal();buildExpPreview();buildAlerts();ejsLoadConfig();
+window.setTimeout(renderFederation,150);buildRS();conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();
+/* Masquer options secteur-spécifiques */
+(function(){
+  if(_secKey!=='ml'){
+    var _mlOpts=document.querySelectorAll('.ml-only');
+    for(var _oi=0;_oi<_mlOpts.length;_oi++) _mlOpts[_oi].parentNode.removeChild(_mlOpts[_oi]);
+  }
+})();buildCal();buildExpPreview();buildAlerts();ejsLoadConfig();
 /* Retour depuis onglet Fédération */
 (function(){
   var params = new URLSearchParams(window.location.search);
@@ -5981,6 +5997,7 @@ if(GS_URL) gsLoad();
           <option value="referents">R&eacute;f&eacute;rent &eacute;lections</option>
           <option value="membres_cef">Membre CEF</option>
           <option value="responsables">Responsable de r&eacute;gion</option>
+          <option value="resp_synd_reg" class="ml-only">Responsable Syndicat R&eacute;gional</option>
         </select>
       </div>
       <div class="edit-field-row">
