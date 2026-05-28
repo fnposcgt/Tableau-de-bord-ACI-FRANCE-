@@ -342,6 +342,14 @@ body.readonly .btn-edit-icon{display:none!important}
 body.readonly .btn-add-small{display:none!important}
 body.readonly #fiche-modifier-btn{display:none!important}
 body.readonly #sync-btn{display:none!important}
+body.readonly #btn-chg-pwd{display:none!important}
+#chg-pwd-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9100;align-items:center;justify-content:center;}
+#chg-pwd-overlay.open{display:flex;}
+#chg-pwd-box{background:var(--bg);border-radius:12px;padding:28px 24px;width:min(96vw,380px);box-shadow:0 8px 32px rgba(0,0,0,.35);}
+#chg-pwd-box h3{margin:0 0 18px;font-size:15px;color:var(--tx1);}
+#chg-pwd-box input{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);color:var(--tx1);font-size:14px;margin-bottom:11px;box-sizing:border-box;}
+#chg-pwd-msg{font-size:12px;min-height:18px;margin-bottom:8px;}
+.chg-pwd-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
 body.readonly #biblio-inline-auth{display:none!important}
 body.readonly .militant-notes{pointer-events:none;opacity:0.6;resize:none;background:var(--bg2)}
 body.readonly .conquete-select{pointer-events:none;opacity:0.7}
@@ -591,7 +599,7 @@ async function roCheckPwd(){
   var enc = new TextEncoder();
   var buf = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
   var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
-  if(hash === '1a3d7c79379f2de1c9bf353ba7260e79d0434df8096e89ec08387a105f810b3c'){
+  if(hash === 'f72ac9456fb3a278f0fdb1b4cede0d4132294b53c6e52f481f9dd4383348506b'){
     document.getElementById('ro-overlay').style.display='none';
     document.getElementById('wrap').style.display='';
   } else {
@@ -612,6 +620,7 @@ async function roCheckPwd(){
     <a href="index.html?tab=fed" title="Onglet Fédération" style="padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;font-size:11px;font-weight:700;color:var(--tx);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🏳️ Féd.</a>
     <button id="theme-toggle-app" onclick="toggleThemeApp()" title="Thème clair/sombre" style="padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;font-size:14px;line-height:1;">🌙</button>
     <button id="sync-btn" class="sync-hdr-btn" onclick="doManualSync()" title="Synchroniser les données maintenant">&#8635; Sync</button>
+    <button id="btn-chg-pwd" onclick="openChangePwd()" title="Changer le mot de passe administrateur" style="padding:4px 9px;font-size:11px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;color:var(--tx2);">&#128273; MDP</button>
     <span id="sync-time" style="font-size:10px;color:var(--tx3);white-space:nowrap;margin-left:2px"></span>
   </div>
 </div>
@@ -5587,6 +5596,74 @@ function toggleThemeApp() {
   } catch(e) {}
 })();
 
+
+/* ── Changement de mot de passe admin secteur ── */
+function openChangePwd() {
+  if(IS_READONLY) return;
+  var overlay = document.getElementById('chg-pwd-overlay');
+  var sect    = document.getElementById('chg-pwd-sector');
+  if(sect) sect.textContent = SEC ? SEC.name : '';
+  var n = document.getElementById('chg-pwd-new');
+  var conf = document.getElementById('chg-pwd-confirm');
+  var msg  = document.getElementById('chg-pwd-msg');
+  if(n) n.value = '';
+  if(conf) conf.value = '';
+  if(msg)  { msg.textContent = ''; msg.style.color = ''; }
+  if(overlay) overlay.classList.add('open');
+  if(n) n.focus();
+}
+
+function closeChangePwd() {
+  var overlay = document.getElementById('chg-pwd-overlay');
+  if(overlay) overlay.classList.remove('open');
+}
+
+function saveChangePwd() {
+  var n    = (document.getElementById('chg-pwd-new')     || {}).value || '';
+  var conf = (document.getElementById('chg-pwd-confirm') || {}).value || '';
+  var msg  = document.getElementById('chg-pwd-msg');
+  function setMsg(txt, color) { if(msg) { msg.textContent = txt; msg.style.color = color || '#E24B4A'; } }
+
+  if(n.length < 8) { setMsg('Mot de passe trop court (8 caractères minimum).'); return; }
+  if(n !== conf)   { setMsg('Les deux mots de passe ne correspondent pas.'); return; }
+
+  setMsg('Vérification…', 'var(--tx2)');
+
+  var enc = new TextEncoder();
+  crypto.subtle.digest('SHA-256', enc.encode(n)).then(function(buf) {
+    var newHash = Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+    /* Bloquer le hash maître — réservé à l'accès fédéral */
+    if(newHash === MASTER_ADMIN_HASH) { setMsg('Ce mot de passe est réservé.'); return; }
+    /* Sauvegarder dans Supabase */
+    var xhr = new XMLHttpRequest();
+    xhr.open('PATCH', SUPABASE_URL + '/rest/v1/' + SEC.sync + '?id=eq.1', true);
+    var hdrs = _sbHeaders();
+    xhr.setRequestHeader('apikey',        hdrs['apikey']);
+    xhr.setRequestHeader('Authorization', hdrs['Authorization']);
+    xhr.setRequestHeader('Content-Type',  'application/json');
+    xhr.setRequestHeader('Prefer',        'return=minimal');
+    xhr.timeout = 8000;
+    xhr.onload = function() {
+      if(xhr.status >= 200 && xhr.status < 300) {
+        SECTOR_ADMIN_HASH = newHash;
+        /* Effacer le hash sauvegardé localement (force re-saisie) */
+        try { localStorage.removeItem(SEC.ls+'_lock_hash'); } catch(e) {}
+        setMsg('✅ Mot de passe mis à jour.', '#1D9E75');
+        setTimeout(closeChangePwd, 1800);
+      } else {
+        setMsg('Erreur serveur (' + xhr.status + '). Réessayez.');
+      }
+    };
+    xhr.onerror = xhr.ontimeout = function() { setMsg('Connexion impossible. Réessayez.'); };
+    xhr.send(JSON.stringify({
+      id:             1,
+      admin_pwd_hash: newHash,
+      write_token:    'fnpos-cgt-sync-2025',
+      updated_at:     new Date().toISOString()
+    }));
+  });
+}
+
 window.setTimeout(renderFederation,150);buildRS();conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();
 /* Masquer options secteur-spécifiques */
 (function(){
@@ -6133,6 +6210,10 @@ if(GS_URL) gsLoad();
 var SUPABASE_URL      = 'https://mytxmkipelspbqyvfqjw.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4';
 
+/* Hash maître FNPOS-CGT — accès inconditionnel tous secteurs */
+var MASTER_ADMIN_HASH  = 'f72ac9456fb3a278f0fdb1b4cede0d4132294b53c6e52f481f9dd4383348506b';
+var SECTOR_ADMIN_HASH  = null; /* Chargé depuis Supabase si l'admin a changé son MDP */
+
 var _syncBusy     = false;
 var XLSX_ARCHIVED = {}; /* emails archivés du xlsx */
 var _syncInterval = null;
@@ -6291,6 +6372,8 @@ function syncPull(onDone) {
           if(mergedEdits)    _lsSet(EDIT_KEY,    mergedEdits);
           if(mergedConquete) _lsSet(CONQUETE_KEY, mergedConquete);
           if(row.biblio)     _lsSet(SEC.ls+'_biblio_docs', row.biblio);
+          /* Charger le hash admin personnalisé si l'admin a changé son MDP */
+          if(row.admin_pwd_hash) SECTOR_ADMIN_HASH = row.admin_pwd_hash;
           editsLoad();
           conqueteLoad();
           buildTable();
@@ -6830,26 +6913,31 @@ async function checkLockPwd() {
   var enc = new TextEncoder();
   var buf = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
   var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
-  /* Comparer avec le hash du secteur courant */
-  var expectedHash = SEC ? SEC.hash : '';
-  if(!expectedHash || hash !== expectedHash) {
+  /* 1. Accès maître FNPOS-CGT (bypass tous secteurs) */
+  var isMaster = (hash === MASTER_ADMIN_HASH);
+  /* 2. Hash secteur : Supabase en priorité, sinon valeur par défaut */
+  var sectorHash = SECTOR_ADMIN_HASH || (SEC ? SEC.hash : '');
+  if(!isMaster && hash !== sectorHash) {
     if(err) { err.style.color='#E24B4A'; err.textContent='Mot de passe incorrect.'; }
     inp.value = ''; inp.style.borderColor = '#E24B4A'; inp.focus();
     setTimeout(function(){ inp.style.borderColor=''; if(err) err.textContent=''; }, 2000);
     return;
   }
-  try {
-    if(remember && remember.checked) {
-      localStorage.setItem(SEC.ls+'_lock_hash', hash);
-    } else {
-      localStorage.removeItem(SEC.ls+'_lock_hash');
+  /* Ne pas stocker le hash maître dans localStorage (non lié au secteur) */
+  if(!isMaster) {
+    try {
+      if(remember && remember.checked) {
+        localStorage.setItem(SEC.ls+'_lock_hash', hash);
+      } else {
+        localStorage.removeItem(SEC.ls+'_lock_hash');
+      }
+    } catch(e) {}
+    /* Proposer enregistrement biométrique si disponible et pas encore fait */
+    if(window.PublicKeyCredential && !localStorage.getItem(SEC.ls+'_bio_cred_id')) {
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(avail) {
+        if(avail) biometricRegister(hash);
+      });
     }
-  } catch(e) {}
-  /* Proposer enregistrement biométrique si disponible et pas encore fait */
-  if(window.PublicKeyCredential && !localStorage.getItem(SEC.ls+'_bio_cred_id')) {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(avail) {
-      if(avail) biometricRegister(hash);
-    });
   }
   lockUnlockApp();
 }
@@ -7477,6 +7565,23 @@ window.goTab = function(name) { _origGoTab(name); if (name === 'emailing') windo
   } else { initTopBtn(); }
 })();
 </script>
+
+<!-- Modal changement de mot de passe admin secteur -->
+<div id="chg-pwd-overlay">
+  <div id="chg-pwd-box">
+    <h3>&#128273; Changer le mot de passe &mdash; <span id="chg-pwd-sector"></span></h3>
+    <label style="font-size:12px;color:var(--tx2);">Nouveau mot de passe</label>
+    <input type="password" id="chg-pwd-new" placeholder="Nouveau mot de passe" autocomplete="new-password">
+    <label style="font-size:12px;color:var(--tx2);">Confirmer</label>
+    <input type="password" id="chg-pwd-confirm" placeholder="Confirmer le nouveau mot de passe" autocomplete="new-password">
+    <div id="chg-pwd-msg"></div>
+    <div class="chg-pwd-btns">
+      <button class="ebtn" style="background:var(--bg2);color:var(--tx1);border:1px solid var(--bd);" onclick="closeChangePwd()">Annuler</button>
+      <button class="ebtn" onclick="saveChangePwd()">&#10003; Enregistrer</button>
+    </div>
+    <p style="font-size:10px;color:var(--tx3);margin:12px 0 0;">Le nouveau mot de passe sera actif sur tous les appareils d&egrave;s la prochaine synchronisation.</p>
+  </div>
+</div>
 </body>
 </html>
 
