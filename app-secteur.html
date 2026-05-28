@@ -524,7 +524,7 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
 .em-rec-badge.ud{background:#E24B4A}
 .em-rec-badge.ul{background:#185fa5}
 .em-rec-badge.str{background:#1D9E75}
-.em-rec-badge.adh{background:#EF9F27;color:#1a1a18}.em-rec-badge.cnt{background:#8e44ad;color:#fff}
+.em-rec-badge.adh{background:#EF9F27;color:#1a1a18}.em-rec-badge.cnt{background:#8e44ad;color:#fff}#em-fiche-panel{display:none;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 12px;margin-bottom:10px;animation:em-fp-in .2s ease}@keyframes em-fp-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}.em-fp-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}.em-fp-name{font-size:12px;font-weight:700;color:var(--tx1);line-height:1.3}.em-fp-meta{font-size:10px;color:var(--tx3);margin-top:2px}.em-fp-close{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;padding:0 2px;line-height:1}.em-fp-stats{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0;font-size:11px}.em-fp-stat{color:var(--tx2)}.em-fp-bar{height:6px;background:var(--bd2);border-radius:3px;overflow:hidden;margin-bottom:6px}.em-fp-bar-fill{height:100%;background:#E24B4A;border-radius:3px;transition:width .4s}.em-fp-ud{font-size:10px;color:var(--tx3);border-top:1px solid var(--bd);padding-top:6px;margin-top:4px}.em-rec-preview{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:11px;padding:1px 4px;border-radius:3px;margin-left:4px}.em-rec-preview:hover{background:var(--bd2);color:var(--tx1)}
 .em-sel-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 2px;font-size:10px;color:var(--tx3);margin-bottom:4px}
 .em-sel-link{font-size:10px;color:#185fa5;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0}
 .em-form{background:var(--bg2);border-radius:var(--rl);padding:14px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:10px}
@@ -5703,6 +5703,83 @@ function aciSetCurrentTpl(id){try{if(id)localStorage.setItem(_TPL_CUR,id);else l
   }catch(e){}
 })();
 
+
+/* ── Fiche preview dans l'onglet Emailing ── */
+function emPreviewStruct(si) {
+  var panel = document.getElementById('em-fiche-panel');
+  if (!panel) return;
+  var s = null;
+  for (var i = 0; i < STRUCTS.length; i++) { if ((STRUCTS[i].si||STRUCTS[i].n) === si || STRUCTS[i].si === si) { s = STRUCTS[i]; break; } }
+  if (!s) { panel.style.display = 'none'; return; }
+
+  var pa    = parseFloat(s.pa || 0);
+  var barW  = Math.min(Math.round(pa), 100);
+  var secLabel = (typeof SEC !== 'undefined' && SEC && SEC.name) ? SEC.name : 'ACI';
+
+  /* Trouver UD depuis UD_DATA */
+  var udLine = '';
+  if (typeof UD_DATA !== 'undefined' && UD_DATA) {
+    for (var u = 0; u < UD_DATA.length; u++) {
+      var ud = UD_DATA[u];
+      var udDept = String(ud.code || '').replace(/^0+/,'');
+      var sDept  = String(s.d   || '').replace(/^0+/,'');
+      if (udDept && sDept && udDept === sDept) {
+        udLine = (ud.nom || '') + (ud.email ? ' &bull; <a href="mailto:' + ud.email + '">' + ud.email + '</a>' : '');
+        break;
+      }
+    }
+  }
+
+  var h = '<div class="em-fp-hdr">';
+  h += '<div><div class="em-fp-name">' + emEscH(s.n || '') + '</div>';
+  h += '<div class="em-fp-meta">' + emEscH(s.v || '') + (s.d ? ' &bull; Dept\u00a0' + emEscH(s.d) : '') + (s.r ? ' &bull; ' + emEscH(s.r) : '') + '</div></div>';
+  h += '<button class="em-fp-close" onclick="emClosePreview()" title="Fermer">&#x2715;</button></div>';
+  h += '<div class="em-fp-stats">';
+  h += '<span class="em-fp-stat">CGT <strong>' + pa.toFixed(1) + '%</strong></span>';
+  if (s.in) h += '<span class="em-fp-stat">' + s.in + ' inscrit' + (s.in>1?'s':'') + '</span>';
+  if (s.pr) h += '<span class="em-fp-stat">&#128197; Proch.\u00a0<strong>' + emEscH(s.pr) + '</strong></span>';
+  if (s.da) h += '<span class="em-fp-stat">Dern.\u00a0' + emEscH(s.da) + '</span>';
+  h += '</div>';
+  h += '<div class="em-fp-bar"><div class="em-fp-bar-fill" style="width:' + barW + '%"></div></div>';
+  if (udLine) h += '<div class="em-fp-ud">UD\u00a0: ' + udLine + '</div>';
+
+  panel.innerHTML = h;
+  panel.style.display = 'block';
+  emAutoFillEmail(s, secLabel);
+}
+
+function emClosePreview() {
+  var panel = document.getElementById('em-fiche-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function emAutoFillEmail(s, secLabel) {
+  var tpls  = (typeof aciGetTpls === 'function') ? aciGetTpls() : [];
+  var curId = (typeof aciGetCurrentTpl === 'function') ? aciGetCurrentTpl() : null;
+  var tpl   = null;
+  if (curId) { for (var i = 0; i < tpls.length; i++) { if (tpls[i].id === curId) { tpl = tpls[i]; break; } } }
+  if (!tpl && tpls.length) tpl = tpls[0];
+
+  var nom = s.n || '';
+  var sec = secLabel || ((typeof SEC !== 'undefined' && SEC && SEC.name) ? SEC.name : 'ACI');
+
+  /* Objet */
+  var subEl = document.getElementById('em-subject');
+  if (subEl) {
+    var prefix = tpl ? tpl.subject : ('Syndicalisation CGT ' + sec);
+    if (nom && prefix.indexOf(nom) < 0) prefix += ' \u2014 ' + nom;
+    subEl.value = prefix;
+  }
+  /* Corps */
+  var bodyEl = document.getElementById('em-body');
+  if (bodyEl) {
+    var body = tpl ? (tpl.body || '') : '';
+    body = body.replace(/\{NOM\}/g, nom);
+    if (bodyEl.value === '' || bodyEl.value === body.replace(/\{NOM\}/g, '')) bodyEl.value = body;
+    else bodyEl.value = body;
+  }
+}
+
 window.setTimeout(renderFederation,150);buildRS();conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();
 /* Masquer options secteur-spécifiques */
 (function(){
@@ -5846,6 +5923,7 @@ if(GS_URL) gsLoad();
     </div>
     <div class="em-form">
       <div class="em-section-title">Composition du message</div>
+      <div id="em-fiche-panel"></div>
       <div class="em-field">
         <label>&Agrave; (destinataires)</label>
         <div class="em-to-wrap">
@@ -7144,7 +7222,7 @@ function emBuildCandidates() {
       if (fDept && dep !== fDept) continue;
       hay = (nom + ' ' + ville + ' ' + email).toLowerCase();
       if (fSearch && hay.indexOf(fSearch) < 0) continue;
-      candidates.push({email:email, nom:nom, badge:'str', detail:ville});
+      candidates.push({email:email, nom:nom, badge:'str', detail:ville, si:row.si||''});
     }
   } else if (EM_TYPE === 'adh') {
     if (typeof ADHERENTS !== 'undefined') {
@@ -7249,7 +7327,9 @@ function emRefreshList() {
     var chk = EM_CHECKED[c.email] ? ' checked' : '';
     html += '<label class="em-rec-item">';
     html += '<input type="checkbox" value="' + emEscH(c.email) + '"' + chk + ' onchange="emToggleCheck(this)">';
-    html += '<span><span class="em-rec-name">' + emEscH(c.nom) + ' <span class="em-rec-badge ' + c.badge + '">' + c.badge.toUpperCase() + '</span></span>';
+    html += '<span><span class="em-rec-name">' + emEscH(c.nom);
+    if(c.si) html += '<button class="em-rec-preview" type="button" onclick="event.preventDefault();event.stopPropagation();emPreviewStruct(\'' + emEscH(c.si) + '\')" title="Aperçu fiche">&#128269;</button>';
+    html += ' <span class="em-rec-badge ' + c.badge + '">' + c.badge.toUpperCase() + '</span></span>';
     html += '<div class="em-rec-email">' + emEscH(c.email);
     if (c.detail) html += ' <span style="color:var(--tx3)">&middot; ' + emEscH(c.detail) + '</span>';
     html += '</div></span></label>';
