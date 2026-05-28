@@ -5609,7 +5609,8 @@ function _sbHeaders() {
     'apikey':        SUPABASE_ANON_KEY,
     'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
     'Content-Type':  'application/json',
-    'Prefer':        'resolution=merge-duplicates'
+    'Prefer':        'resolution=merge-duplicates',
+    'x-app-token':   'fnpos-cgt-sync-2025'
   };
 }
 
@@ -5621,6 +5622,7 @@ function syncPush(onDone) {
   updateSyncStatus('syncing');
   var body = JSON.stringify({
     id:       1,
+    write_token: 'fnpos-cgt-sync-2025',
     edits:    _lsGet('aci_edits_v1'),
     conquete: _lsGet('aci_conquete_v1'),
     biblio:   _lsGet('aci_biblio_docs'),
