@@ -1061,6 +1061,12 @@ function printFiche() {
     + ".btn-pdf:hover{background:#c93a39}"
     + ".btn-send{background:#185fa5;color:#fff;border:none;border-radius:5px;padding:7px 16px;cursor:pointer;font-size:12px;font-weight:700}"
     + ".btn-send:hover{background:#134e8a}"
+    + ".btn-tpl{background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;padding:5px 10px;cursor:pointer;font-size:11px;white-space:nowrap}"
+    + ".btn-tpl:hover{background:#f0f0ee;border-color:#999}"
+    + ".btn-tpl.btn-del{background:#fff0f0;border-color:#E24B4A;color:#E24B4A}"
+    + ".btn-tpl.btn-del:hover{background:#E24B4A;color:#fff}"
+    + ".tpl-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}"
+    + "#tpl-msg{font-size:10px;color:#1D9E75;min-width:80px}"
     + ".np-info{font-size:10px;color:#888;margin-top:8px;font-style:italic}"
     + ".fiche-wrap{max-width:720px;margin:0 auto;padding:20px 24px}"
     + ".fiche-entete{border-bottom:3px solid #E24B4A;padding-bottom:10px;margin-bottom:16px}"
@@ -1102,6 +1108,14 @@ function printFiche() {
     + "<div class='np-row'><div class='np-label'>&#128462; PDF</div>"
     + "<div><button class='btn-pdf' onclick='window.print()'>G\u00e9n\u00e9rer le PDF (Ctrl+P)</button>"
     + "<span style='font-size:10px;color:#888;margin-left:10px'>Choisissez \u00ab Enregistrer en PDF \u00bb comme imprimante</span></div></div>"
+    + "<div class='np-row'><div class='np-label'>Mod\u00e8le</div>"
+    + "<div class='tpl-bar'>"
+    + "<select class='np-input' id='tpl-sel' onchange='onTplChange()' style='flex:1;min-width:160px'><option value=''>\u2014 Choisir un mod\u00e8le \u2014</option></select>"
+    + "<button class='btn-tpl' onclick='saveTpl()' title='Sauvegarder'>&#128190; Sauvegarder</button>"
+    + "<button class='btn-tpl' onclick='newTpl()' title='Nouveau mod\u00e8le'>+ Nouveau</button>"
+    + "<button class='btn-tpl btn-del' onclick='delTpl()' title='Supprimer'>&#128465;</button>"
+    + "<span id='tpl-msg'></span>"
+    + "</div></div>"
     + "<div class='np-row'><div class='np-label'>\u00c0</div>"
     + "<textarea class='np-input' id='em-to' rows='2'></textarea></div>"
     + "<div class='np-row'><div class='np-label'>Cc</div>"
@@ -1126,24 +1140,29 @@ function printFiche() {
     + "</div>"
     + "<script>"
     + "var _ctx=" + _ctxJson + ";"
+    + "var _tpls=[];var _curTplId=null;"
+    + "function showTplMsg(t,ok){var e=document.getElementById('tpl-msg');if(e){e.textContent=t;e.style.color=ok===false?'#E24B4A':'#1D9E75';setTimeout(function(){e.textContent='';},2500);}}"
+    + "function populateTplSel(){var s=document.getElementById('tpl-sel');if(!s)return;var prev=s.value;s.innerHTML='<option value=\\'\\'>\u2014 Choisir un mod\u00e8le \u2014</option>';for(var i=0;i<_tpls.length;i++){var o=document.createElement('option');o.value=_tpls[i].id;o.textContent=_tpls[i].name;s.appendChild(o);}if(prev)s.value=prev;}"
+    + "function applyTpl(id){for(var i=0;i<_tpls.length;i++){if(_tpls[i].id===id){document.getElementById('em-sub').value=_tpls[i].subject||'';document.getElementById('em-body').value=_tpls[i].body||'';document.getElementById('em-cc').value=_tpls[i].cc||_ctx.ccEmails||'';_curTplId=id;try{if(window.opener&&window.opener.aciSetCurrentTpl)window.opener.aciSetCurrentTpl(id);}catch(e){}break;}}}"
+    + "function onTplChange(){var s=document.getElementById('tpl-sel');if(s&&s.value)applyTpl(s.value);}"
+    + "function saveTpl(){var s=document.getElementById('tpl-sel');var id=s?s.value:null;if(!id){newTpl();return;}var name='';for(var i=0;i<_tpls.length;i++)if(_tpls[i].id===id){name=_tpls[i].name;break;}var tpl={id:id,name:name,subject:document.getElementById('em-sub').value,body:document.getElementById('em-body').value,cc:document.getElementById('em-cc').value};try{if(window.opener&&window.opener.aciSaveTpl){_tpls=window.opener.aciSaveTpl(tpl)||_tpls;populateTplSel();showTplMsg('\u2713 Sauvegard\u00e9');}}catch(e){showTplMsg('Erreur',false);}}"
+    + "function newTpl(){var name=prompt('Nom du nouveau mod\u00e8le :');if(!name)return;var id='tpl_'+Date.now();var tpl={id:id,name:name,subject:document.getElementById('em-sub').value,body:document.getElementById('em-body').value,cc:document.getElementById('em-cc').value};try{if(window.opener&&window.opener.aciSaveTpl){_tpls=window.opener.aciSaveTpl(tpl)||_tpls;_curTplId=id;populateTplSel();var s=document.getElementById('tpl-sel');if(s)s.value=id;showTplMsg('\u2713 Mod\u00e8le cr\u00e9\u00e9');}}catch(e){showTplMsg('Erreur',false);}}"
+    + "function delTpl(){var s=document.getElementById('tpl-sel');if(!s||!s.value){showTplMsg('S\u00e9lectionnez un mod\u00e8le',false);return;}if(!confirm('Supprimer ce mod\u00e8le ?'))return;try{if(window.opener&&window.opener.aciDelTpl){_tpls=window.opener.aciDelTpl(s.value)||[];_curTplId=null;s.value='';populateTplSel();showTplMsg('Supprim\u00e9');}}catch(e){showTplMsg('Erreur',false);}}"
+    + "function loadTpls(){try{if(window.opener&&window.opener.aciGetTpls)_tpls=window.opener.aciGetTpls()||[];}catch(e){}populateTplSel();var lastId=null;try{if(window.opener&&window.opener.aciGetCurrentTpl)lastId=window.opener.aciGetCurrentTpl();}catch(e){}if(lastId&&_tpls.length){var s=document.getElementById('tpl-sel');if(s){s.value=lastId;if(s.value)applyTpl(lastId);}}}"
+    + "function sendEmail(){var to=document.getElementById('em-to').value;var cc=document.getElementById('em-cc').value;var sub=document.getElementById('em-sub').value;var msg=document.getElementById('em-body').value;"
+    + "  if(_curTplId){var tpl={};for(var i=0;i<_tpls.length;i++)if(_tpls[i].id===_curTplId){tpl=_tpls[i];break;}tpl.subject=sub;tpl.body=msg;tpl.cc=cc;try{if(window.opener&&window.opener.aciSaveTpl)window.opener.aciSaveTpl(tpl);}catch(e){}}"
+    + "  var tos=to.split(/[\\n,;]+/).map(function(s){var m=s.match(/[^\\s<>]+@[^\\s<>]+/);return m?m[0].trim():'';}).filter(Boolean).join(',');"
+    + "  var ccs=cc.split(/[;,]+/).map(function(s){return s.trim();}).filter(Boolean).join(';');"
+    + "  var href='mailto:'+encodeURIComponent(tos)+'?from='+encodeURIComponent('dperreux@orgasociaux.cgt.fr');"
+    + "  if(ccs)href+='&cc='+encodeURIComponent(ccs);"
+    + "  href+='&subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(msg);"
+    + "  window.location.href=href;"
+    + "}"
     + "document.getElementById('em-to').value=_ctx.toDisplay;"
     + "document.getElementById('em-cc').value=_ctx.ccEmails||'';"
     + "document.getElementById('em-sub').value=_ctx.subject;"
     + "document.getElementById('em-body').value=_ctx.body;"
-    + "function sendEmail(){"
-    + "  var to=document.getElementById('em-to').value;"
-    + "  var cc=document.getElementById('em-cc').value;"
-    + "  var sub=document.getElementById('em-sub').value;"
-    + "  var msg=document.getElementById('em-body').value;"
-    + "  var tos=to.split(/[\\n,;]+/).map(function(s){var m=s.match(/[^\\s<>]+@[^\\s<>]+/);return m?m[0].trim():'';}).filter(Boolean).join(',');"
-    + "  var ccs=cc.split(/[;,]+/).map(function(s){return s.trim();}).filter(Boolean).join(';');"
-    + "  var href='mailto:'+encodeURIComponent(tos);"
-    + "  var sep='?';"
-    + "  href+=sep+'from='+encodeURIComponent('dperreux@orgasociaux.cgt.fr');sep='&';"
-    + "  if(ccs){href+=sep+'cc='+encodeURIComponent(ccs);sep='&';}"
-    + "  href+=sep+'subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(msg);"
-    + "  window.location.href=href;"
-    + "}"
+    + "loadTpls();"
     + "<\/script>\n</body></html>";
   var blob = new Blob([html], {type:"text/html;charset=utf-8"});
   var url  = URL.createObjectURL(blob);
@@ -5069,6 +5088,17 @@ function toggleThemeApp() {
     }
   } catch(e) {}
 })();
+
+/* ── Gestion des modèles email (aci_mail_tpl) ── */
+var _TPL_LS  = 'aci_mail_tpl';
+var _TPL_CUR = 'aci_mail_tpl_cur';
+function aciGetTpls(){try{var r=localStorage.getItem(_TPL_LS);return r?JSON.parse(r):[];}catch(e){return[];}}
+function aciSaveTpl(tpl){try{var tpls=aciGetTpls();var found=false;for(var i=0;i<tpls.length;i++){if(tpls[i].id===tpl.id){tpls[i]=tpl;found=true;break;}}if(!found)tpls.push(tpl);localStorage.setItem(_TPL_LS,JSON.stringify(tpls));return tpls;}catch(e){return[];}}
+function aciDelTpl(id){try{var tpls=aciGetTpls().filter(function(t){return t.id!==id;});localStorage.setItem(_TPL_LS,JSON.stringify(tpls));if(localStorage.getItem(_TPL_CUR)===id)localStorage.removeItem(_TPL_CUR);return tpls;}catch(e){return[];}}
+function aciGetCurrentTpl(){try{return localStorage.getItem(_TPL_CUR)||null;}catch(e){return null;}}
+function aciSetCurrentTpl(id){try{if(id)localStorage.setItem(_TPL_CUR,id);else localStorage.removeItem(_TPL_CUR);}catch(e){}}
+/* Migration modèle par défaut */
+(function(){try{if(!localStorage.getItem(_TPL_LS)){var _defBody="Bonjour camarades,\n\nEn pi\u00e8ce jointe la fiche d\u00e9taill\u00e9e d\u0027un Atelier Chantier d\u0027Insertion (ACI), IDCC\u00a03016, qui d\u00e9pend de votre secteur.\n\nMerci de nous fournir les \u00e9l\u00e9ments sur cette structure :\n- Adh\u00e9rents CGT\u00a0?\n- Date des prochaines \u00e9lections CSE\u00a0?\n\nNous sommes en plein d\u00e9veloppement et avons besoin de votre aide.\n\nBien fraternellement.";localStorage.setItem(_TPL_LS,JSON.stringify([{id:'tpl_default',name:'Mod\u00e8le par d\u00e9faut',subject:'Syndicalisation CGT ACI',body:_defBody,cc:''}]));localStorage.setItem(_TPL_CUR,'tpl_default');}}catch(e){}})();
 
 conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();buildCal();buildExpPreview();buildAlerts();ejsLoadConfig();
 /* Retour depuis onglet Fédération */
