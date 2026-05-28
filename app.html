@@ -1041,11 +1041,11 @@ function printFiche() {
     else _toDisplay.push(ctx.ulEmails[_j]);
   }
   var _subject = "Syndicalisation CGT ACI \u2014 " + title;
-  var _defMsg = "Bonjour camarades,\n\nEn pi\u00e8ce jointe la fiche d\u00e9taill\u00e9e d'un Atelier Chantier d'Insertion (ACI), IDCC 3016, qui d\u00e9pend de votre secteur.\n\nMerci de nous fournir les \u00e9l\u00e9ments sur cette structure :\n- Adh\u00e9rents CGT\u00a0?\n- Date des prochaines \u00e9lections CSE\u00a0?\n\nNous sommes en plein d\u00e9veloppement et avons besoin de votre aide.\n\nBien fraternellement.";
+  var _defMsg = "Bonjour camarades,\n\nEn pi\u00e8ce jointe la fiche d\u00e9taill\u00e9e de {NOM} (ACI \u2014 IDCC 3016), qui d\u00e9pend de votre secteur.\n\nMerci de nous fournir les \u00e9l\u00e9ments sur cette structure :\n- Adh\u00e9rents CGT\u00a0?\n- Date des prochaines \u00e9lections CSE\u00a0?\n\nNous sommes en plein d\u00e9veloppement et avons besoin de votre aide.\n\nBien fraternellement.";
   /* CC emails déjà calculés dans openFiche et stockés dans _ficheCtx */
   var _ccEmailsArr = ctx.ccEmails || [];
   var _ccStr = _ccEmailsArr.join(";");
-  var _ctxJson = JSON.stringify({toDisplay:_toDisplay.join("\n"), subject:_subject, body:_defMsg, ccEmails:_ccStr});
+  var _ctxJson = JSON.stringify({toDisplay:_toDisplay.join("\n"), subject:_subject, body:_defMsg, ccEmails:_ccStr, title:title, secName:"ACI"});
   var css = "<style>"
     + "@page{size:A4 portrait;margin:15mm 12mm}"
     + "*{box-sizing:border-box}"
@@ -1143,7 +1143,7 @@ function printFiche() {
     + "var _tpls=[];var _curTplId=null;"
     + "function showTplMsg(t,ok){var e=document.getElementById('tpl-msg');if(e){e.textContent=t;e.style.color=ok===false?'#E24B4A':'#1D9E75';setTimeout(function(){e.textContent='';},2500);}}"
     + "function populateTplSel(){var s=document.getElementById('tpl-sel');if(!s)return;var prev=s.value;s.innerHTML='<option value=\\'\\'>\u2014 Choisir un mod\u00e8le \u2014</option>';for(var i=0;i<_tpls.length;i++){var o=document.createElement('option');o.value=_tpls[i].id;o.textContent=_tpls[i].name;s.appendChild(o);}if(prev)s.value=prev;}"
-    + "function applyTpl(id){for(var i=0;i<_tpls.length;i++){if(_tpls[i].id===id){document.getElementById('em-sub').value=_tpls[i].subject||'';document.getElementById('em-body').value=_tpls[i].body||'';document.getElementById('em-cc').value=_tpls[i].cc||_ctx.ccEmails||'';_curTplId=id;try{if(window.opener&&window.opener.aciSetCurrentTpl)window.opener.aciSetCurrentTpl(id);}catch(e){}break;}}}"
+    + "function applyTpl(id){for(var i=0;i<_tpls.length;i++){if(_tpls[i].id===id){var _s=_tpls[i].subject||'';if(_ctx.title&&_s.indexOf(_ctx.title)<0)_s+=' \u2014 '+_ctx.title;document.getElementById('em-sub').value=_s;var _b=(_tpls[i].body||'').replace(/\{NOM\}/g,_ctx.title||'');document.getElementById('em-body').value=_b||'';document.getElementById('em-cc').value=_tpls[i].cc||_ctx.ccEmails||'';_curTplId=id;try{if(window.opener&&window.opener.aciSetCurrentTpl)window.opener.aciSetCurrentTpl(id);}catch(e){}break;}}}"
     + "function onTplChange(){var s=document.getElementById('tpl-sel');if(s&&s.value)applyTpl(s.value);}"
     + "function saveTpl(){var s=document.getElementById('tpl-sel');var id=s?s.value:null;if(!id){newTpl();return;}var name='';for(var i=0;i<_tpls.length;i++)if(_tpls[i].id===id){name=_tpls[i].name;break;}var tpl={id:id,name:name,subject:document.getElementById('em-sub').value,body:document.getElementById('em-body').value,cc:document.getElementById('em-cc').value};try{if(window.opener&&window.opener.aciSaveTpl){_tpls=window.opener.aciSaveTpl(tpl)||_tpls;populateTplSel();showTplMsg('\u2713 Sauvegard\u00e9');}}catch(e){showTplMsg('Erreur',false);}}"
     + "function newTpl(){var name=prompt('Nom du nouveau mod\u00e8le :');if(!name)return;var id='tpl_'+Date.now();var tpl={id:id,name:name,subject:document.getElementById('em-sub').value,body:document.getElementById('em-body').value,cc:document.getElementById('em-cc').value};try{if(window.opener&&window.opener.aciSaveTpl){_tpls=window.opener.aciSaveTpl(tpl)||_tpls;_curTplId=id;populateTplSel();var s=document.getElementById('tpl-sel');if(s)s.value=id;showTplMsg('\u2713 Mod\u00e8le cr\u00e9\u00e9');}}catch(e){showTplMsg('Erreur',false);}}"
@@ -5098,7 +5098,7 @@ function aciDelTpl(id){try{var tpls=aciGetTpls().filter(function(t){return t.id!
 function aciGetCurrentTpl(){try{return localStorage.getItem(_TPL_CUR)||null;}catch(e){return null;}}
 function aciSetCurrentTpl(id){try{if(id)localStorage.setItem(_TPL_CUR,id);else localStorage.removeItem(_TPL_CUR);}catch(e){}}
 /* Migration modèle par défaut */
-(function(){try{if(!localStorage.getItem(_TPL_LS)){var _defBody="Bonjour camarades,\n\nEn pi\u00e8ce jointe la fiche d\u00e9taill\u00e9e d\u0027un Atelier Chantier d\u0027Insertion (ACI), IDCC\u00a03016, qui d\u00e9pend de votre secteur.\n\nMerci de nous fournir les \u00e9l\u00e9ments sur cette structure :\n- Adh\u00e9rents CGT\u00a0?\n- Date des prochaines \u00e9lections CSE\u00a0?\n\nNous sommes en plein d\u00e9veloppement et avons besoin de votre aide.\n\nBien fraternellement.";localStorage.setItem(_TPL_LS,JSON.stringify([{id:'tpl_default',name:'Mod\u00e8le par d\u00e9faut',subject:'Syndicalisation CGT ACI',body:_defBody,cc:''}]));localStorage.setItem(_TPL_CUR,'tpl_default');}}catch(e){}})();
+(function(){try{if(!localStorage.getItem(_TPL_LS)){var _defBody="Bonjour camarades,\n\nEn pi\u00e8ce jointe la fiche d\u00e9taill\u00e9e de {NOM} (ACI \u2014 IDCC\u00a03016), qui d\u00e9pend de votre secteur.\n\nMerci de nous fournir les \u00e9l\u00e9ments sur cette structure :\n- Adh\u00e9rents CGT\u00a0?\n- Date des prochaines \u00e9lections CSE\u00a0?\n\nNous sommes en plein d\u00e9veloppement et avons besoin de votre aide.\n\nBien fraternellement.";localStorage.setItem(_TPL_LS,JSON.stringify([{id:'tpl_default',name:'Mod\u00e8le par d\u00e9faut',subject:'Syndicalisation CGT ACI',body:_defBody,cc:''}]));localStorage.setItem(_TPL_CUR,'tpl_default');}}catch(e){}})();
 
 conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();buildCal();buildExpPreview();buildAlerts();ejsLoadConfig();
 /* Retour depuis onglet Fédération */
