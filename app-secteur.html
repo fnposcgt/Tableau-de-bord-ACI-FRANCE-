@@ -4365,7 +4365,7 @@ function buildTable(keepPage){
     var pa=gf(s,"pa"),gan=g(s,"ga"),ccn=g(s,"cc");
     var pc=pa>=70?"#1D9E75":pa<40&&pa>0?"#E24B4A":"var(--tx)";
     h+='<tr onclick="trClick(\''+g(s,"si")+'\')" style="cursor:pointer">';
-    h+='<td class="cel" ondblclick="cellEdit(event,\''+g(s,"si")+'\',\'n\')" style="min-width:160px" title="Double-clic : modifier le nom"><div style="font-weight:600">'+g(s,"n")+(s.ok?'<span class=\"ok-badge\">SVE</span>':'')+'+(g(s,\'ss\')&&_secKey===\'ss\'?\'<span class=\\"ss-badge ss-\'+g(s,\'ss\').toLowerCase().replace(/[^a-z]/g,\'\')+\'\\">\'+(g(s,\'ss\')||\'\')+\'</span>\':\'\')+\'</div><div style="font-size:9px;color:var(--tx3)">'+g(s,"ad")+'</div></td>';
+    h+='<td class="cel" ondblclick="cellEdit(event,\''+g(s,"si")+'\',\'n\')" style="min-width:160px" title="Double-clic : modifier le nom"><div style="font-weight:600">'+g(s,"n")+(s.ok?'<span class="ok-badge">SVE</span>':'')+(_secKey==='ss'&&g(s,'ss')?'<span class="ss-badge ss-'+g(s,'ss').toLowerCase().replace(/[^a-z]/g,'')+'">'+(g(s,'ss')||'')+'</span>':'')+'</div><div style="font-size:9px;color:var(--tx3)">'+g(s,"ad")+'</div></td>';
     h+='<td style="font-size:10px;white-space:nowrap">'+g(s,"r")+'</td>';
     if(_secKey==='ss') h+='<td style="font-size:10px;white-space:nowrap">'+(g(s,'ss')||'-')+'</td>';
     h+='<td class="cel" ondblclick="cellEdit(event,\''+g(s,"si")+'\',\'cp\')" style="white-space:nowrap" title="Double-clic : modifier le CP">'+formatCP(g(s,"cp"))+'</td>';
