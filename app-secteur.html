@@ -683,6 +683,7 @@ async function roCheckPwd(){
   <div class="fbar">
     <input type="text" id="fsearch" placeholder="Rechercher..." oninput="buildTable()" style="width:200px">
     <label>R&eacute;gion <select id="freg" onchange="buildTable()"><option value="">Toutes</option></select></label>
+    <label id="fss-label" style="display:none">Sous-secteur <select id="fss" onchange="buildTable()"><option value="">Tous</option><option value="CPAM">CPAM</option><option value="CAF">CAF</option><option value="URSSAF">URSSAF</option><option value="CARSAT">CARSAT</option><option value="UGECAM">UGECAM</option><option value="DRSM">DRSM</option><option value="CNAM/CNAF/CNAV">CNAM/CNAF/CNAV</option><option value="CTI">CTI</option><option value="CCSS">CCSS</option><option value="AUTRE">AUTRE</option></select></label>
     <label>CCN <select id="fccn" onchange="buildTable()"><option value="">Tous</option><option value="OUI">OUI</option><option value="">Non renseign&eacute;</option></select></label>
     <label>Syndicat <select id="fsyn" onchange="buildTable()"><option value="">Tous</option><option>CGT</option><option>CFDT</option><option>FO</option><option>CFTC</option><option>CGC</option><option>SOLIDAIRES</option></select></label>
     <label>Partic. <select id="fpar" onchange="buildTable()"><option value="0">Tous</option><option value="50">&ge;50%</option><option value="70">&ge;70%</option><option value="90">&ge;90%</option></select></label>
@@ -1805,7 +1806,7 @@ function editsSave(){
   catch(e){ showEditToast("\u26a0 Impossible de sauvegarder (stockage plein ?)", "#E24B4A"); }
 }
 var FILTER_KEY=SEC.ls+'_filters_v1';
-var FILTER_IDS=['fsearch','freg','fccn','fsyn','fpar','tf-n','tf-r','tf-cp','tf-v','tf-si','tf-cc','tf-in-min','tf-in-max','tf-pa-min','tf-pa-max','tf-ga','tf-de','tf-pr','tf-tl','tf-adh','tf-cq','cq-search','cq-reg-filter','cq-aci-filter','cq-st-filter'];
+var FILTER_IDS=['fsearch','freg','fss','fccn','fsyn','fpar','tf-n','tf-r','tf-ss','tf-cp','tf-v','tf-si','tf-cc','tf-in-min','tf-in-max','tf-pa-min','tf-pa-max','tf-ga','tf-de','tf-pr','tf-tl','tf-adh','tf-cq','cq-search','cq-reg-filter','cq-aci-filter','cq-st-filter'];
 function filtersSave(){
   var state={};
   for(var _fi=0;_fi<FILTER_IDS.length;_fi++){
@@ -4279,7 +4280,7 @@ function getFiltered(){
   var ccnF=document.getElementById("fccn").value;
   var syn=(document.getElementById("fsyn").value||"").toUpperCase();
   var par=parseFloat(document.getElementById("fpar").value)||0;
-  var tfN=gcf("tf-n").toLowerCase(),tfR=gcf("tf-r"),tfSS=gcf("tf-ss"),tfCp=gcf("tf-cp").toLowerCase(),tfV=gcf("tf-v").toLowerCase(),tfAdh=gcf("tf-adh").toLowerCase();
+  var tfN=gcf("tf-n").toLowerCase(),tfR=gcf("tf-r"),tfSS=gcf("tf-ss"),fSS=gcf("fss"),tfCp=gcf("tf-cp").toLowerCase(),tfV=gcf("tf-v").toLowerCase(),tfAdh=gcf("tf-adh").toLowerCase();
   var tfSi=gcf("tf-si").toLowerCase(),tfCc=gcf("tf-cc"),tfGa=gcf("tf-ga").toUpperCase();
   var tfDe=gcf("tf-de").toLowerCase(),tfPr=gcf("tf-pr").toLowerCase(),tfTl=gcf("tf-tl").toLowerCase();
   var tfInMin=parseFloat(gcf("tf-in-min"))||0,tfInMax=parseFloat(gcf("tf-in-max"))||0;
@@ -4303,6 +4304,7 @@ function getFiltered(){
     if(tfN&&nom.toLowerCase().indexOf(tfN)===-1)continue;
     if(tfR&&region!==tfR)continue;
     if(tfSS&&(g(s,'ss')||'')!==tfSS)continue;
+    if(fSS&&(g(s,'ss')||'')!==fSS)continue;
     if(tfSS&&(g(s,'ss')||'')!==tfSS)continue;
     if(tfCp&&formatCP(g(s,'cp')||'').indexOf(tfCp)<0)continue;
     if(tfV&&ville.toLowerCase().indexOf(tfV)===-1)continue;
@@ -5938,13 +5940,15 @@ function aciGetPickerData() {
   return result;
 }
 
-window.setTimeout(renderFederation,150);/* Afficher colonne sous-secteur SS */
+window.setTimeout(renderFederation,150);/* Afficher filtre + colonne sous-secteur SS */
 (function(){
   var isSS = (_secKey === 'ss');
-  var thss = document.getElementById('th-ss');
-  var thsl = document.getElementById('th-ss-label');
-  if(thss) thss.style.display = isSS ? '' : 'none';
-  if(thsl) thsl.style.display = isSS ? '' : 'none';
+  var thss  = document.getElementById('th-ss');
+  var thsl  = document.getElementById('th-ss-label');
+  var fssl  = document.getElementById('fss-label');
+  if(thss)  thss.style.display  = isSS ? '' : 'none';
+  if(thsl)  thsl.style.display  = isSS ? '' : 'none';
+  if(fssl)  fssl.style.display  = isSS ? '' : 'none';
 })();
 buildRS();conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();
 /* Masquer options secteur-spécifiques */
