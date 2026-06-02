@@ -755,6 +755,7 @@ async function roCheckPwd(){
 <div class="tp" id="tp-calendrier">
   <div class="fbar">
     <label>R&eacute;gion <select id="cal-reg" onchange="buildCal()"><option value="">Toutes</option></select></label>
+    <label id="lbl-cal-fss" style="display:none">Sous-sect. <select id="cal-fss" onchange="buildCal()"><option value="">Tous</option><option value="CPAM">CPAM</option><option value="CAF">CAF</option><option value="URSSAF">URSSAF</option><option value="CARSAT">CARSAT</option><option value="UGECAM">UGECAM</option><option value="DRSM">DRSM</option><option value="CNAM/CNAF/CNAV">CNAM/CNAF/CNAV</option><option value="CTI">CTI</option><option value="CCSS">CCSS</option><option value="AUTRE">AUTRE</option></select></label>
     <label>Horizon <select id="cal-hor" onchange="buildCal()"><option value="3">3 mois</option><option value="6">6 mois</option><option value="12" selected>12 mois</option><option value="24">24 mois</option><option value="9999">Tout</option></select></label>
     <label><input type="checkbox" id="cal-past" onchange="buildCal()"> Inclure pass&eacute;es</label>
     <span id="calcnt" style="margin-left:auto;font-size:11px;color:var(--tx3)"></span>
@@ -781,6 +782,7 @@ async function roCheckPwd(){
       <option value="all" selected>Tous (sans CGT + minoritaire)</option>
     </select></label>
     <label>R&eacute;gion <select id="cib-reg" onchange="buildCiblage()"><option value="">Toutes</option></select></label>
+    <label id="lbl-cib-fss" style="display:none">Sous-sect. <select id="cib-fss" onchange="buildCiblage()"><option value="">Tous</option><option value="CPAM">CPAM</option><option value="CAF">CAF</option><option value="URSSAF">URSSAF</option><option value="CARSAT">CARSAT</option><option value="UGECAM">UGECAM</option><option value="DRSM">DRSM</option><option value="CNAM/CNAF/CNAV">CNAM/CNAF/CNAV</option><option value="CTI">CTI</option><option value="CCSS">CCSS</option><option value="AUTRE">AUTRE</option></select></label>
     <label>Horizon &eacute;l. <select id="cib-hor" onchange="buildCiblage()">
       <option value="0">Toutes dates</option>
       <option value="3">Dans 3 mois</option>
@@ -1806,7 +1808,7 @@ function editsSave(){
   catch(e){ showEditToast("\u26a0 Impossible de sauvegarder (stockage plein ?)", "#E24B4A"); }
 }
 var FILTER_KEY=SEC.ls+'_filters_v1';
-var FILTER_IDS=['fsearch','freg','fss','fccn','fsyn','fpar','tf-n','tf-r','tf-ss','tf-cp','tf-v','tf-si','tf-cc','tf-in-min','tf-in-max','tf-pa-min','tf-pa-max','tf-ga','tf-de','tf-pr','tf-tl','tf-adh','tf-cq','cq-search','cq-reg-filter','cq-aci-filter','cq-st-filter'];
+var FILTER_IDS=['fsearch','freg','fss','cal-fss','cib-fss','cq-fss','fccn','fsyn','fpar','tf-n','tf-r','tf-ss','tf-cp','tf-v','tf-si','tf-cc','tf-in-min','tf-in-max','tf-pa-min','tf-pa-max','tf-ga','tf-de','tf-pr','tf-tl','tf-adh','tf-cq','cq-search','cq-reg-filter','cq-aci-filter','cq-st-filter'];
 function filtersSave(){
   var state={};
   for(var _fi=0;_fi<FILTER_IDS.length;_fi++){
@@ -2934,6 +2936,8 @@ function renderConquete(){
   var stVal=stFil?stFil.value:'';
   var aciFil=document.getElementById('cq-aci-filter');
   var aciVal=aciFil?aciFil.value:'';
+  var cqSSEl=document.getElementById('cq-fss');
+  var cqSS=cqSSEl?cqSSEl.value:'';
   var qEl=document.getElementById('cq-search');
   var q=qEl?(qEl.value||'').toLowerCase():'';
   var kpiB=0, kpiA=0;
@@ -2955,6 +2959,7 @@ function renderConquete(){
     if(!s.si||!s.n) return false;
     if(isSveOnly("cq")&&gi(s,"vo")>0) return false;
     if(regVal&&(s.r||'')!==regVal) return false;
+    if(cqSS&&(s.ss||'')!==cqSS) return false;
     if(stVal!==''&&(conqueteStatus[s.si]||0)!==parseInt(stVal)) return false;
     if(aciVal==='OUI'&&(s.cc||'')==='OUI') return true;
     if(aciVal==='NON'&&(s.cc||'')==='NON') return true;
@@ -3697,6 +3702,8 @@ function getCibData(){
   for(var i=0;i<STRUCTS.length;i++){
     var s=STRUCTS[i];
     if(reg&&g(s,"r")!==reg)continue;
+    var cibSS=(document.getElementById("cib-fss")||{}).value||"";
+    if(cibSS&&(g(s,"ss")||"")!==cibSS)continue;
     if(isSveOnly("cib")&&gi(s,"vo")>0)continue;
     var cgt=gi(s,"cg"),total=gi(s,"cg")+gi(s,"cf")+gi(s,"fo")+gi(s,"ct")+gi(s,"ck")+gi(s,"so");
     var hasCgt=(cgt>0);
@@ -5109,6 +5116,7 @@ function buildReprCharts(){
 
 function buildCal(){
   var reg=document.getElementById("cal-reg").value;
+  var calSS=(document.getElementById("cal-fss")||{}).value||"";
   var hor=parseInt(document.getElementById("cal-hor").value)||12;
   var inclPast=document.getElementById("cal-past").checked;
   var now=Date.now()/1000,lim=now+hor*30.5*86400;
@@ -5116,6 +5124,7 @@ function buildCal(){
   for(var i=0;i<STRUCTS.length;i++){
     var s=STRUCTS[i];var pr=g(s,"pr");if(!pr)continue;
     if(reg&&g(s,"r")!==reg)continue;
+    if(calSS&&(g(s,"ss")||"")!==calSS)continue;
     var parts=pr.split("/");if(parts.length!==3)continue;
     var ts=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0])).getTime()/1000;
     if(!inclPast&&ts<now)continue;if(ts>lim)continue;
@@ -5949,6 +5958,13 @@ window.setTimeout(renderFederation,150);/* Afficher filtre + colonne sous-secteu
   if(thss)  thss.style.display  = isSS ? '' : 'none';
   if(thsl)  thsl.style.display  = isSS ? '' : 'none';
   if(fssl)  fssl.style.display  = isSS ? '' : 'none';
+  /* Autres onglets */
+  var lblCalSS=document.getElementById('lbl-cal-fss');
+  var lblCibSS=document.getElementById('lbl-cib-fss');
+  var lblCqSS =document.getElementById('lbl-cq-fss');
+  if(lblCalSS) lblCalSS.style.display = isSS ? '' : 'none';
+  if(lblCibSS) lblCibSS.style.display = isSS ? '' : 'none';
+  if(lblCqSS)  lblCqSS.style.display  = isSS ? '' : 'none';
 })();
 buildRS();conqueteLoad();buildKPIs();fillSelects();drawMap();filtersRestore();buildTable();
 /* Masquer options secteur-spécifiques */
@@ -6160,6 +6176,7 @@ if(GS_URL) gsLoad();
     <div class="fbar" style="margin-bottom:10px;">
       <input type="text" id="cq-search" placeholder="Rechercher..." oninput="renderConquete()" style="width:170px">
       <label>R&eacute;gion <select id="cq-reg-filter" onchange="renderConquete()"><option value="">Toutes</option></select></label>
+      <label id="lbl-cq-fss" style="display:none">Sous-sect. <select id="cq-fss" onchange="renderConquete()"><option value="">Tous</option><option value="CPAM">CPAM</option><option value="CAF">CAF</option><option value="URSSAF">URSSAF</option><option value="CARSAT">CARSAT</option><option value="UGECAM">UGECAM</option><option value="DRSM">DRSM</option><option value="CNAM/CNAF/CNAV">CNAM/CNAF/CNAV</option><option value="CTI">CTI</option><option value="CCSS">CCSS</option><option value="AUTRE">AUTRE</option></select></label>
       <label>CCN <span class="cq-ccn-lbl">ACI</span> <select id="cq-aci-filter" onchange="renderConquete()">
         <option value="">Tous</option>
         <option value="OUI">OUI</option>
