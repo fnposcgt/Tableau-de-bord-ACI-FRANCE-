@@ -343,6 +343,16 @@ body.readonly .btn-add-small{display:none!important}
 body.readonly #fiche-modifier-btn{display:none!important}
 body.readonly #sync-btn{display:none!important}
 body.readonly #btn-chg-pwd{display:none!important}
+/* Panel rotation passwords (master only) */
+#rot-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9200;align-items:center;justify-content:center;}
+#rot-overlay.open{display:flex;}
+#rot-box{background:var(--bg);border-radius:12px;padding:24px;width:min(96vw,420px);box-shadow:0 8px 32px rgba(0,0,0,.35);}
+#rot-box h3{margin:0 0 14px;font-size:14px;color:var(--tx1);}
+#rot-table{width:100%;border-collapse:collapse;font-size:12px;}
+#rot-table th{text-align:left;padding:4px 8px;background:var(--bg2);color:var(--tx3);font-size:10px;border-bottom:1px solid var(--bd2);}
+#rot-table td{padding:5px 8px;border-bottom:1px solid var(--bd);font-family:monospace;color:var(--tx1);}
+#rot-table td:first-child{font-family:var(--font);font-weight:600;color:var(--tx2);}
+#rot-table tr:last-child td{border-bottom:none;}
 #chg-pwd-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9100;align-items:center;justify-content:center;}
 #chg-pwd-overlay.open{display:flex;}
 #chg-pwd-box{background:var(--bg);border-radius:12px;padding:28px 24px;width:min(96vw,380px);box-shadow:0 8px 32px rgba(0,0,0,.35);}
@@ -620,6 +630,7 @@ async function roCheckPwd(){
     <a href="index.html?tab=fed" title="Onglet Fédération" style="padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;font-size:11px;font-weight:700;color:var(--tx);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">🏳️ Féd.</a>
     <button id="theme-toggle-app" onclick="toggleThemeApp()" title="Thème clair/sombre" style="padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;font-size:14px;line-height:1;">🌙</button>
     <button id="sync-btn" class="sync-hdr-btn" onclick="doManualSync()" title="Synchroniser les données maintenant">&#8635; Sync</button>
+    <button id="btn-rot-pwd" onclick="openRotPanel()" title="Mots de passe du semestre (accès maître)" style="display:none;padding:4px 9px;font-size:11px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;color:var(--tx2);">&#128260; Rotation</button>
     <button id="btn-chg-pwd" onclick="openChangePwd()" title="Changer le mot de passe administrateur" style="padding:4px 9px;font-size:11px;border:1px solid var(--bd);border-radius:6px;background:var(--bg2);cursor:pointer;color:var(--tx2);">&#128273; MDP</button>
     <span id="sync-time" style="font-size:10px;color:var(--tx3);white-space:nowrap;margin-left:2px"></span>
   </div>
@@ -5720,6 +5731,36 @@ function toggleThemeApp() {
 })();
 
 
+/* ── Panel rotation mots de passe (master uniquement) ── */
+function openRotPanel() {
+  var ov = document.getElementById('rot-overlay');
+  if(!ov) return;
+  var now = new Date();
+  var sem = now.getFullYear() + '-S' + (now.getMonth() < 6 ? '1' : '2');
+  var semEl = document.getElementById('rot-sem');
+  if(semEl) semEl.textContent = 'Semestre ' + sem;
+  var tbody = document.getElementById('rot-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--tx3)">Calcul en cours...</td></tr>';
+  ov.classList.add('open');
+  var sectors = Object.keys(SECTORS);
+  var promises = sectors.map(function(k) {
+    return getRotationPwd(k).then(function(pwd) { return {key:k, name:SECTORS[k].short||k, pwd:pwd}; });
+  });
+  Promise.all(promises).then(function(results) {
+    var html = '';
+    results.forEach(function(r) {
+      html += '<tr><td>' + r.name + '</td><td>' + r.pwd + '</td></tr>';
+    });
+    tbody.innerHTML = html;
+  });
+}
+/* Afficher bouton rotation si session master */
+function checkMasterUI() {
+  var btn = document.getElementById('btn-rot-pwd');
+  if(btn) btn.style.display = IS_MASTER_SESSION ? '' : 'none';
+}
+
 /* ── Changement de mot de passe admin secteur ── */
 function openChangePwd() {
   if(IS_READONLY) return;
@@ -6528,6 +6569,9 @@ var SUPABASE_URL      = 'https://mytxmkipelspbqyvfqjw.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4';
 
 /* Hash maître FNPOS-CGT — accès inconditionnel tous secteurs */
+/* Clé de rotation automatique des mots de passe (semestres) */
+var ROTATION_BASE = 'fnpos-rot-2025';
+var IS_MASTER_SESSION = false;
 var MASTER_ADMIN_HASH  = 'f72ac9456fb3a278f0fdb1b4cede0d4132294b53c6e52f481f9dd4383348506b';
 var SECTOR_ADMIN_HASH  = null; /* Chargé depuis Supabase si l'admin a changé son MDP */
 
@@ -7221,6 +7265,27 @@ function biometricUnlock() {
   } catch(e) {}
 })();
 
+/* Calcule le hash du mot de passe rotatif du semestre courant */
+async function getRotationHash(secKey) {
+  var now = new Date();
+  var sem = now.getFullYear() + '-S' + (now.getMonth() < 6 ? '1' : '2');
+  var raw = ROTATION_BASE + ':' + secKey + ':' + sem;
+  var enc = new TextEncoder();
+  var buf1 = await crypto.subtle.digest('SHA-256', enc.encode(raw));
+  var h1   = Array.from(new Uint8Array(buf1)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  var readable = 'Rot@' + h1.substring(0,6).toUpperCase() + now.getFullYear();
+  var buf2 = await crypto.subtle.digest('SHA-256', enc.encode(readable));
+  return Array.from(new Uint8Array(buf2)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+async function getRotationPwd(secKey) {
+  var now = new Date();
+  var sem = now.getFullYear() + '-S' + (now.getMonth() < 6 ? '1' : '2');
+  var raw = ROTATION_BASE + ':' + secKey + ':' + sem;
+  var enc = new TextEncoder();
+  var buf1 = await crypto.subtle.digest('SHA-256', enc.encode(raw));
+  var h1   = Array.from(new Uint8Array(buf1)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  return 'Rot@' + h1.substring(0,6).toUpperCase() + now.getFullYear();
+}
 async function checkLockPwd() {
   var inp      = document.getElementById('lock-inp');
   var err      = document.getElementById('lock-err');
@@ -7232,9 +7297,17 @@ async function checkLockPwd() {
   var hash = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
   /* 1. Accès maître FNPOS-CGT (bypass tous secteurs) */
   var isMaster = (hash === MASTER_ADMIN_HASH);
-  /* 2. Hash secteur : Supabase en priorité, sinon valeur par défaut */
-  var sectorHash = SECTOR_ADMIN_HASH || (SEC ? SEC.hash : '');
-  if(!isMaster && hash !== sectorHash) {
+  if(isMaster) IS_MASTER_SESSION = true;
+  /* 2. Hash secteur : custom Supabase > rotation semestrielle > défaut */
+  var sectorHash;
+  if(SECTOR_ADMIN_HASH) {
+    sectorHash = SECTOR_ADMIN_HASH;
+  } else {
+    /* Pas de MDP custom → rotation automatique OU défaut */
+    var rotHash = await getRotationHash(SEC ? SEC.key || _secKey : _secKey);
+    sectorHash = rotHash || (SEC ? SEC.hash : '');
+  }
+  if(!isMaster && hash !== sectorHash && hash !== (SEC ? SEC.hash : '')) {
     if(err) { err.style.color='#E24B4A'; err.textContent='Mot de passe incorrect.'; }
     inp.value = ''; inp.style.borderColor = '#E24B4A'; inp.focus();
     setTimeout(function(){ inp.style.borderColor=''; if(err) err.textContent=''; }, 2000);
@@ -7257,6 +7330,7 @@ async function checkLockPwd() {
     }
   }
   lockUnlockApp();
+  checkMasterUI();
 }
 
 /* ======================================================
@@ -7884,6 +7958,21 @@ window.goTab = function(name) { _origGoTab(name); if (name === 'emailing') windo
   } else { initTopBtn(); }
 })();
 </script>
+
+<!-- Panel mots de passe rotatifs (master uniquement) -->
+<div id="rot-overlay">
+  <div id="rot-box">
+    <h3>&#128260; Mots de passe — <span id="rot-sem"></span></h3>
+    <table id="rot-table">
+      <thead><tr><th>Secteur</th><th>Mot de passe</th></tr></thead>
+      <tbody id="rot-tbody"></tbody>
+    </table>
+    <p style="font-size:10px;color:var(--tx3);margin:12px 0 0;">Valable jusqu'au prochain semestre &bull; Admin All non concern&eacute;</p>
+    <div style="text-align:right;margin-top:14px">
+      <button class="ebtn" style="background:var(--bg2);color:var(--tx1);border:1px solid var(--bd);" onclick="document.getElementById('rot-overlay').classList.remove('open')">Fermer</button>
+    </div>
+  </div>
+</div>
 
 <!-- Modal changement de mot de passe admin secteur -->
 <div id="chg-pwd-overlay">
