@@ -75,7 +75,7 @@ h1{font-size:18px;font-weight:700;margin-bottom:2px}
 .fbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;padding:8px 10px;background:var(--bg2);border-radius:var(--r);position:sticky;top:0;z-index:30;background:var(--bg);box-shadow:0 2px 6px rgba(0,0,0,.08)}
 .fbar label{font-size:11px;color:var(--tx2);display:flex;align-items:center;gap:4px}
 select,input[type=text]{font-size:11px;padding:3px 7px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx);outline:none}
-.tscroll{overflow-x:auto;overflow-y:auto;max-height:var(--tscroll-h,60vh);-webkit-overflow-scrolling:touch}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tscroll::-webkit-scrollbar{height:6px}
 .tscroll::-webkit-scrollbar-track{background:var(--bg2);border-radius:3px}
 .tscroll::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
@@ -163,7 +163,7 @@ td.cel{position:relative}td.cel:hover{outline:2px dashed #1D9E75;outline-offset:
 .ul-cell.ul-code{color:#E24B4A;font-weight:700;font-size:10px;font-family:monospace}
 .ul-cell.ul-nom{font-weight:600;color:var(--tx)}
 .ul-cell a{color:var(--tx3);text-decoration:none}.ul-cell a:hover{color:#E24B4A;text-decoration:underline}
-.ul-thead{display:grid;grid-template-columns:90px 1fr 1fr 120px 120px;background:var(--bg3);border-bottom:1px solid var(--bd2);position:sticky;top:0;z-index:20}
+.ul-thead{display:grid;grid-template-columns:90px 1fr 1fr 120px 120px;background:var(--bg3);border-bottom:1px solid var(--bd2);position:sticky;top:var(--fbar-h,52px);z-index:20}
 .ul-thead .ul-cell{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--tx3);padding:4px 10px}
 @media(max-width:700px){.ul-row,.ul-thead{grid-template-columns:80px 1fr 120px;position:sticky;top:var(--fbar-h,52px);z-index:20;background:var(--bg3)}.ul-cell:nth-child(3){display:none}}
 
@@ -2924,9 +2924,6 @@ function goTab(name){
   if(fb){
     var fbH=fb.getBoundingClientRect().height;
     document.documentElement.style.setProperty('--fbar-h',(fbH+2)+'px');
-    var top=fb.getBoundingClientRect().bottom;
-    var tscrollH=Math.max(300,window.innerHeight-top-4);
-    document.documentElement.style.setProperty('--tscroll-h',tscrollH+'px');
   }
 }
 window.setTimeout(updateFbarHeight,50);
