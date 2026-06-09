@@ -1510,7 +1510,7 @@ function openFiche(siret) {
   if(!IS_READONLY){
     if(GS_URL){
       h += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">';
-      h += '<input id="gs-note-auteur-' + siret + '" type="text" placeholder="Votre nom" style="font-size:11px;padding:5px 8px;border:1px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--tx)">';
+      h += '<input id="gs-note-auteur-' + siret + '" type="text" oninput="gsAuthorChanged(\'' + siret + '\')" placeholder="Votre nom" style="font-size:11px;padding:5px 8px;border:1px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--tx)">';
       h += '<textarea id="gs-note-input-' + siret + '" rows="3" placeholder="Ajouter une note…" style="font-size:11px;padding:6px 8px;border:1px solid var(--bd2);border-radius:6px;background:var(--bg);color:var(--tx);resize:vertical"></textarea>';
       h += '<button onclick="gsAddNote(\'' + siret + '\')" style="align-self:flex-end;padding:5px 14px;background:#185fa5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">Enregistrer</button>';
       h += '</div>';
@@ -1725,7 +1725,7 @@ function gsAddNote(siret) {
 function buildNotesHtml(siret) {
   var notes = GS_NOTES[siret] || [];
   if (!notes.length) return '<div style="color:var(--tx3);font-size:11px;font-style:italic">Aucune note.</div>';
-  var myName = _savedNoteAuthor();
+  var myName = _savedNoteAuthor(siret);
   var h = "";
   for (var ni = 0; ni < notes.length; ni++) {
     var n = notes[ni];
@@ -2717,7 +2717,8 @@ function collapseAllContacts(){
 }
 
 /* ── Édition de notes (auteur uniquement) ── */
-function _savedNoteAuthor(){
+function _savedNoteAuthor(siret){
+  if(siret){var inp=document.getElementById('gs-note-auteur-'+siret);if(inp&&inp.value.trim())return inp.value.trim();}
   try{ return localStorage.getItem('fnpos_note_author')||''; }catch(e){ return ''; }
 }
 function editNoteLocal(siret,idx){
@@ -2764,6 +2765,8 @@ function saveNoteEditLocal(siret, idx) {
   if(bodyEl) bodyEl.innerHTML = buildNotesHtml(siret);
   showEditToast('\u2705 Note modifi\u00e9e', '#1D9E75');
 }
+
+function gsAuthorChanged(siret){var inp=document.getElementById('gs-note-auteur-'+siret);var n=inp?inp.value.trim():'';try{if(n)localStorage.setItem('fnpos_note_author',n);}catch(e){}var nb=document.getElementById('gs-notes-body-'+siret);if(nb)nb.innerHTML=buildNotesHtml(siret);}
 function addNoteLocal(siret){
   if(IS_READONLY) return;
   var txt=document.getElementById('gs-note-input-'+siret);
