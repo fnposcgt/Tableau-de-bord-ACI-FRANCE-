@@ -697,17 +697,17 @@ async function roCheckPwd(){
       <th style="white-space:nowrap;min-width:90px" onclick="tsort('_cq')">Conqu&ecirc;te <span class="sa" id="sa-_cq">&#8597;</span></th>
     </tr>
     <tr class="tf-row">
-      <th><input class="tf" id="tf-n"  type="text" placeholder="Nom..." oninput="buildTable()"></th>
+      <th><input class="tf" id="tf-n" type="text" placeholder="Nom…" list="dl-tf-n" oninput="buildTable()"><datalist id="dl-tf-n"></datalist></th>
       <th><select class="tf" id="tf-r" onchange="buildTable()"><option value="">Toutes</option></select></th>
-      <th><input class="tf" id="tf-cp" type="text" placeholder="CP..." oninput="buildTable()"></th>
-      <th><input class="tf" id="tf-v"  type="text" placeholder="Ville..." oninput="buildTable()"></th>
+      <th><input class="tf" id="tf-cp" type="text" placeholder="CP/Dept…" list="dl-tf-cp" oninput="buildTable()"><datalist id="dl-tf-cp"></datalist></th>
+      <th><input class="tf" id="tf-v" type="text" placeholder="Ville…" list="dl-tf-v" oninput="buildTable()"><datalist id="dl-tf-v"></datalist></th>
       <th><input class="tf" id="tf-si" type="text" placeholder="SIRET..." oninput="buildTable()"></th>
       <th><select class="tf" id="tf-cc" onchange="buildTable()"><option value="">Tous</option><option value="OUI">OUI</option><option value="NON">NON</option></select></th>
       <th><input class="tf" id="tf-in-min" type="number" placeholder="Min" min="0" style="width:48%;margin-right:2%" oninput="buildTable()"><input class="tf" id="tf-in-max" type="number" placeholder="Max" min="0" style="width:48%" oninput="buildTable()"></th>
       <th><input class="tf" id="tf-pa-min" type="number" placeholder="Min%" min="0" max="100" style="width:48%;margin-right:2%" oninput="buildTable()"><input class="tf" id="tf-pa-max" type="number" placeholder="Max%" min="0" max="100" style="width:48%" oninput="buildTable()"></th>
       <th><select class="tf" id="tf-ga" onchange="buildTable()"><option value="">Tous</option><option>CGT</option><option>CFDT</option><option>FO</option><option>CFTC</option><option>CGC</option><option>SOLIDAIRES</option></select></th>
-      <th><input class="tf" id="tf-de" type="text" placeholder="ex: 2024" oninput="buildTable()"></th>
-      <th><input class="tf" id="tf-pr" type="text" placeholder="ex: 2025" oninput="buildTable()"></th>
+      <th><input class="tf" id="tf-de" type="text" placeholder="ex: 2024" list="dl-tf-de" oninput="buildTable()"><datalist id="dl-tf-de"></datalist></th>
+      <th><input class="tf" id="tf-pr" type="text" placeholder="ex: 2025" list="dl-tf-pr" oninput="buildTable()"><datalist id="dl-tf-pr"></datalist></th>
       <th><input class="tf" id="tf-tl" type="text" placeholder="T&eacute;l/Email..." oninput="buildTable()"></th>
       <th><select class="tf" id="tf-adh" onchange="buildTable()"><option value="">Tous</option><option value="oui">Oui</option><option value="non">Non</option></select></th>
       <th></th>
@@ -4328,6 +4328,30 @@ function getFiltered(){
 }
 function buildTable(keepPage){
   if(!keepPage) tPage=0;
+  /* Peupler datalists tf-n, tf-cp, tf-v */
+  (function(){
+    var _nm={},_cp={},_vl={};
+    for(var _di=0;_di<STRUCTS.length;_di++){
+      var _s=STRUCTS[_di];
+      if(_s.n)_nm[_s.n]=1;
+      if(_s.cp)_cp[_s.cp]=1;
+      if(_s.v)_vl[_s.v]=1;
+    }
+    function _dl(id,obj){
+      var el=document.getElementById(id);if(!el)return;
+      var ks=Object.keys(obj).sort();
+      var h='';for(var i=0;i<ks.length;i++)h+='<option value="'+ks[i].replace(/"/g,'&quot;')+'">\n';
+      el.innerHTML=h;
+    }
+    var _de={},_pr={};
+    for(var _dj=0;_dj<STRUCTS.length;_dj++){
+      var _sd=STRUCTS[_dj];
+      if(_sd.da)_de[_sd.da]=1;
+      if(_sd.pr)_pr[_sd.pr]=1;
+    }
+    _dl('dl-tf-n',_nm);_dl('dl-tf-cp',_cp);_dl('dl-tf-v',_vl);
+    _dl('dl-tf-de',_de);_dl('dl-tf-pr',_pr);
+  })();
   var data=getFiltered();
   data.sort(function(a,b){
     var va=a[sortCol]||"",vb=b[sortCol]||"";
