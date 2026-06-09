@@ -1725,14 +1725,18 @@ function gsAddNote(siret) {
 function buildNotesHtml(siret) {
   var notes = GS_NOTES[siret] || [];
   if (!notes.length) return '<div style="color:var(--tx3);font-size:11px;font-style:italic">Aucune note.</div>';
+  var myName = _savedNoteAuthor();
   var h = "";
   for (var ni = 0; ni < notes.length; ni++) {
     var n = notes[ni];
-    h += '<div style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:11px">';
-    h += '<div style="display:flex;justify-content:space-between;margin-bottom:3px">';
+    var isAuthor = !IS_READONLY && myName && n.auteur && n.auteur.trim() === myName.trim();
+    var eBtn = '';
+    if(isAuthor){ eBtn = '<button onclick="editNoteLocal(\'' + siret + '\',' + ni + ')" title="Modifier" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:12px;padding:0 2px;line-height:1">&#9999;</button>'; }
+    h += '<div class="note-row" style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:11px">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">';
     h += '<span style="font-weight:600;color:var(--tx)">' + (n.auteur||"Anonyme") + '</span>';
-    h += '<span style="font-size:10px;color:var(--tx3)">' + (n.date||"") + '</span></div>';
-    h += '<div style="color:var(--tx2)">' + (n.note||"").replace(/\n/g,"<br>") + '</div></div>';
+    h += '<span style="display:flex;align-items:center;gap:4px"><span style="font-size:10px;color:var(--tx3)">' + (n.date||"") + '</span>' + eBtn + '</span></div>';
+    h += '<div class="note-txt" style="color:var(--tx2)">' + (n.note||"").replace(/\n/g,"<br>") + '</div></div>';
   }
   return h;
 }
@@ -2711,6 +2715,55 @@ function collapseAllContacts(){
   document.querySelectorAll('.cnt-region-hdr').forEach(function(h){h.classList.remove('open');});
   document.querySelectorAll('.cnt-region-body').forEach(function(b){b.classList.remove('open');});
 }
+
+/* ── Édition de notes (auteur uniquement) ── */
+function _savedNoteAuthor(){
+  try{ return localStorage.getItem('fnpos_note_author')||''; }catch(e){ return ''; }
+}
+function editNoteLocal(siret,idx){
+  var notes=GS_NOTES[siret]||[];
+  if(!notes[idx])return;
+  var bodyEl=document.getElementById('gs-notes-body-'+siret);
+  if(!bodyEl)return;
+  var rows=bodyEl.querySelectorAll('.note-row');
+  var row=rows[idx];if(!row)return;
+  var txtEl=row.querySelector('.note-txt');if(!txtEl)return;
+  var orig=notes[idx].note||'';
+  var q="'";
+  txtEl.innerHTML='<textarea id="ne-ta-'+siret+'-'+idx+'" style="width:100%;font-size:11px;'
+    +'padding:5px;border:1px solid var(--bd2);border-radius:4px;resize:vertical;'
+    +'background:var(--bg);color:var(--tx1);box-sizing:border-box" rows="3"></textarea>'
+    +'<div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end">'
+    +'<button onclick="cancelNoteEdit('+q+siret+q+','+idx+')" style="font-size:11px;'
+    +'padding:3px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--bg2);cursor:pointer">✗</button>'
+    +'<button onclick="saveNoteEditLocal('+q+siret+q+','+idx+')" style="font-size:11px;'
+    +'padding:3px 10px;border:none;border-radius:4px;background:#185fa5;color:#fff;cursor:pointer;font-weight:700">💾 Sauvegarder</button>'
+    +'</div>';
+  var ta=document.getElementById('ne-ta-'+siret+'-'+idx);
+  if(ta)ta.value=orig;
+}
+function cancelNoteEdit(siret, idx) {
+  var bodyEl = document.getElementById('gs-notes-body-' + siret);
+  if(bodyEl) bodyEl.innerHTML = buildNotesHtml(siret);
+}
+function saveNoteEditLocal(siret, idx) {
+  var ta = document.getElementById('ne-ta-' + siret + '-' + idx);
+  if(!ta) return;
+  var newText = ta.value.trim();
+  if(!newText) return;
+  if(GS_NOTES[siret] && GS_NOTES[siret][idx]) GS_NOTES[siret][idx].note = newText;
+  if(!EDITS.notes) EDITS.notes = {};
+  if(!EDITS.notes[siret]) EDITS.notes[siret] = [];
+  if(EDITS.notes[siret][idx]) {
+    EDITS.notes[siret][idx].note = newText;
+  } else {
+    EDITS.notes[siret] = JSON.parse(JSON.stringify(GS_NOTES[siret] || []));
+  }
+  editsSave();
+  var bodyEl = document.getElementById('gs-notes-body-' + siret);
+  if(bodyEl) bodyEl.innerHTML = buildNotesHtml(siret);
+  showEditToast('\u2705 Note modifi\u00e9e', '#1D9E75');
+}
 function addNoteLocal(siret){
   if(IS_READONLY) return;
   var txt=document.getElementById('gs-note-input-'+siret);
@@ -2725,6 +2778,7 @@ function addNoteLocal(siret){
   if(!EDITS.notes[siret])EDITS.notes[siret]=[];
   EDITS.notes[siret].push(note);
   editsSave();
+  try{if(who&&who.value.trim())localStorage.setItem('fnpos_note_author',who.value.trim());}catch(e){}
   var nb=document.getElementById('gs-notes-body-'+siret);
   if(nb)nb.innerHTML=buildNotesHtml(siret);
   txt.value='';if(who)who.value='';
