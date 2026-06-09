@@ -4482,10 +4482,12 @@ for(var _ci=0;_ci<_cels.length;_ci++){
     if(winEnd<totalPages-1) ph+=(winEnd<totalPages-2?'<span class="tpg-info">&hellip;</span>':'')+'<button class="tpg-btn" onclick="tGoPage('+(totalPages-1)+')">'+totalPages+'</button>';
     ph+='<button class="tpg-btn" onclick="tGoPage('+tPage+'+1)" '+(tPage===totalPages-1?'disabled':'')+'>&#8594;</button>';
     ph+='<span class="tpg-info">'+( start+1)+'\u2013'+end+' / '+total+'</span>';
-    ph+='<select onchange="tSetPageSize(parseInt(this.value))" style="font-size:10px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx2);margin-left:6px">';
+
     var sizes=[25,50,100,200];
-    for(var si2=0;si2<sizes.length;si2++) ph+='<option value="'+sizes[si2]+'"'+(tPageSize===sizes[si2]?' selected':'')+'>'+sizes[si2]+' / page</option>';
-    ph+='</select>';
+    var selH='<select onchange="tSetPageSize(parseInt(this.value))" style="font-size:10px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx2);margin-left:6px">';
+    for(var _s=0;_s<sizes.length;_s++) selH+='<option value="'+sizes[_s]+'"'+(tPageSize===sizes[_s]?' selected':'')+'>'+sizes[_s]+' / page</option>';
+    selH+='</select>';
+    ph+=selH;
     pg.innerHTML=ph;
     var pgT=document.getElementById("tpager-top");
     if(pgT) pgT.innerHTML=ph;
@@ -6368,10 +6370,6 @@ function _buildPager(page, total, pageSize, goFn, sizeFn) {
   if(wE<totalPages-1) ph+=(wE<totalPages-2?'<span class="tpg-info">&hellip;</span>':'')+'<button class="tpg-btn" onclick="'+goFn+'('+(totalPages-1)+'">'+totalPages+'</button>';
   ph+='<button class="tpg-btn" onclick="'+goFn+'('+page+'+1)" '+(page===totalPages-1?'disabled':'')+'>&#8594;</button>';
   ph+='<span class="tpg-info">'+(start+1)+'\u2013'+end+' / '+total+'</span>';
-  ph+='<select onchange="'+sizeFn+'(parseInt(this.value))" style="font-size:10px;padding:2px 5px;border:1px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--tx2);margin-left:6px">';
-  var sizes=[25,50,100,200];
-  for(var _s=0;_s<sizes.length;_s++) ph+='<option value="'+sizes[_s]+'"'+(pageSize===sizes[_s]?' selected':'')+'>'+sizes[_s]+' / page</option>';
-  ph+='</select>';
   return ph;
 }
 
