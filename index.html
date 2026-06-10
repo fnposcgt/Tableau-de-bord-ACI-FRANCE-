@@ -955,28 +955,9 @@ function loadFedKpis() {
       /* KPI adhérents : lire directement depuis Supabase (calculé par app.html) */
       var edits = null;
       try { edits = typeof row.edits === 'string' ? JSON.parse(row.edits) : row.edits; } catch(e) {}
-      /* kpi_adh : calculé par app.html au sync ; fallback = compter les adherents dans edits */
-      var total = 0;
-      if (edits && edits.kpi_adh) {
-        total = edits.kpi_adh;
-      } else if (edits && edits.adherents) {
-        /* Compter les adhérents uniques depuis edits.adherents */
-        var seen = {};
-        for (var _si in edits.adherents) {
-          var _lst = edits.adherents[_si] || [];
-          for (var _ai = 0; _ai < _lst.length; _ai++) {
-            var _p = _lst[_ai];
-            if (_p.arc === 'OUI') continue;
-            var _k = (_p.pre||'').trim().toUpperCase() + '|' + (_p.nom||'').trim().toUpperCase();
-            if (!seen[_k]) { seen[_k] = 1; total++; }
-          }
-        }
-        if (!total && typeof ADH_BASE !== 'undefined') {
-          for (var _bk in ADH_BASE) total += ADH_BASE[_bk];
-        }
-      } else if (typeof ADH_BASE !== 'undefined') {
-        for (var _bk2 in ADH_BASE) total += ADH_BASE[_bk2];
-      }
+      var total = (edits && edits.kpi_adh) ? edits.kpi_adh : (typeof ADH_BASE !== 'undefined' ? (function(){
+        var s=0; for(var k in ADH_BASE) s+=ADH_BASE[k]; return s + (typeof ADH_XLSX_UNIQUE!=='undefined'?ADH_XLSX_UNIQUE:0);
+      })() : 60);
       var elAdh = document.getElementById('kpi-adh');
       if (elAdh) elAdh.textContent = total;
       buildConquete(row.conquete);
