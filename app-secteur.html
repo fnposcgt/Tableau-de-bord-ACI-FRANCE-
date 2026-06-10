@@ -3059,24 +3059,21 @@ function renderConquete(){
     if(q&&(s.n||'').toLowerCase().indexOf(q)<0&&(s.v||'').toLowerCase().indexOf(q)<0) return false;
     return true;
   });
+  /* Pas de pagination : toutes les régions sur une seule page */
   var cqTotal=filtered.length;
-  var cqStart=cqPage*cqPageSize;
-  var cqEnd=Math.min(cqStart+cqPageSize,cqTotal);
-  var cqPaged=filtered.slice(cqStart,cqEnd);
-  var cqPH=_buildPager(cqPage,cqTotal,cqPageSize,'cqGoPage','cqSetPageSize');
   var cqT=document.getElementById('cq-pager-top');
   var cqB=document.getElementById('cq-pager-bot');
-  if(cqT)cqT.innerHTML=cqPH;
-  if(cqB)cqB.innerHTML=cqPH;
+  if(cqT)cqT.innerHTML='';
   var byReg={};
   var regOrder=[];
-  for(var i=0;i<cqPaged.length;i++){
-    var s=cqPaged[i];
+  for(var i=0;i<filtered.length;i++){
+    var s=filtered[i];
     var rg=_normReg(s.r);
     if(!byReg[rg]){byReg[rg]=[];regOrder.push(rg);}
     byReg[rg].push(s);
   }
   regOrder.sort(function(a,b){return a.localeCompare(b,'fr');});
+  if(cqB)cqB.innerHTML='<small style="color:var(--tx3)">'+cqTotal+' structure'+(cqTotal>1?'s':'')+' &mdash; '+regOrder.length+' r&eacute;gion'+(regOrder.length>1?'s':'')+'</small>';
   var h='';
   for(var ri=0;ri<regOrder.length;ri++){
     var rg=regOrder[ri];
