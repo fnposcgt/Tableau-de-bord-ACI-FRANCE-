@@ -6055,8 +6055,11 @@ function _sbHeaders() {
 
 function syncPush(onDone) {
   if(_syncBusy) { if(onDone) onDone(); return; }
-  /* Mettre à jour le KPI adhérents avant sync */
-  if(typeof getAdhCount==='function') EDITS.kpi_adh=getAdhCount();
+  /* Mettre à jour le KPI adhérents avant sync et sauvegarder en localStorage */
+  if(typeof getAdhCount==='function'){
+    EDITS.kpi_adh=getAdhCount();
+    try{localStorage.setItem('aci_edits_v1',JSON.stringify(EDITS));}catch(e){}
+  }
   _syncBusy = true;
   updateSyncStatus('syncing');
   var body = JSON.stringify({
