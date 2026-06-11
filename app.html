@@ -670,6 +670,7 @@ async function roCheckPwd(){
     <label>CCN ACI <select id="fccn" onchange="buildTable()"><option value="">Tous</option><option value="OUI">OUI</option><option value="">Non renseign&eacute;</option></select></label>
     <label>Syndicat <select id="fsyn" onchange="buildTable()"><option value="">Tous</option><option>CGT</option><option>CFDT</option><option>FO</option><option>CFTC</option><option>CGC</option><option>SOLIDAIRES</option></select></label>
     <label>Partic. <select id="fpar" onchange="buildTable()"><option value="0">Tous</option><option value="50">&ge;50%</option><option value="70">&ge;70%</option><option value="90">&ge;90%</option></select></label>
+    <button onclick="clearAllFilters()" title="Effacer TOUS les filtres (barre + colonnes)" style="padding:4px 10px;font-size:11px;background:#E24B4A;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:4px">&#10005; Tout effacer</button>
     <button class="tf-clear" onclick="clearColFilters()" id="tf-clear-btn" style="display:none">&#10005; Effacer filtres colonnes</button>
     <span id="tcnt" style="margin-left:auto;font-size:11px;color:var(--tx3)"></span>
     <button class="tf-clear export-zone" onclick="exportEdits()" title="Exporter vos modifications pour les transférer sur un autre appareil" style="background:#1D9E75;color:#fff;border-color:#1D9E75">&#11015; Exporter mes données</button>
@@ -3647,6 +3648,16 @@ function buildKPIs(){
   document.getElementById("krow").innerHTML=h;
 }
 
+
+function clearAllFilters(){
+  /* Vider la barre de filtres globaux */
+  var ids=['fsearch','freg','fccn','fsyn','fss','cal-fss','cib-fss','cq-fss'];
+  for(var _i=0;_i<ids.length;_i++){var _el=document.getElementById(ids[_i]);if(_el)_el.value='';}
+  var fpar=document.getElementById('fpar');if(fpar)fpar.value='0';
+  /* Vider les filtres de colonnes */
+  clearColFilters();
+  buildTable();
+}
 function clearColFilters(){
   ["tf-n","tf-v","tf-si","tf-de","tf-pr","tf-tl","tf-in-min","tf-in-max","tf-pa-min","tf-pa-max"].forEach(function(id){var e=document.getElementById(id);if(e)e.value="";});
   ["tf-r","tf-cc","tf-ga"].forEach(function(id){var e=document.getElementById(id);if(e)e.value="";});
@@ -4345,13 +4356,13 @@ function getFiltered(){
     var de=(g(s,"de")||"").toLowerCase(),pr=(g(s,"pr")||"").toLowerCase();
     var tl=(g(s,"tl")||"").toLowerCase(),em=(g(s,"em")||"").toLowerCase();
     if(q&&nom.toLowerCase().indexOf(q)===-1&&ville.toLowerCase().indexOf(q)===-1&&region.toLowerCase().indexOf(q)===-1)continue;
-    if(reg&&region!==reg)continue;
+    if(reg&&region.trim().toUpperCase()!==reg.trim().toUpperCase())continue;
     if(ccnF==="OUI"&&ccn!=="OUI")continue;
     if(syn&&gan!==syn)continue;
     if(par>0&&pa<par)continue;
     if(isSveOnly("tab")&&gi(s,"vo")>0)continue;
     if(tfN&&nom.toLowerCase().indexOf(tfN)===-1)continue;
-    if(tfR&&region!==tfR)continue;
+    if(tfR&&region.trim().toUpperCase()!==tfR.trim().toUpperCase())continue;
     if(tfCp&&formatCP(g(s,'cp')||'').indexOf(tfCp)<0)continue;
     if(tfV&&ville.toLowerCase().indexOf(tfV)===-1)continue;
     if(tfAdh){var _aL=ADHERENTS[siret]||[];var _hA=_aL.length>0;if(tfAdh==='oui'&&!_hA)continue;if(tfAdh==='non'&&_hA)continue;}
