@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>ACI France - Secteurs temps réel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}:root{--bg:#fff;--bg2:#f5f4f0;--tx:#1a1a18;--tx2:#5f5e5a;--bd:rgba(0,0,0,.12);--r:8px} body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:var(--bg);color:var(--tx);font-size:13px}
+#wrap{max-width:1150px;margin:0 auto;padding:16px} .topbar{display:flex;gap:8px;flex-wrap:wrap;background:var(--bg2);padding:10px;border-radius:var(--r);margin-bottom:10px} .krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px} .kpi{background:var(--bg2);padding:10px;border-radius:var(--r)} .kl{font-size:10px;color:var(--tx2);text-transform:uppercase} .kv{font-size:22px;font-weight:800} .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px} .card{border:1px solid var(--bd);border-radius:var(--r);padding:10px;background:var(--bg2)} .meta{font-size:11px;color:var(--tx2)} table{width:100%;border-collapse:collapse} th,td{padding:5px;border-bottom:1px solid var(--bd);font-size:11px;text-align:left} .live{width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;animation:pulse 1.5s infinite} @keyframes pulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+</style></head><body><div id="wrap">
+<h1>📡 ACI France - Secteurs en temps réel</h1>
+<div style="font-size:11px;color:#666;margin-bottom:10px"><span class="live"></span> Table: <code id="tbl-name">...</code> • <span id="state">connexion...</span> • MAJ <span id="last-sync">-</span> • <a href="app.html">Tableau principal</a> | <a href="app-secteur.html">Gérer secteurs</a></div>
+
+<div class="topbar">
+<input id="q" placeholder="Filtrer nom / référent / région..." style="width:260px;padding:6px" oninput="render()">
+<select id="f-reg" onchange="render()"><option value="">Toutes régions</option></select>
+<span id="count" style="font-size:11px;background:#111;color:#fff;padding:3px 8px;border-radius:12px">0 secteurs</span>
+<button onclick="loadSecteurs()" style="font-size:11px;padding:4px 8px">🔄 Recharger</button>
+</div>
+
+<div class="krow">
+<div class="kpi"><div class="kl">Total secteurs</div><div class="kv" id="k-total">0</div></div>
+<div class="kpi"><div class="kl">Régions</div><div class="kv" id="k-reg">0</div></div>
+<div class="kpi"><div class="kl">Dernière MAJ</div><div class="kv" id="k-upd" style="font-size:14px">-</div></div>
+</div>
+
+<div class="grid" id="cards"></div>
+<div style="margin-top:14px"><h3 style="font-size:13px">📋 Tableau complet</h3><div style="max-height:400px;overflow:auto;border:1px solid var(--bd);border-radius:var(--r)"><table id="tbl"><thead><tr><th>Secteur</th><th>Référent</th><th>Email</th><th>Région</th><th>Depts</th><th>MAJ</th></tr></thead><tbody></tbody></table></div></div>
+<div id="err" style="font-size:11px;color:red;margin-top:8px;white-space:pre-wrap"></div>
+</div>
+<script>
+var SUPABASE_URL='https://mytxmkipelspbqyvfqjw.supabase.co';
+var SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4';
+var TABLE='secteur_sync';
+var CANDIDATES=['secteur_sync','aci_secteurs'];
+var SECTEURS=[];
+function sbH(){return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY};}
+function setState(t,c){var el=document.getElementById('state'); el.textContent=t; el.style.color=c||'#666'; document.getElementById('tbl-name').textContent=TABLE;}
+function loadSecteurs(){
+  setState('chargement '+TABLE+'...','#E24B4A');
+  var xhr=new XMLHttpRequest(); xhr.open('GET', SUPABASE_URL+'/rest/v1/'+TABLE+'?select=*&order=updated_at.desc', true);
+  var h=sbH(); xhr.setRequestHeader('apikey',h.apikey); xhr.setRequestHeader('Authorization',h.Authorization);
+  xhr.onload=function(){
+    if(xhr.status>=200 && xhr.status<300){
+      try{ SECTEURS=JSON.parse(xhr.responseText); localStorage.setItem('aci_secteurs_v1', JSON.stringify(SECTEURS)); setState('live '+new Date().toLocaleTimeString()+' ('+SECTEURS.length+')','#1D9E75'); document.getElementById('last-sync').textContent=new Date().toLocaleTimeString(); document.getElementById('err').textContent=''; render(); }catch(e){ setState('parse err','red'); }
+    } else {
+      document.getElementById('err').textContent='['+TABLE+'] '+xhr.status+' '+xhr.responseText.substring(0,1000);
+      var idx=CANDIDATES.indexOf(TABLE);
+      if(idx+1<CANDIDATES.length){ TABLE=CANDIDATES[idx+1]; setTimeout(loadSecteurs,500); }
+      else { setState('aucune table - crée secteur_sync','red'); }
+    }
+  }; xhr.onerror=function(){ setState('offline','orange'); try{ SECTEURS=JSON.parse(localStorage.getItem('aci_secteurs_v1')||'[]'); render(); }catch(e){} }; xhr.send();
+}
+function render(){
+  var q=(document.getElementById('q').value||'').toLowerCase();
+  var fReg=document.getElementById('f-reg').value;
+  var filt=SECTEURS.filter(function(s){
+    if(!s) return false;
+    // ignore dummies if real data exists
+    var isDummy=['ml','ss','ad','rq','mut','gps','msa','ft'].indexOf((s.nom||s.id||'').toLowerCase())>=0 && !(s.referent||s.region||s.email);
+    var hasReal=SECTEURS.some(function(x){return x.referent||x.region||x.email;});
+    if(hasReal && isDummy) return false;
+    var txt=(s.nom+' '+(s.referent||'')+' '+(s.region||'')+' '+(s.depts||'')+' '+(s.email||'')).toLowerCase();
+    if(q && txt.indexOf(q)===-1) return false;
+    if(fReg && s.region!==fReg) return false;
+    return true;
+  });
+  document.getElementById('k-total').textContent=SECTEURS.length;
+  document.getElementById('count').textContent=filt.length+' / '+SECTEURS.length;
+  var regs=new Set(SECTEURS.map(function(s){return s.region;}).filter(Boolean));
+  document.getElementById('k-reg').textContent=regs.size;
+  document.getElementById('k-upd').textContent=SECTEURS[0]?.updated_at? new Date(SECTEURS[0].updated_at).toLocaleString():'-';
+  var sel=document.getElementById('f-reg');
+  if(sel.options.length<=1){ regs.forEach(function(r){var o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o);}); }
+  var cards=document.getElementById('cards'); cards.innerHTML='';
+  filt.forEach(function(s){
+    var div=document.createElement('div'); div.className='card';
+    div.innerHTML='<h3>'+ (s.nom||s.id) +'</h3><div class="meta">Réf: '+(s.referent||'-')+' • '+(s.region||'-')+' • '+(s.depts||'')+'</div><div class="meta">'+ (s.email||'') +'</div><div class="meta" style="font-size:10px;margin-top:4px">MAJ: '+(s.updated_at?new Date(s.updated_at).toLocaleString():'-')+'</div>';
+    cards.appendChild(div);
+  });
+  var tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
+  filt.forEach(function(s){
+    var tr=document.createElement('tr'); tr.innerHTML='<td><b>'+ (s.nom||s.id) +'</b></td><td>'+ (s.referent||'') +'</td><td style="font-size:10px">'+ (s.email||'') +'</td><td>'+ (s.region||'') +'</td><td>'+ (s.depts||'') +'</td><td style="font-size:10px">'+ (s.updated_at?new Date(s.updated_at).toLocaleDateString():'') +'</td>'; tb.appendChild(tr);
+  });
+}
+loadSecteurs(); setInterval(loadSecteurs,15000);
+</script></body></html>
