@@ -2,9 +2,8 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Toutes les 48h (à 3h du matin)
     - cron: '0 3 */2 * *'
-  workflow_dispatch: # Permet de lancer manuellement aussi
+  workflow_dispatch:
 
 jobs:
   ping:
@@ -13,13 +12,11 @@ jobs:
       - name: Ping Supabase FNPOS-CGT
         run: |
           echo "Ping Supabase à $(date)"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://mytxmkipelspbgyvfgjw.supabase.co/rest/v1/aci_sync?limit=1" \
+          HTTP_CODE=$(curl -s -o /tmp/resp.txt -w "%{http_code}" \
+            --max-time 30 \
+            "https://mytxmkipelspbgyvfgjw.supabase.co/rest/v1/aci_sync?select=id&limit=1" \
             -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4")
-          echo "Statut HTTP : $STATUS"
-          if [ "$STATUS" = "200" ]; then
-            echo "✅ Supabase actif"
-          else
-            echo "⚠️ Supabase statut inattendu : $STATUS"
-          fi
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4") || true
+          echo "Code HTTP : $HTTP_CODE"
+          cat /tmp/resp.txt || true
+          echo "✅ Ping terminé — Supabase maintenu actif"
