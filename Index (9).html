@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FNPOS-CGT - Portail</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f6f5f2;--bg2:#fff;--bd:#e8e5df;--bd2:#d6d2ca;--tx:#1a1a18;--tx2:#7a7875;--red:#E24B4A;--r:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:13px}
+#top{position:sticky;top:0;z-index:100;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;height:56px;padding:0 16px}
+.tabs{display:flex;gap:24px} .tab{padding:16px 4px;font-size:14px;font-weight:700;letter-spacing:1px;color:var(--tx2);cursor:pointer;border-bottom:3px solid transparent;display:flex;align-items:center;gap:6px} .tab.on{color:var(--red);border-bottom-color:var(--red)}
+#wrap{max-width:760px;margin:0 auto;padding:12px}
+.hero{padding:28px 16px 18px;text-align:center;background:var(--bg2);margin:-12px -12px 12px -12px;border-bottom:1px solid var(--bd)}
+.hero img{width:180px;margin:0 auto 12px;display:block}
+.hero h1{font-size:26px;letter-spacing:3px;font-weight:900} .hero .sub{font-size:12px;color:var(--tx2);letter-spacing:1.5px;margin-top:6px}
+.card{border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2);margin-bottom:14px;overflow:hidden}
+.card-top{padding:16px;display:flex;gap:14px;align-items:center}
+.logo{width:76px;height:76px;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;border:1px solid var(--bd)}
+.logo .l1{flex:1;background:#c41e1e;color:#fff;display:flex;align-items:center;justify-content:center;font-style:italic;font-weight:900;font-size:28px}
+.logo .l2{background:#facc15;color:#000;font-size:10px;font-weight:700;text-align:center;padding:4px 2px;line-height:1.1}
+.card-title{font-size:20px;font-weight:900;letter-spacing:.5px} .card-sub{font-size:12px;color:var(--tx2);margin-top:4px}
+.card-mid{padding:0 16px 12px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--bd);background:#f5f3f0;color:var(--tx2)}
+.card-bot{padding:12px 16px;border-top:1px solid var(--bd);display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:11px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid transparent;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-admin{background:var(--red);color:#fff} .btn-consult{background:#f0eeea;color:var(--tx2);border-color:var(--bd)}
+.footer{padding:24px 16px;text-align:center;font-size:12px;color:var(--tx2)}
+.tp{display:none} .tp.on{display:block;animation:fade .18s} @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.sec-title{font-size:11px;letter-spacing:2px;color:var(--tx2);margin-bottom:10px;font-weight:700}
+.kpi3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px} .v{font-size:28px;font-weight:900} .v.orange{color:#f59e0b} .l{font-size:11px;color:var(--tx2)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;background:#faf9f6}
+.badge{font-size:11px;padding:4px 10px;border-radius:6px;font-weight:700;color:#fff}
+.b-aci{background:#E24B4A} .b-ad{background:#3b82f6} .b-ss{background:#f97316} .b-ml{background:#65a30d} .b-mut{background:#8b5cf6} .b-rq{background:#f59e0b} .b-ft{background:#6b7280}
+.table{width:100%;border-collapse:collapse} .table th{font-size:11px;color:#9a9996;text-align:left;padding:8px 10px;border-bottom:1px solid var(--bd)} .table td{padding:10px;font-size:13px;border-bottom:1px solid var(--bd)}
+</style>
+</head>
+<body>
+<div id="top">
+<div class="tabs"><div class="tab on" id="tab-portail" onclick="goTab('portail')">🏠 PORTAIL</div><div class="tab" id="tab-federation" onclick="goTab('federation')">🚩 FÉDÉRATION</div></div>
+<div><span style="font-size:18px;cursor:pointer" onclick="toggleTheme()">☀️</span></div>
+</div>
+
+<div id="wrap">
+
+<!-- PORTAIL = TON ONGLET SECTEUR D'ORIGINE -->
+<div class="tp on" id="tp-portail">
+<div class="hero">
+<img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Logo_CGT.png" onerror="this.style.display='none'">
+<div style="display:flex;align-items:center;justify-content:center;gap:12px"><div style="width:0;height:0;border-left:50px solid #E24B4A;border-top:25px solid transparent;border-bottom:25px solid transparent;position:relative"><span style="position:absolute;left:-38px;top:-10px;color:#fff;font-style:italic;font-weight:900">la<br>cgt</span></div><div style="text-align:left;line-height:1"><div style="font-weight:900;font-size:14px">FÉDÉRATION<br>DES<br>ORGANISMES<br>SOCIAUX</div></div></div>
+<h1 style="margin-top:14px">FNPOS<span style="color:var(--red)">-</span>CGT</h1>
+<div class="sub">FÉDÉRATION NATIONALE DES PERSONNELS DES<br>ORGANISMES SOCIAUX</div>
+</div>
+
+<div id="cards-portail"></div>
+
+<div class="footer"><span style="color:var(--red)">FNPOS-CGT</span> — Portail fédéral multisectoriel — Usage strictement<br>interne</div>
+</div>
+
+<!-- FEDERATION -->
+<div class="tp" id="tp-federation">
+<h2 style="font-size:22px;margin:10px 0">VUE <span style="color:var(--red)">FÉDÉRATION</span></h2>
+<div style="font-size:11px;color:var(--tx2);letter-spacing:1px;margin-bottom:12px">CONSOLIDATION NATIONALE — TOUS SECTEURS</div>
+
+<div class="sec"><div class="sec-title">🚫 STRUCTURES SANS VOIX CGT (O SVE) — TOUS SECTEURS</div><div class="kpi3"><div><div class="v orange">140</div><div class="l">structures sans voix CGT</div></div><div><div class="v">3 421</div><div class="l">structures au total</div></div><div><div class="v orange">4,1%</div><div class="l">absence CGT</div></div></div><div id="sve-rows"></div></div>
+
+<div class="sec"><div class="sec-title">🏢 STRUCTURES PAR SECTEUR</div><table class="table" id="tbl-struct"><thead><tr><th>Secteur</th><th>Structures</th><th>Inscrits</th><th>Score CGT</th></tr></thead><tbody></tbody></table></div>
+
+<div class="sec" id="rep-sec"></div>
+</div>
+
+</div>
+
+<script>
+var SUPABASE_URL='https://mytxmkipelspbqyvfqjw.supabase.co';
+var SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dHhta2lwZWxzcGJxeXZmcWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMzA3NDIsImV4cCI6MjA5MTgwNjc0Mn0.AxgTJuTMFi5eEQHfa63YFC0jsJvPcRAhF0GvfIXl3i4';
+var TABLE='secteur_sync';
+
+function goTab(name){
+  document.querySelectorAll('.tp').forEach(function(e){e.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('on');});
+  document.getElementById('tp-'+name).classList.add('on');
+  document.getElementById('tab-'+name).classList.add('on');
+}
+function toggleTheme(){ document.body.style.filter = document.body.style.filter ? '' : 'invert(1) hue-rotate(180deg)'; }
+
+var SECTEURS_DATA=[
+{id:'aci', nom:'ACI', sub:'Ateliers et Chantiers d\'Insertion · +2 000 structures', tags:['Tableau de bord','Carte nationale','Élections','Emailing'], logo1:'la cgt', logo2:'Ateliers & Chantiers d\'Insertion', color:'#E24B4A', linkAdmin:'app.html?secteur=aci', linkConsult:'app.html?secteur=aci&consult=1'},
+{id:'ml', nom:'MISSIONS LOCALES', sub:'Jeunesse · Accompagnement · Emploi', tags:['UNML','Jeunes 16-25 ans'], logo1:'cgt', logo2:'Missions Locales'},
+{id:'ss', nom:'SÉCURITÉ SOCIALE', sub:'Protection sociale · Organismes nationaux', tags:['CPAM','CARSAT','CAF','URSSAF'], logo1:'cgt', logo2:'Sécurité Sociale'},
+{id:'ad', nom:'AIDES À DOMICILE', sub:'Services à la personne · Maintien à domicile', tags:['SAAD','SSIAD'], logo1:'cgt', logo2:'Aides à Domicile'},
+{id:'rq', nom:'RÉGIES DE QUARTIER', sub:'Développement local · Cohésion sociale', tags:['CNLRQ'], logo1:'cgt', logo2:'Régies de Quartier'},
+{id:'mut', nom:'MUTUALITÉ', sub:'Mutuelles · Protection complémentaire', tags:['MFP','FNMF'], logo1:'cgt', logo2:'Mutualité'},
+{id:'gps', nom:'GPS', sub:'Groupements · Prévoyance · Solidarité', tags:['Prévoyance','Solidarité'], logo1:'cgt', logo2:'GPS'},
+{id:'msa', nom:'MSA', sub:'Mutualité Sociale Agricole', tags:['Agricole','Rural'], logo1:'cgt', logo2:'MSA'},
+{id:'ft', nom:'FRANCE TRAVAIL', sub:'Emploi · Insertion professionnelle', tags:['Ex-Pôle Emploi'], logo1:'cgt', logo2:'France Travail'}
+];
+
+function renderPortail(){
+  var cont=document.getElementById('cards-portail'); cont.innerHTML='';
+  SECTEURS_DATA.forEach(function(s){
+    var div=document.createElement('div'); div.className='card';
+    div.innerHTML='<div class=card-top><div class=logo><div class=l1>'+s.logo1+'</div><div class=l2>'+s.logo2+'</div></div><div><div class=card-title>'+s.nom+'</div><div class=card-sub>'+s.sub+'</div></div></div><div class=card-mid>'+ s.tags.map(function(t){return '<span class=chip>'+t+'</span>';}).join('') +'</div><div class=card-bot><button class=btn btn-admin onclick="openSecteur(\''+s.id+'\',\'admin\')">🔒 Admin</button><button class=btn btn-consult onclick="openSecteur(\''+s.id+'\',\'consult\')">👁️ Consultation</button></div>';
+    cont.appendChild(div);
+  });
+}
+
+function openSecteur(id, mode){
+  // Admin -> app.html avec secteur, Consultation -> app.html?consult
+  if(mode==='admin'){
+    window.location.href='app.html?secteur='+id;
+  } else {
+    window.location.href='app.html?secteur='+id+'&consult=1';
+  }
+}
+
+// Federation data
+function renderFederation(){
+  var sve=document.getElementById('sve-rows'); if(sve){sve.innerHTML=''; [{n:'ACI',o:14,t:2168,p:'0,6%',b:'b-aci'},{n:'AD',o:58,t:590,p:'9,8%',b:'b-ad'},{n:'SS',o:4,t:307,p:'1,3%',b:'b-ss'},{n:'ML',o:21,t:182,p:'11,5%',b:'b-ml'},{n:'MUT',o:15,t:126,p:'11,9%',b:'b-mut'},{n:'RQ',o:7,t:27,p:'25,9%',b:'b-rq'},{n:'FT',o:21,t:21,p:'100%',b:'b-ft'}].forEach(function(r){var d=document.createElement('div'); d.className='row'; d.innerHTML='<div><span class=badge '+r.b+'>'+r.n+'</span></div><div style=width:60px;text-align:center;color:#f59e0b;font-weight:800>'+r.o+'</div><div style=width:60px;text-align:center>'+r.t+'</div><div style=width:80px;text-align:right;color:#7a7875>'+r.p+'</div>'; sve.appendChild(d);});}
+  var tbl=document.querySelector('#tbl-struct tbody'); if(tbl){tbl.innerHTML=''; [['ACI',2168,15137,'34,59%'],['Sécurité Sociale',307,172534,'29,52%'],['Aides à Domicile',545,110199,'38,17%'],['Missions Locales',166,10994,'41,02%'],['Mutualité',118,57757,'23,22%'],['MSA',45,23964,'15,14%'],['GPS',19,5126,'16,98%'],['Régies de Quartier',21,2036,'26,90%'],['France Travail',16,56110,'10,61%'],['TOTAL',3405,453857,'']].forEach(function(r){var tr=document.createElement('tr'); tr.innerHTML='<td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td><td style=color:#f59e0b;font-weight:700>'+r[3]+'</td>'; if(r[0]==='TOTAL') tr.style.fontWeight='900'; tbl.appendChild(tr);});}
+  var rep=document.getElementById('rep-sec'); if(rep && !rep.dataset.done){rep.innerHTML='<div class=sec-title>📊 REPRÉSENTATIVITÉ CGT — TOUS SECTEURS (CYCLE 4 · 2021-2024)</div><table class=table><thead><tr><th>Secteur</th><th>% voix</th><th>Taux repr.</th><th>Rang</th><th>1ère org.</th></tr></thead><tbody><tr><td><b>Missions Locales</b></td><td style=color:#E24B4A;font-weight:700>38.65%</td><td style=color:#f59e0b>41.02%</td><td>🥇 1e</td><td>CGT</td></tr><tr><td><b>Aides à Domicile</b></td><td>32.09%</td><td>38.17%</td><td>🥈 2e</td><td>CFDT</td></tr><tr><td><b>ACI</b></td><td>33.28%</td><td>34.59%</td><td>🥈 2e</td><td>CFDT</td></tr></tbody></table>'; rep.dataset.done='1';}
+}
+
+renderPortail();
+renderFederation();
+</script>
+</body>
+</html>
