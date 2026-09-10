@@ -97,6 +97,13 @@ header p{font-size:11px;color:var(--text2);letter-spacing:1.5px;text-transform:u
 footer{text-align:center;padding:20px;font-size:11px;color:var(--footer-tx);border-top:1px solid var(--footer-bd)}
 footer span{color:#E24B4A}
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E24B4A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FNPOS-CGT">
+<link rel="apple-touch-icon" href="logo-cgt.png">
 </head>
 <body>
 
@@ -384,12 +391,26 @@ footer span{color:#E24B4A}
     <!-- KPIs -->
     <div class="kpis">
       <div class="kpi">
-        <div class="kpi-val">3 405</div>
-        <div class="kpi-lbl">Structures</div>
-        <div class="kpi-sec">Toutes branches</div>
+        <div class="kpi-val" id="kpi-structs">3 405</div>
+        <div class="kpi-lbl">Structures ACI</div>
+        <div class="kpi-sec" id="kpi-structs-sub">Toutes branches</div>
       </div>
       <div class="kpi">
         <div class="kpi-val" id="kpi-adh">60</div>
+        <div class="kpi-lbl">Adhérents CGT</div>
+        <div class="kpi-sec" id="kpi-adh-date">Base connue</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val">453 857</div>
+        <div class="kpi-lbl">Inscrits Cycle 4</div>
+        <div class="kpi-sec">Tous secteurs</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-val" id="kpi-secteurs">—</div>
+        <div class="kpi-lbl">Structures autres secteurs</div>
+        <div class="kpi-sec" id="kpi-secteurs-sub">Chargement…</div>
+      </div>
+    </div>
         <div class="kpi-lbl">Adhérents CGT</div>
         <div class="kpi-sec" id="kpi-adh-date">Base connue</div>
       </div>
@@ -935,6 +956,7 @@ function loadFedKpis() {
   buildAgenda('all');
   buildReprTable();
   buildStructsTable();
+  loadSecteurKpis(); /* ← lecture temps réel de tous les secteurs */
   var xhr = new XMLHttpRequest();
   xhr.open('GET', SB_URL + '/rest/v1/aci_sync?id=eq.1&select=edits,conquete,updated_at', true);
   xhr.setRequestHeader('apikey', SB_KEY);
@@ -974,6 +996,77 @@ function showFedError() {
   var msg = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:8px">Données non disponibles</div>';
   if (c) c.innerHTML = msg;
   if (a) a.innerHTML = msg;
+}
+
+/* ── Lecture temps réel secteur_sync → KPI fédération ── */
+var SECT_LABELS = {
+  ml:'Missions Locales', ss:'Sécurité Sociale', ad:'Aide à Domicile',
+  rq:'Régies de Quartiers', mut:'Mutuelles', gps:'GPS',
+  msa:'MSA', ft:'Formation'
+};
+
+function loadSecteurKpis() {
+  var url = SB_URL + '/rest/v1/secteur_sync?select=id,kpis,ts';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.setRequestHeader('apikey', SB_KEY);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + SB_KEY);
+  xhr.timeout = 8000;
+  xhr.onload = function() {
+    if (xhr.status !== 200) return;
+    try {
+      var rows = JSON.parse(xhr.responseText);
+      if (!rows || !rows.length) return;
+      var totalStructs = 0;
+      var sectData = [];
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i];
+        var kpis = r.kpis || {};
+        var nb = kpis.nb || 0;
+        totalStructs += nb;
+        if (nb > 0) {
+          sectData.push({
+            id: r.id,
+            lbl: SECT_LABELS[r.id] || r.id.toUpperCase(),
+            nb: nb,
+            avec_elec: kpis.avec_elec || 0,
+            score_cgt: kpis.score_cgt || 0,
+            ts: r.ts
+          });
+        }
+      }
+      /* Mettre à jour le KPI "Structures autres secteurs" */
+      var elSect = document.getElementById('kpi-secteurs');
+      var elSub  = document.getElementById('kpi-secteurs-sub');
+      if (elSect) elSect.textContent = totalStructs > 0 ? totalStructs.toLocaleString('fr-FR') : '\u2014';
+      if (elSub)  elSub.textContent  = sectData.length + ' secteur(s) avec données';
+      /* Ajouter les lignes secteurs dans le tableau structures */
+      _appendSecteurRows(sectData);
+    } catch(e) {}
+  };
+  xhr.send();
+}
+
+function _appendSecteurRows(rows) {
+  var tbody = document.getElementById('structs-table-body');
+  if (!tbody) return;
+  /* Chercher s'il y a déjà des lignes secteur (éviter les doublons) */
+  var existing = tbody.querySelectorAll('tr.sect-live');
+  for (var i = 0; i < existing.length; i++) existing[i].parentNode.removeChild(existing[i]);
+  /* Ajouter les lignes */
+  rows.sort(function(a,b){ return b.nb - a.nb; });
+  for (var j = 0; j < rows.length; j++) {
+    var r = rows[j];
+    var ts = r.ts ? new Date(r.ts).toLocaleDateString('fr-FR') : '';
+    var tr = document.createElement('tr');
+    tr.className = 'sect-live';
+    tr.style.borderTop = j === 0 ? '2px solid var(--card-bd)' : '';
+    tr.innerHTML = '<td style="padding:5px 10px;color:var(--text)">' + r.lbl + '</td>'
+      + '<td style="text-align:right;padding:5px 8px">' + r.nb.toLocaleString('fr-FR') + '</td>'
+      + '<td style="text-align:right;padding:5px 8px">' + (r.avec_elec || '\u2014') + '</td>'
+      + '<td style="text-align:right;padding:5px 8px">' + (r.score_cgt ? r.score_cgt + '\u202f%' : '\u2014') + '</td>';
+    tbody.appendChild(tr);
+  }
 }
 
 function buildConquete(raw) {
@@ -1191,5 +1284,21 @@ function showTab(name, btn) {
 }
 </script>
 
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./sw.js").then(function(reg) {
+      reg.addEventListener("updatefound", function() {
+        var w = reg.installing;
+        w.addEventListener("statechange", function() {
+          if (w.state === "installed" && navigator.serviceWorker.controller) {
+            w.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+    });
+  });
+}
+</script>
 </body>
 </html>

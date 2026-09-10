@@ -691,6 +691,13 @@ body.is-readonly .empty button { display: none; }
 .import-btns{display:flex;gap:8px;justify-content:flex-end}
 
 </style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E24B4A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FNPOS-CGT">
+<link rel="apple-touch-icon" href="logo-cgt.png">
 </head>
 <body>
 
@@ -4174,6 +4181,22 @@ function biblioChangeCat(id, cat) {
 ════════════════════════════════ */
 init();
 
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("./sw.js").then(function(reg) {
+      reg.addEventListener("updatefound", function() {
+        var w = reg.installing;
+        w.addEventListener("statechange", function() {
+          if (w.state === "installed" && navigator.serviceWorker.controller) {
+            w.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+    });
+  });
+}
 </script>
 </body>
 </html>
