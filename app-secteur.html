@@ -345,7 +345,7 @@ body.readonly .conquete-select{pointer-events:none;opacity:0.7}
 body.readonly [ondblclick]{cursor:default}
 body.readonly .em-btn-send{display:none!important}
 body.readonly .em-ejs-config{display:none!important}
-body.readonly .export-zone{display:none!important}
+body.is-readonly .export-zone{display:none!important}
 body.readonly #btn-new-adh-global{display:none!important}
 body.readonly .btn-del-icon{display:none!important}
 #edit-toast{display:none;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);padding:8px 18px;border-radius:20px;color:#fff;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.25)}
@@ -681,8 +681,8 @@ body.is-readonly .empty button { display: none; }
 /* ── FAB ── */
 #fab-import{position:fixed;bottom:20px;right:20px;background:#E24B4A;color:#fff;border:none;border-radius:50px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(226,75,74,.4);z-index:1000}
 /* ── MODALES ── */
-#fiche-modal,#import-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px}
-#fiche-modal.open,#import-modal.open{display:flex}
+#fiche-modal,#import-modal,#edit-adh-overlay{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px}
+#fiche-modal.open,#import-modal.open,#edit-adh-overlay.open{display:flex}
 #fiche-inner,#import-inner{background:var(--bg);border-radius:var(--rl);padding:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
 .fiche-title{font-size:14px;font-weight:700;color:var(--tx)}
 #import-inner h3{font-size:14px;font-weight:700;margin-bottom:8px}
@@ -750,6 +750,9 @@ body.is-readonly .empty button { display: none; }
   <button class="nb" onclick="showTab('conquete',this)">🎯 Conquête</button>
   <button class="nb" onclick="showTab('syndicats',this)">🏅 Syndicats</button>
   <button class="nb" onclick="showTab('contacts',this)">📇 Contacts</button>
+  <button class="nb" onclick="showTab('calendrier',this)">📅 Calendrier</button>
+  <button class="nb" onclick="showTab('ciblage',this)">🎫 Ciblage CGT</button>
+  <button class="nb" onclick="showTab('adherents',this)">🪪 Adhérents</button>
   <button class="nb" onclick="showTab('udul',this)">🏛️ UD / UL</button>
   <button class="nb" onclick="showTab('mailing',this)">📧 Mailing</button>
   <button class="nb" onclick="showTab('outils',this)" id="nav-outils">🔧 Outils</button>
@@ -827,10 +830,118 @@ body.is-readonly .empty button { display: none; }
   <div id="contacts-body"></div>
 </div>
 
+<!-- ═══ CALENDRIER ═══ -->
+<div id="tp-calendrier" class="tp">
+  <div class="fbar">
+    <label>Région <select id="cal-reg" onchange="buildCal()"><option value="">Toutes</option></select></label>
+    <label>Horizon <select id="cal-hor" onchange="buildCal()">
+      <option value="3">3 mois</option>
+      <option value="6">6 mois</option>
+      <option value="12" selected>12 mois</option>
+      <option value="24">24 mois</option>
+      <option value="9999">Tout</option>
+    </select></label>
+    <label><input type="checkbox" id="cal-past" onchange="buildCal()"> Inclure passées</label>
+    <span id="calcnt" style="margin-left:auto;font-size:11px;color:var(--tx3)"></span>
+    <button class="vb export-zone" onclick="exportICal()" title="Exporter vers Google Calendar / Outlook" style="margin-left:4px">📅 iCal</button>
+    <div class="cal-view-btns"><button class="vb" id="cal-list-btn" onclick="setCalView('list')">☰ Liste</button><button class="vb on" id="cal-grid-btn" onclick="setCalView('grid')">📅 Grille</button></div>
+  </div>
+  <div id="cal-grid-nav" style="display:none;align-items:center;gap:8px;margin:8px 0;justify-content:center">
+    <button class="cal-nav-btn cal-nav-arrow" onclick="calNav(-1)" title="Mois précédent">←</button>
+    <span id="cal-month-lbl" class="cal-month-title"></span>
+    <button class="cal-nav-btn" onclick="calToday()" style="font-size:10px;padding:3px 8px">📅 Auj.</button>
+    <button class="cal-nav-btn cal-nav-arrow" onclick="calNav(1)" title="Mois suivant">→</button>
+  </div>
+  <div id="cal-grid-body"></div>
+  <div class="calgrid" id="calgrid"></div>
+</div>
+
+<!-- ═══ CIBLAGE CGT ═══ -->
+<div id="tp-ciblage" class="tp">
+  <div class="fbar">
+    <label>Filtre <select id="cib-mode" onchange="buildCiblage()">
+      <option value="sans">Sans CGT (0 voix)</option>
+      <option value="min">CGT minoritaire</option>
+      <option value="all" selected>Tous (sans CGT + minoritaire)</option>
+    </select></label>
+    <label>Région <select id="cib-reg" onchange="buildCiblage()"><option value="">Toutes</option></select></label>
+    <label>Horizon él. <select id="cib-hor" onchange="buildCiblage()">
+      <option value="0">Toutes dates</option>
+      <option value="3">Dans 3 mois</option>
+      <option value="6" selected>Dans 6 mois</option>
+      <option value="12">Dans 12 mois</option>
+    </select></label>
+    <button class="btn export-zone" style="margin:0 0 0 auto" onclick="doCSVCiblage()">⬇ Exporter ce ciblage (.xlsx)</button>
+    <div class="cal-view-btns"><button class="vb" id="cib-list-btn" onclick="setCibView('list')">☰ Liste</button><button class="vb on" id="cib-grid-btn" onclick="setCibView('grid')">📅 Grille</button></div>
+  </div>
+  <div id="cib-summary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"></div>
+  <div class="tscroll" id="cib-table-wrap">
+    <table><thead><tr>
+      <th onclick="cibSort('n')">Structure <span class="sa" id="csa-n">↕</span></th>
+      <th onclick="cibSort('r')">Région <span class="sa" id="csa-r">↕</span></th>
+      <th onclick="cibSort('v')">Ville <span class="sa" id="csa-v">↕</span></th>
+      <th onclick="cibSort('pr')">Prochaine él. <span class="sa" id="csa-pr">↕</span></th>
+      <th>Urgence</th>
+      <th onclick="cibSort('pa')">Partic. <span class="sa" id="csa-pa">↕</span></th>
+      <th onclick="cibSort('cg')">CGT <span class="sa" id="csa-cg">↕</span></th>
+      <th>CFDT</th><th>FO</th><th>Autres</th>
+      <th>Situation CGT</th>
+      <th>Contact</th>
+    </tr></thead><tbody id="cib-body"></tbody></table>
+  </div>
+  <div id="cib-grid-nav" style="display:none;align-items:center;gap:8px;margin:8px 0;justify-content:center">
+    <button class="cal-nav-btn cal-nav-arrow" onclick="cibNav(-1)" title="Mois précédent">←</button>
+    <span id="cib-month-lbl" class="cal-month-title"></span>
+    <button class="cal-nav-btn" onclick="cibToday()" style="font-size:10px;padding:3px 8px">📅 Auj.</button>
+    <button class="cal-nav-btn cal-nav-arrow" onclick="cibNav(1)" title="Mois suivant">→</button>
+  </div>
+  <div id="cib-grid-body"></div>
+  <div id="cib-grid-wrap" style="display:none;padding:4px 0"></div>
+</div>
+
+<!-- ═══ ADHÉRENTS ═══ -->
+<div id="tp-adherents" class="tp">
+  <div class="fbar">
+    <input type="text" id="adh-search" placeholder="Rechercher un adhérent..." oninput="buildAdherents()" style="width:200px">
+    <label>Région <select id="adh-reg" onchange="buildAdherents()"><option value="">Toutes</option></select></label>
+    <label>Statut <select id="adh-arc" onchange="buildAdherents()">
+      <option value="all">Tous</option>
+      <option value="NON" selected>Actifs</option>
+      <option value="OUI">Archivés</option>
+    </select></label>
+    <label>Mandat local <select id="adh-mandat" onchange="buildAdherents()">
+      <option value="">Tous</option>
+      <option value="DS">DS</option>
+      <option value="RS">RS</option>
+      <option value="CSE Membre">CSE Membre</option>
+      <option value="CSE Tresorier">CSE Trésorier</option>
+      <option value="CSE Secretaire">CSE Secrétaire</option>
+    </select></label>
+    <label>Mandat national <select id="adh-mandat-nat" onchange="buildAdherents()">
+      <option value="">Tous</option>
+      <option value="CPPNI">CPPNI</option>
+      <option value="CPNEF">CPNEF</option>
+      <option value="Conseil de Gestion">Conseil de Gestion</option>
+      <option value="Animateur National">Animateur National</option>
+    </select></label>
+    <label>Formation <select id="adh-formation" onchange="buildAdherents()">
+      <option value="">Toutes</option>
+      <option value="Participer">Participer</option>
+      <option value="S'impliquer">S'impliquer</option>
+      <option value="CSE-SSCT">CSE-SSCT</option>
+      <option value="Formateur">Formateur</option>
+    </select></label>
+    <button id="btn-new-adh-global" class="ebtn ot-write-only" onclick="newAdhGlobal()" style="margin-left:auto">+ Adhérent</button>
+    <span id="adh-count" style="font-size:11px;color:var(--tx3)"></span>
+  </div>
+  <div id="adh-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:8px 0"></div>
+</div>
+
 <!-- ═══ UD / UL ═══ -->
 <div id="tp-udul" class="tp">
   <div id="udul-body"></div>
 </div>
+
 
 <!-- ═══ MAILING ═══ -->
 <div id="tp-mailing" class="tp">
@@ -882,8 +993,77 @@ body.is-readonly .empty button { display: none; }
   </div>
 </div>
 
+<!-- EDIT ADHÉRENT MODAL -->
+<div id="edit-adh-overlay">
+  <div class="edit-modal">
+    <div class="edit-modal-hdr">
+      <div class="edit-modal-title">Adhérent</div>
+      <button class="btn" onclick="editAdhClose()">✕</button>
+    </div>
+    <div class="edit-modal-body">
+      <input type="hidden" id="ea-siret">
+      <input type="hidden" id="ea-idx">
+      <div class="edit-field"><label>Structure</label>
+        <select id="ea-struct-select"><option value="">— Choisir —</option></select>
+      </div>
+      <div class="edit-field"><label>Civilité</label>
+        <select id="ea-civ"><option value=""></option><option value="M.">M.</option><option value="Mme">Mme</option></select>
+      </div>
+      <div class="edit-field"><label>Prénom</label><input id="ea-pre" type="text"></div>
+      <div class="edit-field"><label>Nom</label><input id="ea-nom" type="text"></div>
+      <div class="edit-field"><label>Téléphone</label><input id="ea-tel" type="text"></div>
+      <div class="edit-field"><label>Email</label><input id="ea-em" type="email"></div>
+      <div class="edit-field"><label>Adresse</label><input id="ea-adr" type="text"></div>
+      <div class="edit-field"><label>Complément</label><input id="ea-adr2" type="text"></div>
+      <div class="edit-field"><label>Code postal</label><input id="ea-cp" type="text"></div>
+      <div class="edit-field"><label>Ville</label><input id="ea-vil" type="text"></div>
+      <div class="edit-field"><label>Date d'adhésion</label><input id="ea-adh" type="text" placeholder="JJ/MM/AAAA"></div>
+      <div class="edit-field"><label>Statut</label>
+        <select id="ea-arc"><option value="NON">Actif</option><option value="OUI">Archivé</option></select>
+      </div>
+      <div class="edit-field"><label>Mandat(s) local(aux)</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-m-ds">DS</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-m-rs">RS</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-m-cse">CSE Membre</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-m-tres">CSE Trésorier</label>
+        <label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="ea-m-sec">CSE Secrétaire</label>
+      </div>
+      <div class="edit-field"><label>Mandat(s) national(aux)</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-mn-cppni">CPPNI</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-mn-cpnef">CPNEF</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-mn-cg">Conseil de Gestion</label>
+        <label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="ea-mn-anat">Animateur National</label>
+      </div>
+      <div class="edit-field"><label>Formation(s)</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-f-part">Participer</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-f-impl">S'impliquer</label>
+        <label style="display:inline-flex;gap:4px;align-items:center;margin-right:10px"><input type="checkbox" id="ea-f-cse">CSE-SSCT</label>
+        <label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="ea-f-form">Formateur</label>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button class="btn" onclick="editAdhClose()">Annuler</button>
+        <button class="btn btn-prim" onclick="editAdhSave()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="edit-toast"></div>
+
+<!-- MODAL DÉTAIL SYNDICAT -->
+<div id="syn-modal-overlay">
+  <div id="syn-modal">
+    <div id="syn-modal-header">
+      <div id="syn-modal-title"></div>
+      <button id="syn-modal-close" onclick="document.getElementById('syn-modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div id="syn-modal-body"></div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
 
 /* ════════════════════════════════
@@ -921,6 +1101,39 @@ var _sortAsc = true;
 var _regionFilter = '';
 var _cqFilter = '';
 var _pendingImport = [];
+
+/* ════════════════════════════════
+   ADHÉRENTS / CALENDRIER / CIBLAGE — état & helpers
+════════════════════════════════ */
+var ADHERENTS = {};
+var UC = {cgt:"#E24B4A",cfdt:"#378ADD",fo:"#EF9F27",cftc:"#1D9E75",cgc:"#7F77DD",solidaires:"#639922"};
+function uc(k) { return UC[(k||"").toLowerCase()] || "#888"; }
+function g(s,k) { return s[k] || ""; }
+function gi(s,k) { return parseInt(s[k]) || 0; }
+function gf(s,k) { return parseFloat(s[k]) || 0; }
+function fmt(n) { return typeof n === "number" && n > 0 ? n.toLocaleString("fr-FR") : (n || ""); }
+function formatCP(val) {
+  if (!val && val !== 0) return '';
+  var s = String(val).replace(/\.0+$/, '').replace(/[^0-9A-Za-z]/g, '');
+  if (!s) return '';
+  return s.match(/^\d+$/) ? s.padStart(5, '0') : s;
+}
+function renderUDBlock(cp) { return ''; }
+function showEditToast(msg, color) {
+  var t = document.getElementById("edit-toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.style.background = color || "#1D9E75";
+  t.style.display = "block";
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.style.display = "none"; }, 2800);
+}
+
+var CAL_DAYS_SHORT = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+var CAL_MONTHS = ["Janvier ","Février ","Mars ","Avril ","Mai ","Juin ","Juillet ","Août ","Septembre ","Octobre ","Novembre ","Décembre "];
+var calViewMode = "grid", calMonth = new Date().getMonth(), calYear = new Date().getFullYear();
+var cibViewMode = "grid", cibCalMonth = new Date().getMonth(), cibCalYear = new Date().getFullYear();
+var cibSortCol = "pr", cibSortDir = 1;
 
 /* ════════════════════════════════
    COLONNES TABLEAU
@@ -978,6 +1191,11 @@ function init() {
     if (c) CONQUETE = JSON.parse(c);
   } catch(e) { CONQUETE = {}; }
 
+  try {
+    var ad = localStorage.getItem('fnpos_adherents_' + SEC);
+    if (ad) ADHERENTS = JSON.parse(ad);
+  } catch(e) { ADHERENTS = {}; }
+
   updateKpis();
   renderTable();
   renderConquete();
@@ -1031,25 +1249,34 @@ function showTab(name, btn) {
   if (name === 'mailing')   renderMailing();
   if (name === 'outils')    renderOutils();
   if (name === 'biblio')    renderBiblio();
+  if (name === 'calendrier') buildCal();
+  if (name === 'ciblage')    buildCiblage();
+  if (name === 'adherents')  buildAdherents();
 }
 
 /* ════════════════════════════════
    TABLE
 ════════════════════════════════ */
 function buildRegionFilter() {
-  var sel = document.getElementById('filter-reg');
-  if (!sel) return;
   var regs = [];
   for (var i = 0; i < STRUCTS.length; i++) {
     var r = STRUCTS[i].r;
     if (r && regs.indexOf(r) < 0) regs.push(r);
   }
   regs.sort();
-  var html = '<option value="">Toutes les régions</option>';
+  var opts = '<option value="">Toutes les régions</option>';
   for (var j = 0; j < regs.length; j++) {
-    html += '<option value="' + esc(regs[j]) + '">' + esc(regs[j]) + '</option>';
+    opts += '<option value="' + esc(regs[j]) + '">' + esc(regs[j]) + '</option>';
   }
-  sel.innerHTML = html;
+  var optsAll = '<option value="">Toutes</option>' + opts.replace('<option value="">Toutes les régions</option>', '');
+  var ids = ['filter-reg', 'cal-reg', 'cib-reg', 'adh-reg'];
+  for (var k = 0; k < ids.length; k++) {
+    var sel = document.getElementById(ids[k]);
+    if (!sel) continue;
+    var cur = sel.value;
+    sel.innerHTML = (ids[k] === 'filter-reg') ? opts : optsAll;
+    if (cur) sel.value = cur;
+  }
 }
 
 function getFiltered() {
@@ -1731,11 +1958,11 @@ function renderSyndicats() {
   var html = '<div style="margin-bottom:14px">';
   /* KPI strip */
   html += '<div class="krow">';
-  html += '<div class="kpi" style="border-left:3px solid #E24B4A">';
+  html += '<div class="kpi" style="border-left:3px solid #E24B4A;cursor:pointer" onclick="reprFilter(\'cgt\')">';
   html += '<div class="kl">Score CGT</div><div class="kv" style="color:#E24B4A">' + d.cgt_voix.toFixed(2) + '%</div>';
-  html += '<div class="ks">Voix exprim\u00e9es</div></div>';
-  html += '<div class="kpi" style="border-left:3px solid #E24B4A">';
-  html += '<div class="kl">Repr\u00e9sentativit\u00e9</div><div class="kv" style="color:#E24B4A">' + repr_str + '</div>';
+  html += '<div class="ks">Voix exprimées — toucher</div></div>';
+  html += '<div class="kpi" style="border-left:3px solid #E24B4A;cursor:pointer" onclick="reprFilter(\'cgt\')">';
+  html += '<div class="kl">Représentativité</div><div class="kv" style="color:#E24B4A">' + repr_str + '</div>';
   html += '<div class="ks">Taux officiel</div></div>';
   html += '<div class="kpi">';
   html += '<div class="kl">Rang CGT</div><div class="kv">' + rang_medal + '</div>';
@@ -1747,15 +1974,15 @@ function renderSyndicats() {
 
   /* Tableau des organisations */
   html += '<div style="margin-bottom:12px">';
-  html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">R\u00e9sultats tous coll\u00e8ges — Cycle ' + d.cycle + ' (2021-2024)</div>';
+  html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Résultats tous collèges — Cycle ' + d.cycle + ' (2021-2024) — toucher une ligne pour filtrer</div>';
   html += '<div class="tscroll"><table><thead><tr>';
   html += '<th>Organisation</th><th>% voix</th><th>Taux repr.</th><th>Statut</th></tr></thead><tbody>';
   for (var i = 0; i < d.orgs.length; i++) {
     var org = d.orgs[i];
-    var rowStyle = org.cgt ? ' style="background:rgba(226,75,74,.07)"' : '';
+    var rowStyle = org.cgt ? ' style="background:rgba(226,75,74,.07);cursor:pointer"' : ' style="cursor:pointer"';
     var reprTxt = org.repr !== null ? org.repr.toFixed(2) + '%' : '\u2014';
-    var statut = org.ok ? '<span style="color:#27AE60;font-weight:700">\u2713 Repr\u00e9sentatif' + (org.cat ? ' (cat.)' : '') + '</span>' : '<span style="color:var(--tx3)">Non repr.</span>';
-    html += '<tr' + rowStyle + '>';
+    var statut = org.ok ? '<span style="color:#27AE60;font-weight:700">\u2713 Représentatif' + (org.cat ? ' (cat.)' : '') + '</span>' : '<span style="color:var(--tx3)">Non repr.</span>';
+    html += '<tr' + rowStyle + ' onclick="reprFilter(\'' + esc(org.n) + '\')">';
     html += '<td style="font-weight:' + (org.cgt ? '700' : '400') + ';color:' + (org.cgt ? '#E24B4A' : 'var(--tx)') + '">' + esc(org.n) + '</td>';
     html += '<td>' + org.voix.toFixed(2) + '%</td>';
     html += '<td>' + reprTxt + '</td>';
@@ -1766,12 +1993,12 @@ function renderSyndicats() {
 
   /* Barres horizontales taux repr */
   html += '<div style="margin-bottom:12px">';
-  html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Taux de repr\u00e9sentativit\u00e9</div>';
+  html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Taux de représentativité — toucher pour filtrer</div>';
   for (var j = 0; j < d.orgs.length; j++) {
     var o = d.orgs[j];
     if (!o.ok || o.repr === null) continue;
     var barColor = o.cgt ? '#E24B4A' : (j === 0 ? '#378ADD' : 'var(--tx3)');
-    html += '<div style="margin-bottom:7px">';
+    html += '<div style="margin-bottom:7px;cursor:pointer" onclick="reprFilter(\'' + esc(o.n) + '\')">';
     html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">';
     html += '<span style="color:' + barColor + ';font-weight:' + (o.cgt ? '700' : '400') + '">' + esc(o.n) + '</span>';
     html += '<span style="color:' + barColor + ';font-weight:700">' + o.repr.toFixed(2) + '%</span></div>';
@@ -1781,15 +2008,16 @@ function renderSyndicats() {
   }
   html += '</div>';
 
-  /* Résultats par collège */
+  /* Résultats par collège (+ mini-graphique) */
   if (d.colleges && d.colleges.length > 0) {
-    html += '<div style="margin-bottom:12px">';
-    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Score CGT par coll\u00e8ge</div>';
+    html += '<div class="cc" style="margin-bottom:12px">';
+    html += '<div class="ct">Score CGT par collège — toucher pour voir les structures</div>';
+    html += '<div style="position:relative;height:180px;margin:8px 0"><canvas id="ch-college"></canvas></div>';
     for (var c = 0; c < d.colleges.length; c++) {
       var col = d.colleges[c];
       var colColor = col.rang === 1 ? '#E24B4A' : (col.rang === 2 ? '#EF9F27' : 'var(--tx3)');
       var colRang = col.rang === 1 ? '\ud83e\udd471er' : (col.rang === 2 ? '\ud83e\udd482e' : col.rang + 'e');
-      html += '<div style="margin-bottom:6px">';
+      html += '<div style="margin-bottom:6px;cursor:pointer" onclick="reprCollegeFilter(' + c + ')">';
       html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">';
       html += '<span style="color:var(--tx2)">' + esc(col.n) + '</span>';
       html += '<span style="color:' + colColor + ';font-weight:700">' + col.cgt + '% — ' + colRang + '</span></div>';
@@ -1803,11 +2031,11 @@ function renderSyndicats() {
   /* Présence aux élections */
   if (d.presence && d.presence.length > 0) {
     html += '<div style="margin-bottom:12px">';
-    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Pr\u00e9sence CGT aux \u00e9lections</div>';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Présence CGT aux élections — toucher pour voir les structures sans CGT</div>';
     html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
     for (var pr = 0; pr < d.presence.length; pr++) {
       var pres = d.presence[pr];
-      html += '<div style="background:var(--bg2);border-radius:6px;padding:8px 12px;text-align:center;flex:1;min-width:70px">';
+      html += '<div style="background:var(--bg2);border-radius:6px;padding:8px 12px;text-align:center;flex:1;min-width:70px;cursor:pointer" onclick="reprPresenceFilter(' + pr + ')">';
       html += '<div style="font-size:16px;font-weight:700;color:#378ADD">' + pres.p + '%</div>';
       html += '<div style="font-size:10px;color:var(--tx3)">' + esc(pres.c) + '</div></div>';
     }
@@ -1816,26 +2044,133 @@ function renderSyndicats() {
 
   /* Évolution annuelle */
   if (d.annees && d.annees.length > 0) {
-    html += '<div style="margin-bottom:8px">';
-    html += '<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">\u00c9volution CGT par ann\u00e9e</div>';
-    html += '<div style="display:flex;align-items:flex-end;gap:10px;height:70px">';
-    var maxV = 0;
-    for (var ai = 0; ai < d.annees.length; ai++) { if (d.annees[ai].cgt > maxV) maxV = d.annees[ai].cgt; }
-    for (var ak = 0; ak < d.annees.length; ak++) {
-      var an = d.annees[ak];
-      var barH = maxV > 0 ? Math.round((an.cgt / maxV) * 54) : 0;
-      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">';
-      html += '<div style="font-size:9px;color:#E24B4A;font-weight:700">' + an.cgt + '%</div>';
-      html += '<div style="background:#E24B4A;width:100%;height:' + barH + 'px;border-radius:3px 3px 0 0"></div>';
-      html += '<div style="font-size:9px;color:var(--tx3)">' + an.y + '</div></div>';
-    }
-    html += '</div></div>';
+    html += '<div class="cc" style="margin-bottom:8px">';
+    html += '<div class="ct">Évolution CGT 2021-2024</div>';
+    html += '<div style="position:relative;height:180px;margin-top:8px"><canvas id="ch-evol"></canvas></div>';
+    html += '</div>';
   }
 
   html += '<div style="font-size:9px;color:var(--tx3);margin-top:8px;text-align:right">Source : FNPOS-CGT \u2014 Cycle 4 (2021-2024)</div>';
   html += '</div>';
 
   el.innerHTML = html;
+  buildReprCharts(d);
+}
+
+var ORG_FIELD = {'CGT':'cg','CFDT':'cf','FO':'fo','CFTC':'ct','CFE-CGC':'ck','CGC':'ck','Solidaires':'so','SOLIDAIRES':'so'};
+var _chEvol = null, _chCollege = null;
+
+function buildReprCharts(d) {
+  if (typeof Chart === 'undefined') return;
+  var evolCanvas = document.getElementById('ch-evol');
+  if (evolCanvas && d.annees && d.annees.length > 0) {
+    if (_chEvol) { _chEvol.destroy(); _chEvol = null; }
+    _chEvol = new Chart(evolCanvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: d.annees.map(function(a) { return String(a.y); }),
+        datasets: [{
+          label: 'Score CGT (%)',
+          data: d.annees.map(function(a) { return a.cgt; }),
+          borderColor: '#E24B4A',
+          backgroundColor: 'rgba(226,75,74,.12)',
+          fill: true,
+          tension: 0.25,
+          pointBackgroundColor: '#E24B4A',
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        onClick: function(evt, els) { if (els && els.length) reprYearFilter(els[0].index); },
+        scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v + '%'; } } } }
+      }
+    });
+  }
+  var collCanvas = document.getElementById('ch-college');
+  if (collCanvas && d.colleges && d.colleges.length > 0) {
+    if (_chCollege) { _chCollege.destroy(); _chCollege = null; }
+    _chCollege = new Chart(collCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: d.colleges.map(function(c) { return c.n; }),
+        datasets: [{
+          label: 'Score CGT (%)',
+          data: d.colleges.map(function(c) { return c.cgt; }),
+          backgroundColor: d.colleges.map(function(c) { return c.rang === 1 ? '#E24B4A' : c.rang === 2 ? '#EF9F27' : '#888'; })
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        onClick: function(evt, els) { if (els && els.length) reprCollegeFilter(els[0].index); },
+        scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v + '%'; } } } }
+      }
+    });
+  }
+}
+
+function reprFilter(orgName) {
+  var field = ORG_FIELD[orgName] || 'cg';
+  var list = STRUCTS.filter(function(s) { return gi(s, field) > 0; });
+  list.sort(function(a, b) { return gi(b, field) - gi(a, field); });
+  var color = uc(orgName);
+  openSynModal(esc(orgName) + ' — ' + list.length + ' structure' + (list.length > 1 ? 's' : '') + ' avec voix', color, list, orgName);
+}
+function reprCollegeFilter(idx) {
+  var key = REPR_KEY[SEC] || SEC;
+  var d = REPR_DATA[key];
+  if (!d || !d.colleges || !d.colleges[idx]) return;
+  var col = d.colleges[idx];
+  var list = STRUCTS.filter(function(s) { return gi(s, 'cg') > 0; });
+  list.sort(function(a, b) { return gi(b, 'cg') - gi(a, 'cg'); });
+  openSynModal('CGT — ' + esc(col.n) + ' — ' + list.length + ' structure' + (list.length > 1 ? 's' : ''), '#E24B4A', list, 'CGT');
+}
+function reprPresenceFilter(idx) {
+  var list = STRUCTS.filter(function(s) { return gi(s, 'cg') === 0 && gf(s, 'pa') > 0; });
+  list.sort(function(a, b) { return gi(b, 'in') - gi(a, 'in'); });
+  openSynModal('Structures sans voix CGT — ' + list.length + ' résultat' + (list.length > 1 ? 's' : ''), '#E24B4A', list, null);
+}
+function reprYearFilter(yearIdx) {
+  var key = REPR_KEY[SEC] || SEC;
+  var d = REPR_DATA[key];
+  if (!d || !d.annees || !d.annees[yearIdx]) return;
+  showEditToast('CGT ' + d.annees[yearIdx].y + ' : ' + d.annees[yearIdx].cgt + '%', '#E24B4A');
+}
+function openSynModal(title, color, structs, colKey) {
+  document.getElementById('syn-modal-title').innerHTML =
+    '<span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:' + color + ';margin-right:8px;vertical-align:middle"></span>' + title;
+  var h = '<div class="syn-detail-row syn-detail-head"><div>Structure / Ville</div><div>Inscrits</div><div>Partic.</div><div>Syndicat maj.</div><div>' + (colKey ? 'Voix' : 'Info') + '</div><div></div></div>';
+  for (var i = 0; i < structs.length; i++) {
+    var s = structs[i];
+    var nom = g(s, 'n') || '', vil = g(s, 'v') || '', reg = g(s, 'r') || '';
+    var inscr = gi(s, 'in') || 0, pa = gf(s, 'pa') || 0;
+    var gan = g(s, 'ga') || '', ganC = uc(gan);
+    var field = colKey ? (ORG_FIELD[colKey] || 'cg') : '';
+    var votes = field ? gi(s, field) : 0;
+    var pct = inscr > 0 && votes > 0 ? Math.round(votes / inscr * 100) : 0;
+    var paC = pa >= 70 ? '#1D9E75' : (pa < 40 && pa > 0 ? '#E24B4A' : 'var(--tx)');
+    var idx = structIdxBySiret(g(s, 'si'));
+    h += '<div class="syn-detail-row" style="cursor:pointer" onclick="document.getElementById(\'syn-modal-overlay\').classList.remove(\'open\');openFiche(' + idx + ')">';
+    h += '<div><div style="font-weight:600">' + esc(nom) + '</div><div style="font-size:10px;color:var(--tx3)">' + esc(vil) + (reg ? ' · ' + esc(reg) : '') + '</div></div>';
+    h += '<div>' + (inscr > 0 ? fmt(inscr) : '—') + '</div>';
+    h += '<div>' + (pa > 0 ? '<span style="font-weight:700;color:' + paC + '">' + Math.round(pa) + '%</span>' : '—') + '</div>';
+    h += '<div>' + (gan ? '<span class="syn-badge-sm" style="background:' + ganC + '">' + esc(gan) + '</span>' : '—') + '</div>';
+    h += '<div class="syn-bar-wrap">';
+    if (field && votes > 0) {
+      h += '<div class="syn-bar-fill" style="width:' + Math.min(pct * 1.5, 60) + 'px;background:' + color + '"></div>';
+      h += '<span>' + fmt(votes) + (pct > 0 ? ' (' + pct + '%)' : '') + '</span>';
+    } else if (!colKey && pa > 0) {
+      h += '<div class="syn-bar-fill" style="width:' + Math.min(pa * 0.7, 60) + 'px;background:' + color + '"></div>';
+      h += '<span>' + Math.round(pa) + '%</span>';
+    } else { h += '—'; }
+    h += '</div>';
+    h += '<div style="text-align:right;font-size:11px;color:var(--tx3)" title="Voir la fiche">🔍</div>';
+    h += '</div>';
+  }
+  document.getElementById('syn-modal-body').innerHTML = h;
+  document.getElementById('syn-modal-overlay').classList.add('open');
 }
 
 /* ════════════════════════════════
@@ -2289,6 +2624,7 @@ function saveLocal(ts) {
   var t = ts || Date.now();
   try { localStorage.setItem('fnpos_structs_' + SEC,  JSON.stringify(STRUCTS)); } catch(e) {}
   try { localStorage.setItem('fnpos_conquete_' + SEC, JSON.stringify(CONQUETE)); } catch(e) {}
+  try { localStorage.setItem('fnpos_adherents_' + SEC, JSON.stringify(ADHERENTS)); } catch(e) {}
   try { localStorage.setItem('fnpos_save_ts_' + SEC,  String(t)); } catch(e) {}
 }
 
@@ -2326,7 +2662,7 @@ function doSync() {
   _syncBusy = true;
   _setSyncStatus('busy', '↕ Sync…');
 
-  var url = SB_URL + '/rest/v1/secteur_sync?id=eq.' + SEC.toLowerCase() + '&select=structs,conquete,biblio_meta,ts';
+  var url = SB_URL + '/rest/v1/secteur_sync?id=eq.' + SEC.toLowerCase() + '&select=structs,conquete,adherents,biblio_meta,ts';
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
   xhr.setRequestHeader('apikey', SB_KEY);
@@ -2345,9 +2681,13 @@ function doSync() {
           /* ── PULL ── */
           if (remote.structs)     STRUCTS  = remote.structs;
           if (remote.conquete)    CONQUETE = remote.conquete;
+          if (remote.adherents)   ADHERENTS = remote.adherents;
           if (remote.biblio_meta) _biblioPullMeta(remote.biblio_meta);
           saveLocal(remoteTs);
           updateKpis(); renderTable(); buildRegionFilter(); renderConquete();
+          if (document.getElementById('tp-calendrier') && document.getElementById('tp-calendrier').classList.contains('on')) buildCal();
+          if (document.getElementById('tp-ciblage') && document.getElementById('tp-ciblage').classList.contains('on')) buildCiblage();
+          if (document.getElementById('tp-adherents') && document.getElementById('tp-adherents').classList.contains('on')) buildAdherents();
           if (MAP) { MAP.remove(); MAP = null; }
           _setSyncStatus('ok', '✓ Pull ' + _fmtTs(remoteTs));
           _syncBusy = false;
@@ -2387,6 +2727,7 @@ function _pushSync() {
     id:         SEC.toLowerCase(),
     structs:    STRUCTS,
     conquete:   CONQUETE,
+    adherents:  ADHERENTS,
     biblio_meta: biblioMeta,
     kpis:       kpis,
     ts:         localTs
@@ -4189,6 +4530,568 @@ function biblioChangeCat(id, cat) {
   }
   _biblioSave(docs);
   renderBiblio();
+}
+
+/* ════════════════════════════════
+   CALENDRIER
+════════════════════════════════ */
+function setCalView(mode) {
+  calViewMode = mode;
+  document.getElementById('cal-list-btn').classList.toggle('on', mode === 'list');
+  document.getElementById('cal-grid-btn').classList.toggle('on', mode === 'grid');
+  buildCal();
+}
+function calToday() {
+  calMonth = new Date().getMonth();
+  calYear = new Date().getFullYear();
+  buildCal();
+}
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  buildCal();
+}
+function buildCalGrid(structs, yr, mo) {
+  var now = new Date();
+  var firstDay = new Date(yr, mo, 1).getDay();
+  firstDay = (firstDay + 6) % 7;
+  var daysInMonth = new Date(yr, mo + 1, 0).getDate();
+  var byDay = {};
+  for (var i = 0; i < structs.length; i++) {
+    var s = structs[i];
+    var pr = g(s, "pr");
+    if (!pr) continue;
+    var pts = pr.split("/");
+    if (pts.length !== 3) continue;
+    var d = parseInt(pts[0]), m = parseInt(pts[1]) - 1, y = parseInt(pts[2]);
+    if (y === yr && m === mo) { if (!byDay[d]) byDay[d] = []; byDay[d].push(s); }
+  }
+  var h = '<div class="cal-grid">';
+  for (var dd = 0; dd < 7; dd++) h += '<div class="cal-gh">' + CAL_DAYS_SHORT[dd] + '</div>';
+  for (var e = 0; e < firstDay; e++) h += '<div class="cal-gd om"></div>';
+  for (var day = 1; day <= daysInMonth; day++) {
+    var isToday = (day === now.getDate() && mo === now.getMonth() && yr === now.getFullYear());
+    h += '<div class="cal-gd' + (isToday ? ' today' : '') + '">';
+    h += '<div class="cal-dn">' + day + '</div>';
+    var evList = byDay[day] || [];
+    var maxShow = 3;
+    for (var ei = 0; ei < Math.min(evList.length, maxShow); ei++) {
+      var ev = evList[ei];
+      var gan = g(ev, "ga");
+      var col = gan ? uc(gan) : "#777";
+      var si = g(ev, "si");
+      var nom = (g(ev, "n") || "").split(" ").slice(0, 3).join(" ");
+      h += '<span class="cal-ev" style="background:' + col + '" title="' + (g(ev,"n")||"").replace(/"/g,"&quot;") + ' — ' + (g(ev,"v")||"") + '" onclick="openFiche(structIdxBySiret(\'' + si + '\'))">' + esc(nom) + '</span>';
+    }
+    if (evList.length > maxShow) h += '<div class="cal-more">+' + (evList.length - maxShow) + ' autres</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+function structIdxBySiret(si) {
+  for (var i = 0; i < STRUCTS.length; i++) if (STRUCTS[i].si === si) return i;
+  return -1;
+}
+function buildCal() {
+  var regEl = document.getElementById("cal-reg");
+  var reg = regEl ? regEl.value : "";
+  var hor = parseInt(document.getElementById("cal-hor").value) || 12;
+  var inclPast = document.getElementById("cal-past").checked;
+  var now = Date.now() / 1000, lim = now + hor * 30.5 * 86400;
+  var data = [];
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var s = STRUCTS[i]; var pr = g(s, "pr"); if (!pr) continue;
+    if (reg && g(s, "r") !== reg) continue;
+    var parts = pr.split("/"); if (parts.length !== 3) continue;
+    var ts = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])).getTime() / 1000;
+    if (!inclPast && ts < now) continue; if (ts > lim) continue;
+    data.push({s: s, ts: ts});
+  }
+  data.sort(function(a, b) { return a.ts - b.ts; });
+  document.getElementById("calcnt").textContent = data.length + " élection" + (data.length > 1 ? "s" : "");
+  var h = "";
+  var byMonth = {};
+  for (var i2 = 0; i2 < data.length; i2++) {
+    var pr2 = g(data[i2].s, "pr"); if (!pr2) continue;
+    var pts2 = pr2.split("/"); if (pts2.length !== 3) continue;
+    var mk = pts2[2] + "-" + ("0" + pts2[1]).slice(-2);
+    if (!byMonth[mk]) byMonth[mk] = [];
+    byMonth[mk].push(data[i2]);
+  }
+  var mKeys = Object.keys(byMonth).sort();
+  var MNAMES = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  var DNAMES = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+  var MC = ["#2563EB","#7C3AED","#DB2777","#DC2626","#D97706","#65A30D","#0D9488","#0284C7","#7C3AED","#B45309","#4F46E5","#0F766E"];
+  for (var mi = 0; mi < mKeys.length; mi++) {
+    var mk3 = mKeys[mi];
+    var mkPts = mk3.split("-");
+    var mY = parseInt(mkPts[0]), mM = parseInt(mkPts[1]) - 1;
+    var mc = MC[mM];
+    var mItems = byMonth[mk3];
+    mItems.sort(function(a, b) { return a.ts - b.ts; });
+    h += '<div style="margin-bottom:24px">';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 16px;background:' + mc + ';border-radius:var(--r);box-shadow:0 2px 8px rgba(0,0,0,.18)">';
+    h += '<span style="font-size:14px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25)">' + MNAMES[mM] + " " + mY + "</span>";
+    h += '<span style="font-size:10px;font-weight:700;color:' + mc + ';background:rgba(255,255,255,.92);padding:2px 10px;border-radius:10px">' + mItems.length + " élection" + (mItems.length > 1 ? "s" : "") + '</span>';
+    h += '</div>';
+    for (var ii = 0; ii < mItems.length; ii++) {
+      var s2 = mItems[ii].s, ts2 = mItems[ii].ts;
+      var days = Math.round((ts2 - now) / 86400);
+      var urg = days < 0 ? "s2" : days < 30 ? "s2" : days < 90 ? "s1" : "";
+      var urgTxt = days < 0
+        ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E24B4A;color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px">⚠ Passée</span>'
+        : days === 0
+        ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E24B4A;color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px">⚡ Aujourd\'hui</span>'
+        : days <= 30
+        ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#E24B4A;color:#fff;font-size:13px;font-weight:900;padding:4px 11px;border-radius:20px;box-shadow:0 2px 6px rgba(226,75,74,.4)">' + days + ' j</span>'
+        : days <= 90
+        ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#EF9F27;color:#fff;font-size:13px;font-weight:900;padding:4px 11px;border-radius:20px;box-shadow:0 2px 6px rgba(239,159,39,.4)">' + days + ' j</span>'
+        : '<span style="display:inline-flex;align-items:center;gap:4px;background:var(--bg3);color:var(--tx2);font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid var(--bd)">' + days + ' j</span>';
+      var gan2 = g(s2, "ga"), sReg = g(s2, "r");
+      var prPts = (g(s2, "pr") || "").split("/");
+      var dayNum = prPts.length === 3 ? parseInt(prPts[0]) : 0;
+      var dow = dayNum > 0 ? DNAMES[new Date(parseInt(prPts[2]), parseInt(prPts[1]) - 1, dayNum).getDay()] : "";
+      var addrHtml = "";
+      var adLine = g(s2, "ad"), cpv = formatCP(g(s2, "cp")), ville = g(s2, "v");
+      if (adLine || cpv || ville) addrHtml = '<div style="font-size:10px;color:var(--tx3);margin-top:4px">' + (adLine ? esc(adLine) + "<br>" : "") + (cpv ? cpv + " " : "") + esc(ville) + '</div>';
+      var structContact = "";
+      var stl = g(s2, "tl"), sem = g(s2, "em");
+      if (stl || sem) structContact = '<div style="font-size:10px;color:var(--tx3);margin-top:4px">' + (stl ? '<span>☎ ' + esc(stl) + '</span>' : "") + ((stl && sem) ? " &nbsp; " : "") + (sem ? '<a href="mailto:' + sem + '" style="color:var(--tx2)">✉ ' + esc(sem) + '</a>' : "") + '</div>';
+      h += '<div class="ccard ' + urg + '" style="cursor:pointer;display:flex;gap:12px;align-items:flex-start" onclick="openFiche(structIdxBySiret(\'' + g(s2, "si") + '\'))">'
+        + '<div style="min-width:44px;text-align:center;flex-shrink:0;padding-top:2px">'
+        + '<div style="font-size:22px;font-weight:900;color:var(--tx);line-height:1">' + (dayNum || "") + '</div>'
+        + (dow ? '<div style="font-size:9px;color:var(--tx3);text-transform:uppercase;margin-top:1px">' + dow + '</div>' : "")
+        + '</div><div style="flex:1;min-width:0">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">'
+        + '<div class="ccn" style="flex:1">' + esc(g(s2, "n")) + '</div>'
+        + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'
+        + (gan2 ? '<span class="badge" style="background:' + uc(gan2) + '">' + esc(gan2) + '</span>' : "")
+        + urgTxt + '</div></div>'
+        + '<div class="cci">' + esc(sReg) + '</div>'
+        + addrHtml + structContact
+        + (g(s2, "de") ? '<div style="font-size:10px;color:var(--tx3);margin-top:2px">Dernière : ' + esc(g(s2, "de")) + '</div>' : "")
+        + (g(s2, "cc") ? '<div style="margin-top:3px"><span class="badge" style="background:' + (g(s2,"cc").toUpperCase()==="OUI"?"#0f6e56":"#888") + '">CCN ' + esc(g(s2,"cc")) + '</span></div>' : "");
+      h += renderUDBlock(g(s2, "cp")) + '</div></div>';
+    }
+    h += '</div>';
+  }
+  if (!h) h = '<div style="color:var(--tx3);font-size:12px;padding:20px 0">Aucune élection dans cet horizon.</div>';
+  if (calViewMode === "grid") {
+    var nav = document.getElementById("cal-grid-nav");
+    var lbl = document.getElementById("cal-month-lbl");
+    if (nav) nav.style.display = "flex";
+    if (lbl) lbl.textContent = CAL_MONTHS[calMonth] + calYear;
+    document.getElementById("cal-grid-body").innerHTML = buildCalGrid(data.map(function(d) { return d.s; }), calYear, calMonth);
+    document.getElementById("calgrid").innerHTML = "";
+    document.getElementById("calgrid").style.display = "none";
+  } else {
+    var nav2 = document.getElementById("cal-grid-nav");
+    if (nav2) nav2.style.display = "none";
+    document.getElementById("cal-grid-body").innerHTML = "";
+    document.getElementById("calgrid").style.display = "";
+    document.getElementById("calgrid").innerHTML = h;
+  }
+}
+function exportICal() {
+  var regEl = document.getElementById("cal-reg");
+  var reg = regEl ? regEl.value : "";
+  var hor = parseInt(document.getElementById("cal-hor") ? document.getElementById("cal-hor").value : "12") || 12;
+  var inclPast = document.getElementById("cal-past") ? document.getElementById("cal-past").checked : false;
+  var now = Date.now() / 1000;
+  var lim = now + hor * 30.5 * 86400;
+  var events = [];
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var s = STRUCTS[i];
+    var pr = g(s, "pr");
+    if (!pr) continue;
+    if (reg && g(s, "r") !== reg) continue;
+    var pts = pr.split("/");
+    if (pts.length !== 3) continue;
+    var day = parseInt(pts[0]), mon = parseInt(pts[1]) - 1, yr = parseInt(pts[2]);
+    var ts = new Date(yr, mon, day).getTime() / 1000;
+    if (!inclPast && ts < now) continue;
+    if (ts > lim) continue;
+    events.push({s: s, ts: ts, day: day, mon: mon + 1, yr: yr});
+  }
+  events.sort(function(a, b) { return a.ts - b.ts; });
+  if (!events.length) { showEditToast("⚠ Aucune élection dans cet horizon", "#EF9F27"); return; }
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+  function icalDate(yr2, mon2, day2) { return String(yr2) + pad(mon2) + pad(day2); }
+  function icalEscape(str) { return (str || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n"); }
+  var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//FNPOS-CGT//" + CFG.short + "//FR","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Elections CSE " + CFG.name + (reg ? " - " + reg : " - France"),"X-WR-TIMEZONE:Europe/Paris"];
+  for (var ei = 0; ei < events.length; ei++) {
+    var ev = events[ei];
+    var dtStart = icalDate(ev.yr, ev.mon, ev.day);
+    var nextDay = new Date(ev.yr, ev.mon - 1, ev.day + 1);
+    var dtEnd = icalDate(nextDay.getFullYear(), nextDay.getMonth() + 1, nextDay.getDate());
+    var s2 = ev.s;
+    var uid = (g(s2, "si") || (SEC + ei)) + "-" + dtStart + "@" + SEC + "-cgt.fr";
+    var summary = "Election CSE - " + icalEscape(g(s2, "n"));
+    var desc = icalEscape(g(s2, "r") || "");
+    if (g(s2, "si")) desc += "\\nSIRET : " + icalEscape(g(s2, "si"));
+    if (g(s2, "de")) desc += "\\nDerniere el. : " + icalEscape(g(s2, "de"));
+    var loc = icalEscape((g(s2, "ad") || "") + (g(s2, "cp") ? " " + formatCP(g(s2, "cp")) : "") + (g(s2, "v") ? " " + g(s2, "v") : ""));
+    lines.push("BEGIN:VEVENT");
+    lines.push("UID:" + uid);
+    lines.push("DTSTART;VALUE=DATE:" + dtStart);
+    lines.push("DTEND;VALUE=DATE:" + dtEnd);
+    lines.push("SUMMARY:" + summary);
+    lines.push("DESCRIPTION:" + desc);
+    if (loc.replace(/\s/g, "")) lines.push("LOCATION:" + loc);
+    lines.push("CATEGORIES:Election CGT " + CFG.short);
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  var icsContent = lines.join("\r\n");
+  var blob = new Blob([icsContent], {type: "text/calendar;charset=utf-8;"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  var d = new Date();
+  a.download = "elections_" + CFG.short + (reg ? "_" + reg.replace(/\s/g, "_") : "") + "_" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + ".ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showEditToast("✅ iCal exporté — " + events.length + " élection" + (events.length > 1 ? "s" : ""));
+}
+
+/* ════════════════════════════════
+   CIBLAGE CGT
+════════════════════════════════ */
+function getCibData() {
+  var mode = document.getElementById("cib-mode").value;
+  var regEl = document.getElementById("cib-reg");
+  var reg = regEl ? regEl.value : "";
+  var hor = parseInt(document.getElementById("cib-hor").value) || 0;
+  var now = Date.now() / 1000;
+  var lim = hor > 0 ? now + hor * 30.5 * 86400 : Infinity;
+  var out = [];
+  for (var i = 0; i < STRUCTS.length; i++) {
+    var s = STRUCTS[i];
+    if (reg && g(s, "r") !== reg) continue;
+    var cgt = gi(s, "cg"), total = gi(s,"cg") + gi(s,"cf") + gi(s,"fo") + gi(s,"ct") + gi(s,"ck") + gi(s,"so");
+    var hasCgt = (cgt > 0);
+    var cgtMaj = (cgt > 0 && cgt === Math.max(cgt, gi(s,"cf"), gi(s,"fo"), gi(s,"ct"), gi(s,"ck"), gi(s,"so")));
+    var situation = "";
+    if (!hasCgt) situation = "sans"; else if (!cgtMaj) situation = "min"; else situation = "ok";
+    if (mode === "sans" && situation !== "sans") continue;
+    if (mode === "min" && situation !== "min") continue;
+    if (mode === "all" && situation === "ok") continue;
+    if (hor > 0) {
+      var pr = g(s, "pr");
+      if (pr) {
+        var parts = pr.split("/");
+        if (parts.length === 3) {
+          var ts = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])).getTime() / 1000;
+          if (ts > lim || ts < now) continue;
+        } else continue;
+      } else continue;
+    }
+    out.push({s: s, situation: situation, cgt: cgt, total: total});
+  }
+  return out;
+}
+function buildCiblage() {
+  var data = getCibData();
+  data.sort(function(a, b) {
+    var va, vb;
+    if (cibSortCol === "cg") { va = a.cgt; vb = b.cgt; }
+    else if (cibSortCol === "pa") { va = gf(a.s, "pa"); vb = gf(b.s, "pa"); }
+    else { va = g(a.s, cibSortCol) || ""; vb = g(b.s, cibSortCol) || ""; }
+    if (typeof va === "number") return (va - vb) * cibSortDir;
+    return String(va).localeCompare(String(vb)) * cibSortDir;
+  });
+  var nSans = 0, nMin = 0;
+  for (var i = 0; i < data.length; i++) { if (data[i].situation === "sans") nSans++; else nMin++; }
+  var now = Date.now() / 1000;
+  var nHot = 0, nWarn = 0;
+  for (var i2 = 0; i2 < data.length; i2++) {
+    var pr = g(data[i2].s, "pr"); if (!pr) continue;
+    var parts = pr.split("/"); if (parts.length !== 3) continue;
+    var ts = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0])).getTime() / 1000;
+    var days = Math.round((ts - now) / 86400);
+    if (days >= 0 && days <= 30) nHot++; else if (days > 30 && days <= 90) nWarn++;
+  }
+  var sum = '<div class="cib-sum-card"><div class="cib-sum-v" style="color:#E24B4A">' + data.length + '</div><div class="cib-sum-l">structures ciblées</div></div>';
+  sum += '<div class="cib-sum-card"><div class="cib-sum-v" style="color:#E24B4A">' + nSans + '</div><div class="cib-sum-l">sans CGT</div></div>';
+  sum += '<div class="cib-sum-card"><div class="cib-sum-v" style="color:#EF9F27">' + nMin + '</div><div class="cib-sum-l">CGT minoritaire</div></div>';
+  sum += '<div class="cib-sum-card"><div class="cib-sum-v" style="color:#E24B4A">' + nHot + '</div><div class="cib-sum-l">él. &lt;30j ⚡</div></div>';
+  sum += '<div class="cib-sum-card"><div class="cib-sum-v" style="color:#EF9F27">' + nWarn + '</div><div class="cib-sum-l">él. 30–90j</div></div>';
+  document.getElementById("cib-summary").innerHTML = sum;
+  var h = "";
+  for (var j = 0; j < data.length; j++) {
+    var d = data[j], s = d.s;
+    var tv = d.total || 1;
+    var cgtPct = d.cgt > 0 ? Math.round(d.cgt / tv * 100) : 0;
+    var pr2 = g(s, "pr");
+    var urgHtml = '<span class="urg-ok">—</span>';
+    if (pr2) {
+      var pts2 = pr2.split("/");
+      if (pts2.length === 3) {
+        var ts2 = new Date(parseInt(pts2[2]), parseInt(pts2[1]) - 1, parseInt(pts2[0])).getTime() / 1000;
+        var days2 = Math.round((ts2 - now) / 86400);
+        urgHtml = days2 < 0 ? '⚠ Passée' : days2 === 0 ? '⚡ Aujourd\'hui' : days2 + ' j';
+      }
+    }
+    var sitColor = d.situation === "sans" ? "#E24B4A" : "#EF9F27";
+    var sitLabel = d.situation === "sans" ? "Sans CGT" : "CGT minoritaire";
+    h += '<tr class="tr-click" onclick="openFiche(structIdxBySiret(\'' + g(s,"si") + '\'))">';
+    h += '<td>' + esc(g(s,"n")) + '</td><td>' + esc(g(s,"r")) + '</td><td>' + esc(g(s,"v")) + '</td>';
+    h += '<td>' + esc(pr2) + '</td><td>' + urgHtml + '</td>';
+    h += '<td>' + (gf(s,"pa") ? gf(s,"pa") + '%' : '—') + '</td>';
+    h += '<td>' + (d.cgt || '—') + (d.cgt ? ' (' + cgtPct + '%)' : '') + '</td>';
+    h += '<td>' + (gi(s,"cf") || '—') + '</td><td>' + (gi(s,"fo") || '—') + '</td>';
+    h += '<td>' + ((gi(s,"ct")+gi(s,"ck")+gi(s,"so")) || '—') + '</td>';
+    h += '<td><span style="color:' + sitColor + ';font-weight:700;font-size:11px">' + sitLabel + '</span></td>';
+    h += '<td>' + (g(s,"tl") ? esc(g(s,"tl")) : '') + (g(s,"em") ? '<br>' + esc(g(s,"em")) : '') + '</td>';
+    h += '</tr>';
+  }
+  if (cibViewMode === "grid") {
+    var evs = data.map(function(d) { return d.s; });
+    var cnav = document.getElementById("cib-grid-nav");
+    var clbl = document.getElementById("cib-month-lbl");
+    if (cnav) cnav.style.display = "flex";
+    if (clbl) clbl.textContent = CAL_MONTHS[cibCalMonth] + " " + cibCalYear;
+    document.getElementById("cib-grid-body").innerHTML = buildCalGrid(evs, cibCalYear, cibCalMonth);
+    document.getElementById("cib-grid-wrap").style.display = "";
+    document.getElementById("cib-table-wrap").style.display = "none";
+  } else {
+    var cnav2 = document.getElementById("cib-grid-nav");
+    if (cnav2) cnav2.style.display = "none";
+    document.getElementById("cib-grid-body").innerHTML = "";
+    document.getElementById("cib-body").innerHTML = h;
+    document.getElementById("cib-table-wrap").style.display = "";
+    document.getElementById("cib-grid-wrap").style.display = "none";
+  }
+}
+function cibSort(col) {
+  if (cibSortCol === col) cibSortDir *= -1; else { cibSortCol = col; cibSortDir = 1; }
+  document.querySelectorAll(".sa[id^='csa-']").forEach(function(el) { el.textContent = "↕"; el.classList.remove("on"); });
+  var el = document.getElementById("csa-" + col);
+  if (el) { el.textContent = cibSortDir === 1 ? "↑" : "↓"; el.classList.add("on"); }
+  buildCiblage();
+}
+function setCibView(mode) {
+  cibViewMode = mode;
+  document.getElementById('cib-list-btn').classList.toggle('on', mode === 'list');
+  document.getElementById('cib-grid-btn').classList.toggle('on', mode === 'grid');
+  buildCiblage();
+}
+function cibToday() { cibCalMonth = new Date().getMonth(); cibCalYear = new Date().getFullYear(); buildCiblage(); }
+function cibNav(dir) {
+  cibCalMonth += dir;
+  if (cibCalMonth < 0) { cibCalMonth = 11; cibCalYear--; }
+  if (cibCalMonth > 11) { cibCalMonth = 0; cibCalYear++; }
+  buildCiblage();
+}
+function doCSVCiblage() {
+  if (typeof XLSX === 'undefined') { showEditToast('⚠ SheetJS non chargé'); return; }
+  var data = getCibData();
+  var hdrs = ["NOM","REGION","VILLE","CP","SIRET","PROCHAINE_ELECTION","PARTICIPATION","CGT","CGT_PCT","CFDT","FO","AUTRES","SITUATION_CGT","TEL","EMAIL"];
+  var rows = [hdrs];
+  for (var i = 0; i < data.length; i++) {
+    var d = data[i], s = d.s;
+    var tv = d.total || 1;
+    var cgtPct = d.cgt > 0 ? Math.round(d.cgt / tv * 100) : 0;
+    rows.push([g(s,"n"),g(s,"r"),g(s,"v"),g(s,"cp"),g(s,"si"),g(s,"pr"),gf(s,"pa")||"",gi(s,"cg")||"",cgtPct||"",gi(s,"cf")||"",gi(s,"fo")||"",(gi(s,"ct")+gi(s,"ck")+gi(s,"so"))||"",d.situation==="sans"?"SANS CGT":"CGT MINORITAIRE",g(s,"tl"),g(s,"em")]);
+  }
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:40},{wch:22},{wch:20},{wch:8},{wch:16},{wch:12},{wch:12},{wch:7},{wch:9},{wch:7},{wch:7},{wch:7},{wch:16},{wch:16},{wch:28}];
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ciblage CGT');
+  XLSX.writeFile(wb, SEC + '_ciblage_cgt.xlsx');
+}
+
+/* ════════════════════════════════
+   ADHÉRENTS
+════════════════════════════════ */
+function buildAdherents() {
+  var q = (document.getElementById("adh-search").value || "").toLowerCase();
+  var regF = document.getElementById("adh-reg").value;
+  var arcF = document.getElementById("adh-arc").value;
+  var mandatF = (document.getElementById("adh-mandat") || {}).value || "";
+  var mandatNatF = (document.getElementById("adh-mandat-nat") || {}).value || "";
+  var formationF = (document.getElementById("adh-formation") || {}).value || "";
+  var grid = document.getElementById("adh-grid");
+  if (!grid) return;
+  var rows = [];
+  var sirets = Object.keys(ADHERENTS);
+  for (var si = 0; si < sirets.length; si++) {
+    var siret = sirets[si];
+    var s = null;
+    for (var i = 0; i < STRUCTS.length; i++) { if (STRUCTS[i].si === siret) { s = STRUCTS[i]; break; } }
+    if (!s) s = {n: 'Structure inconnue', r: '', si: siret};
+    if (regF && (s.r || "") !== regF) continue;
+    var lst = ADHERENTS[siret] || [];
+    for (var ai = 0; ai < lst.length; ai++) {
+      var adh = lst[ai];
+      if (arcF === "NON" && adh.arc === "OUI") continue;
+      if (arcF === "OUI" && adh.arc !== "OUI") continue;
+      if (mandatF && (!adh.mandats || adh.mandats.indexOf(mandatF) < 0)) continue;
+      if (mandatNatF && (!adh.mandats_nat || adh.mandats_nat.indexOf(mandatNatF) < 0)) continue;
+      if (formationF && (!adh.formations || adh.formations.indexOf(formationF) < 0)) continue;
+      var fullNom = (adh.civ ? adh.civ + " " : "") + adh.pre + " " + adh.nom;
+      if (q && fullNom.toLowerCase().indexOf(q) < 0 && (adh.em || "").toLowerCase().indexOf(q) < 0) continue;
+      rows.push({adh: adh, s: s, si: siret, ai: ai});
+    }
+  }
+  document.getElementById("adh-count").textContent = rows.length + " adhérent" + (rows.length > 1 ? "s" : "");
+  var h = "";
+  for (var ri = 0; ri < rows.length; ri++) {
+    var r = rows[ri];
+    var a = r.adh;
+    var fullNom2 = (a.civ ? a.civ + " " : "") + a.pre + " " + a.nom;
+    h += '<div style="background:var(--bg);border:1px solid var(--bd);border-radius:var(--rl);padding:12px;' + (a.arc === "OUI" ? "opacity:.6;" : "") + 'cursor:pointer" onclick="openFiche(structIdxBySiret(\'' + r.si + '\'))">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:flex-start">';
+    h += '<div>';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--tx)">' + esc(fullNom2) + '</div>';
+    h += '<div style="font-size:10px;color:var(--tx3);margin-top:2px">' + esc(r.s.n) + '</div>';
+    h += '<div style="font-size:10px;color:var(--tx3)">' + esc(r.s.r || "") + '</div>';
+    h += '</div>';
+    h += '<div class="ot-write-only" style="display:flex;gap:4px">';
+    h += '<button class="btn-edit-icon" onclick="event.stopPropagation();editAdhOpen(\'' + r.si + '\',' + r.ai + ')">✎</button>';
+    h += '<button class="btn-del-icon" onclick="event.stopPropagation();deleteAdh(\'' + r.si + '\',' + r.ai + ')">🗑</button>';
+    h += '</div></div>';
+    if (a.tel || a.em) {
+      h += '<div style="margin-top:8px;font-size:10px;color:var(--tx3);display:flex;gap:10px;flex-wrap:wrap">';
+      if (a.tel) h += '<a href="tel:' + a.tel.replace(/\s/g,"") + '">☎ ' + esc(a.tel) + '</a>';
+      if (a.em) h += '<a href="mailto:' + a.em + '">✉ ' + esc(a.em) + '</a>';
+      h += '</div>';
+    }
+    if (a.arc === "OUI") h += '<div style="margin-top:4px"><span style="font-size:9px;background:#888;color:#fff;padding:1px 6px;border-radius:8px">Archivé</span></div>';
+    if ((a.mandats && a.mandats.length) || (a.mandats_nat && a.mandats_nat.length) || (a.formations && a.formations.length)) {
+      h += '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">';
+      if (a.mandats && a.mandats.length) h += '<span style="font-size:9px;background:#9B59B6;color:#fff;padding:2px 7px;border-radius:8px">' + esc(a.mandats.join(' · ')) + '</span>';
+      if (a.mandats_nat && a.mandats_nat.length) h += '<span style="font-size:9px;background:#E24B4A;color:#fff;padding:2px 7px;border-radius:8px">🏛️ ' + esc(a.mandats_nat.join(' · ')) + '</span>';
+      if (a.formations && a.formations.length) h += '<span style="font-size:9px;background:#27AE60;color:#fff;padding:2px 7px;border-radius:8px">' + esc(a.formations.join(' · ')) + '</span>';
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+  if (!h) h = '<div style="color:var(--tx3);font-size:12px;padding:20px">Aucun adhérent.</div>';
+  grid.innerHTML = h;
+}
+function _populateAdhStructSelect(selected) {
+  var sel = document.getElementById("ea-struct-select");
+  if (!sel) return;
+  var list = STRUCTS.slice().sort(function(a,b) { return (a.n||"").localeCompare(b.n||"", 'fr'); });
+  var html = '<option value="">— Choisir —</option>';
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i];
+    html += '<option value="' + esc(s.si) + '"' + (s.si === selected ? ' selected' : '') + '>' + esc(s.n) + '</option>';
+  }
+  sel.innerHTML = html;
+}
+function editAdhOpen(siret, idx2) {
+  var lst = ADHERENTS[siret] || [];
+  var adh = lst[idx2] || {};
+  _populateAdhStructSelect(siret);
+  document.getElementById("ea-siret").value = siret;
+  document.getElementById("ea-idx").value = idx2;
+  document.getElementById("ea-civ").value = adh.civ || "";
+  document.getElementById("ea-pre").value = adh.pre || "";
+  document.getElementById("ea-nom").value = adh.nom || "";
+  document.getElementById("ea-tel").value = adh.tel || "";
+  document.getElementById("ea-em").value = adh.em || "";
+  document.getElementById("ea-adr").value = adh.adr || "";
+  document.getElementById("ea-adr2").value = adh.adr2 || "";
+  document.getElementById("ea-cp").value = adh.cp || "";
+  document.getElementById("ea-vil").value = adh.vil || "";
+  document.getElementById("ea-adh").value = adh.adh || "";
+  document.getElementById("ea-arc").value = adh.arc || "NON";
+  var m = adh.mandats || [];
+  document.getElementById("ea-m-ds").checked = m.indexOf("DS") >= 0;
+  document.getElementById("ea-m-rs").checked = m.indexOf("RS") >= 0;
+  document.getElementById("ea-m-cse").checked = m.indexOf("CSE Membre") >= 0;
+  document.getElementById("ea-m-tres").checked = m.indexOf("CSE Tresorier") >= 0;
+  document.getElementById("ea-m-sec").checked = m.indexOf("CSE Secretaire") >= 0;
+  var mn = adh.mandats_nat || [];
+  document.getElementById("ea-mn-cppni").checked = mn.indexOf("CPPNI") >= 0;
+  document.getElementById("ea-mn-cpnef").checked = mn.indexOf("CPNEF") >= 0;
+  document.getElementById("ea-mn-cg").checked = mn.indexOf("Conseil de Gestion") >= 0;
+  document.getElementById("ea-mn-anat").checked = mn.indexOf("Animateur National") >= 0;
+  var f = adh.formations || [];
+  document.getElementById("ea-f-part").checked = f.indexOf("Participer") >= 0;
+  document.getElementById("ea-f-impl").checked = f.indexOf("S'impliquer") >= 0;
+  document.getElementById("ea-f-cse").checked = f.indexOf("CSE-SSCT") >= 0;
+  document.getElementById("ea-f-form").checked = f.indexOf("Formateur") >= 0;
+  document.getElementById("edit-adh-overlay").classList.add("open");
+}
+function newAdhGlobal() {
+  editAdhOpen("", -1);
+}
+function editAdhClose() {
+  document.getElementById("edit-adh-overlay").classList.remove("open");
+}
+function editAdhSave() {
+  if (IS_READONLY) return;
+  var siret = document.getElementById("ea-struct-select").value || document.getElementById("ea-siret").value;
+  var idx2 = parseInt(document.getElementById("ea-idx").value);
+  if (!siret) { showEditToast("⚠ Choisissez une structure", "#E24B4A"); return; }
+  var person = {
+    civ: document.getElementById("ea-civ").value.trim(),
+    pre: document.getElementById("ea-pre").value.trim(),
+    nom: document.getElementById("ea-nom").value.trim(),
+    tel: document.getElementById("ea-tel").value.trim(),
+    em: document.getElementById("ea-em").value.trim(),
+    adr: document.getElementById("ea-adr").value.trim(),
+    adr2: document.getElementById("ea-adr2").value.trim(),
+    cp: document.getElementById("ea-cp").value.trim(),
+    vil: document.getElementById("ea-vil").value.trim(),
+    adh: document.getElementById("ea-adh").value.trim(),
+    arc: document.getElementById("ea-arc").value,
+    mandats: (function() {
+      var m = [];
+      if (document.getElementById("ea-m-ds").checked) m.push("DS");
+      if (document.getElementById("ea-m-rs").checked) m.push("RS");
+      if (document.getElementById("ea-m-cse").checked) m.push("CSE Membre");
+      if (document.getElementById("ea-m-tres").checked) m.push("CSE Tresorier");
+      if (document.getElementById("ea-m-sec").checked) m.push("CSE Secretaire");
+      return m;
+    })(),
+    mandats_nat: (function() {
+      var mn = [];
+      if (document.getElementById("ea-mn-cppni").checked) mn.push("CPPNI");
+      if (document.getElementById("ea-mn-cpnef").checked) mn.push("CPNEF");
+      if (document.getElementById("ea-mn-cg").checked) mn.push("Conseil de Gestion");
+      if (document.getElementById("ea-mn-anat").checked) mn.push("Animateur National");
+      return mn;
+    })(),
+    formations: (function() {
+      var f = [];
+      if (document.getElementById("ea-f-part").checked) f.push("Participer");
+      if (document.getElementById("ea-f-impl").checked) f.push("S'impliquer");
+      if (document.getElementById("ea-f-cse").checked) f.push("CSE-SSCT");
+      if (document.getElementById("ea-f-form").checked) f.push("Formateur");
+      return f;
+    })()
+  };
+  if (!person.nom) { showEditToast("⚠ Nom obligatoire", "#E24B4A"); return; }
+  var oldSiret = document.getElementById("ea-siret").value;
+  if (oldSiret && oldSiret !== siret && !isNaN(idx2) && idx2 >= 0 && ADHERENTS[oldSiret]) {
+    ADHERENTS[oldSiret].splice(idx2, 1);
+    idx2 = -1;
+  }
+  if (!ADHERENTS[siret]) ADHERENTS[siret] = [];
+  if (isNaN(idx2) || idx2 < 0 || idx2 >= ADHERENTS[siret].length) ADHERENTS[siret].push(person);
+  else ADHERENTS[siret][idx2] = person;
+  saveLocal();
+  autoSync();
+  editAdhClose();
+  showEditToast("✅ Adhérent enregistré");
+  buildAdherents();
+}
+function deleteAdh(siret, idx2) {
+  if (IS_READONLY) return;
+  if (!confirm("Supprimer cet adhérent ?")) return;
+  if (ADHERENTS[siret]) ADHERENTS[siret].splice(idx2, 1);
+  saveLocal();
+  autoSync();
+  showEditToast("✅ Adhérent supprimé");
+  buildAdherents();
 }
 
 /* ════════════════════════════════
