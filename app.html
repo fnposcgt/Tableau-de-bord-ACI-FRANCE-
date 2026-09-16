@@ -1743,7 +1743,12 @@ function buildNotesHtml(siret) {
   return h;
 }
 var EDIT_KEY = "aci_edits_v1";
-var EDITS = { structs:{}, contacts:{}, adherents:{}, new_structs:[], notes:{} };
+var EDITS = { structs:{}, contacts:{}, adherents:{}, new_structs:[], notes:{}, structs_ts:{}, contacts_ts:{}, adherents_ts:{}, notes_ts:{} };
+function _touchTs(cat, key){
+  var tsKey = cat + '_ts';
+  if(!EDITS[tsKey]) EDITS[tsKey] = {};
+  EDITS[tsKey][key] = Date.now();
+}
 function editsLoad(){
   try{
     var raw = localStorage.getItem(EDIT_KEY);
@@ -1880,6 +1885,7 @@ function cellEdit(ev,siret,field){
     if(!EDITS.structs) EDITS.structs={};
     if(!EDITS.structs[siret]) EDITS.structs[siret]={};
     EDITS.structs[siret][field]=newVal;
+    _touchTs('structs', siret);
     editsSave();
     showEditToast('\u2705 Sauvegardé');
     buildTable();
@@ -2024,6 +2030,7 @@ function editStructSave(){
   }
   if(!EDITS.structs) EDITS.structs={};
   EDITS.structs[siret]=patch;
+  _touchTs('structs', siret);
   editsSave();
   document.getElementById("edit-struct-overlay").classList.remove("open");
   document.body.style.overflow="";
@@ -2141,6 +2148,7 @@ function editContactSave(){
     CONTACTS_BY_REGION[reg][role][idx2] = person;
   if(!EDITS.contacts) EDITS.contacts = {};
   EDITS.contacts[reg] = JSON.parse(JSON.stringify(CONTACTS_BY_REGION[reg]));
+  _touchTs('contacts', reg);
   editsSave();
   document.getElementById("edit-contact-overlay").classList.remove("open");
   document.body.style.overflow = "";
@@ -2154,6 +2162,7 @@ function deleteContact(reg, role, idx2){
     CONTACTS_BY_REGION[reg][role].splice(idx2,1);
   if(!EDITS.contacts)EDITS.contacts={};
   EDITS.contacts[reg]=JSON.parse(JSON.stringify(CONTACTS_BY_REGION[reg]));
+  _touchTs('contacts', reg);
   editsSave();
   showEditToast("\u2705 Contact supprimé");
   buildContacts();
@@ -2299,6 +2308,7 @@ function editAdhSave(){
     ADHERENTS[siret][idx2]=person;
   if(!EDITS.adherents)EDITS.adherents={};
   EDITS.adherents[siret]=JSON.parse(JSON.stringify(ADHERENTS[siret]));
+  _touchTs('adherents', siret);
   editsSave();
   if(typeof syncPush==='function') syncPush();
   document.getElementById("edit-adh-overlay").classList.remove("open");
@@ -2312,6 +2322,7 @@ function deleteAdh(siret, idx2){
   if(ADHERENTS[siret]) ADHERENTS[siret].splice(idx2,1);
   if(!EDITS.adherents)EDITS.adherents={};
   EDITS.adherents[siret]=JSON.parse(JSON.stringify(ADHERENTS[siret]||[]));
+  _touchTs('adherents', siret);
   editsSave();
   if(typeof syncPush==='function') syncPush();
   showEditToast("\u2705 Adhérent supprimé");
@@ -2762,6 +2773,7 @@ function saveNoteEditLocal(siret, idx) {
   } else {
     EDITS.notes[siret] = JSON.parse(JSON.stringify(GS_NOTES[siret] || []));
   }
+  _touchTs('notes', siret);
   editsSave();
   var bodyEl = document.getElementById('gs-notes-body-' + siret);
   if(bodyEl) bodyEl.innerHTML = buildNotesHtml(siret);
@@ -2782,6 +2794,7 @@ function addNoteLocal(siret){
   if(!EDITS.notes)EDITS.notes={};
   if(!EDITS.notes[siret])EDITS.notes[siret]=[];
   EDITS.notes[siret].push(note);
+  _touchTs('notes', siret);
   editsSave();
   try{if(who&&who.value.trim())localStorage.setItem('fnpos_note_author',who.value.trim());}catch(e){}
   var nb=document.getElementById('gs-notes-body-'+siret);
@@ -6111,24 +6124,36 @@ function syncPush(onDone) {
 
 /* ── Merge helpers ── */
 function _mergeEdits(local, remote) {
-  /* Union des deux objets EDITS, le local gagne sur conflit de clé */
+  /* Union des deux objets EDITS ; la modification la plus récente gagne par clé (structure/région),
+     grâce aux horodatages compagnons *_ts. À égalité ou en l'absence d'horodatage (anciennes données
+     jamais retouchées), le local gagne — comportement historique conservé pour la rétrocompatibilité. */
   if (!remote) return local;
   if (!local)  return remote;
-  var out = { structs:{}, contacts:{}, adherents:{}, new_structs:[], notes:{} };
-  /* structs, contacts, adherents, notes : objets {siret: {champ:val}} */
+  var out = { structs:{}, contacts:{}, adherents:{}, new_structs:[], notes:{}, structs_ts:{}, contacts_ts:{}, adherents_ts:{}, notes_ts:{} };
   var objKeys = ['structs','contacts','adherents','notes'];
   for (var oi=0; oi<objKeys.length; oi++) {
     var k = objKeys[oi];
+    var tsK = k + '_ts';
     var loc = local[k]  || {};
     var rem = remote[k] || {};
+    var locTs = local[tsK]  || {};
+    var remTs = remote[tsK] || {};
     out[k] = {};
-    /* remote d'abord, puis local écrase */
-    var keys = Object.keys(rem);
-    for (var i=0; i<keys.length; i++) out[k][keys[i]] = rem[keys[i]];
-    keys = Object.keys(loc);
-    for (var i=0; i<keys.length; i++) {
-      if (loc[k] !== undefined) { /* always true */ }
-      out[k][keys[i]] = loc[keys[i]]; /* local wins */
+    out[tsK] = {};
+    var allKeys = {};
+    var ki, kl = Object.keys(loc); for (ki=0; ki<kl.length; ki++) allKeys[kl[ki]] = 1;
+    var kr = Object.keys(rem); for (ki=0; ki<kr.length; ki++) allKeys[kr[ki]] = 1;
+    var uk = Object.keys(allKeys);
+    for (ki=0; ki<uk.length; ki++) {
+      var key = uk[ki];
+      var lt = locTs[key] || 0;
+      var rt = remTs[key] || 0;
+      var hasLoc = loc[key] !== undefined;
+      var hasRem = rem[key] !== undefined;
+      var useLocal = (lt !== rt) ? (lt > rt) : true;
+      if (useLocal && hasLoc)      { out[k][key] = loc[key]; out[tsK][key] = lt || rt; }
+      else if (hasRem)             { out[k][key] = rem[key]; out[tsK][key] = rt; }
+      else if (hasLoc)             { out[k][key] = loc[key]; out[tsK][key] = lt; }
     }
   }
   /* new_structs : concat dédupliqué par si */
