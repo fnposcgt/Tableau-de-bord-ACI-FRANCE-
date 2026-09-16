@@ -97,13 +97,6 @@ header p{font-size:11px;color:var(--text2);letter-spacing:1.5px;text-transform:u
 footer{text-align:center;padding:20px;font-size:11px;color:var(--footer-tx);border-top:1px solid var(--footer-bd)}
 footer span{color:#E24B4A}
 </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E24B4A">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="FNPOS-CGT">
-<link rel="apple-touch-icon" href="logo-cgt.png">
 </head>
 <body>
 
@@ -391,26 +384,12 @@ footer span{color:#E24B4A}
     <!-- KPIs -->
     <div class="kpis">
       <div class="kpi">
-        <div class="kpi-val" id="kpi-structs">3 405</div>
-        <div class="kpi-lbl">Structures ACI</div>
-        <div class="kpi-sec" id="kpi-structs-sub">Toutes branches</div>
+        <div class="kpi-val">3 405</div>
+        <div class="kpi-lbl">Structures</div>
+        <div class="kpi-sec">Toutes branches</div>
       </div>
       <div class="kpi">
         <div class="kpi-val" id="kpi-adh">60</div>
-        <div class="kpi-lbl">Adhérents CGT</div>
-        <div class="kpi-sec" id="kpi-adh-date">Base connue</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-val">453 857</div>
-        <div class="kpi-lbl">Inscrits Cycle 4</div>
-        <div class="kpi-sec">Tous secteurs</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-val" id="kpi-secteurs">—</div>
-        <div class="kpi-lbl">Structures autres secteurs</div>
-        <div class="kpi-sec" id="kpi-secteurs-sub">Chargement…</div>
-      </div>
-    </div>
         <div class="kpi-lbl">Adhérents CGT</div>
         <div class="kpi-sec" id="kpi-adh-date">Base connue</div>
       </div>
@@ -471,7 +450,7 @@ footer span{color:#E24B4A}
       <div style="font-size:10px;color:var(--text2);margin-bottom:12px">Arrêtés de représentativité 2024-2025 · Triés par score CGT décroissant</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
         
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #639922">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #639922;cursor:pointer" onclick="window.location='app-secteur.html?sec=ml&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🎓</span>
             <div>
@@ -494,7 +473,7 @@ footer span{color:#E24B4A}
           <div style="display:flex;align-items:flex-end;gap:3px;height:58px;border-top:1px solid var(--card-bd);padding-top:7px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">38.0%</div><div style="width:18px;height:33px;background:#639922;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2018</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">45.5%</div><div style="width:18px;height:40px;background:#639922;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2021</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">34.0%</div><div style="width:18px;height:30px;background:#639922;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2023</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">43.7%</div><div style="width:18px;height:38px;background:#639922;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2024</div></div></div>
           <a href="app-secteur.html?sec=ml&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#639922;text-decoration:none;text-align:center;border:1px solid #63992222;border-radius:5px;padding:3px">&#8599; Tableau de bord Missions Locales</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #378ADD">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #378ADD;cursor:pointer" onclick="window.location='app-secteur.html?sec=ad&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🏠</span>
             <div>
@@ -517,7 +496,7 @@ footer span{color:#E24B4A}
           <div style="display:flex;align-items:flex-end;gap:3px;height:58px;border-top:1px solid var(--card-bd);padding-top:7px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">40.3%</div><div style="width:18px;height:40px;background:#378ADD;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2018</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">31.5%</div><div style="width:18px;height:31px;background:#378ADD;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2021</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">31.8%</div><div style="width:18px;height:32px;background:#378ADD;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2023</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">31.9%</div><div style="width:18px;height:32px;background:#378ADD;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2024</div></div></div>
           <a href="app-secteur.html?sec=ad&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#378ADD;text-decoration:none;text-align:center;border:1px solid #378ADD22;border-radius:5px;padding:3px">&#8599; Tableau de bord Aides à Domicile</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #E24B4A">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #E24B4A;cursor:pointer" onclick="window.location='app.html?readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🏗️</span>
             <div>
@@ -540,7 +519,7 @@ footer span{color:#E24B4A}
           <div style="display:flex;align-items:flex-end;gap:3px;height:58px;border-top:1px solid var(--card-bd);padding-top:7px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">23.7%</div><div style="width:18px;height:26px;background:#E24B4A;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2021</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">35.1%</div><div style="width:18px;height:39px;background:#E24B4A;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2022</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">36.3%</div><div style="width:18px;height:40px;background:#E24B4A;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2023</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">29.4%</div><div style="width:18px;height:32px;background:#E24B4A;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2024</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">14.3%</div><div style="width:18px;height:16px;background:#E24B4A;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2025*</div></div></div>
           <a href="app.html?readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#E24B4A;text-decoration:none;text-align:center;border:1px solid #E24B4A22;border-radius:5px;padding:3px">&#8599; Tableau de bord ACI</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #F97316">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #F97316;cursor:pointer" onclick="window.location='app-secteur.html?sec=ss&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🏥</span>
             <div>
@@ -563,7 +542,7 @@ footer span{color:#E24B4A}
           <div style="display:flex;align-items:flex-end;gap:3px;height:58px;border-top:1px solid var(--card-bd);padding-top:7px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">39.7%</div><div style="width:18px;height:40px;background:#F97316;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2018</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">32.0%</div><div style="width:18px;height:32px;background:#F97316;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2021</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">25.0%</div><div style="width:18px;height:25px;background:#F97316;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2023</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">26.5%</div><div style="width:18px;height:27px;background:#F97316;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2024</div></div></div>
           <a href="app-secteur.html?sec=ss&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#F97316;text-decoration:none;text-align:center;border:1px solid #F9731622;border-radius:5px;padding:3px">&#8599; Tableau de bord Sécurité Sociale</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #EF9F27">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #EF9F27;cursor:pointer" onclick="window.location='app-secteur.html?sec=rq&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🏘️</span>
             <div>
@@ -586,7 +565,7 @@ footer span{color:#E24B4A}
           
           <a href="app-secteur.html?sec=rq&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#EF9F27;text-decoration:none;text-align:center;border:1px solid #EF9F2722;border-radius:5px;padding:3px">&#8599; Tableau de bord Régies de Quartier</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #8B5CF6">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #8B5CF6;cursor:pointer" onclick="window.location='app-secteur.html?sec=mut&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🤝</span>
             <div>
@@ -609,7 +588,7 @@ footer span{color:#E24B4A}
           <div style="display:flex;align-items:flex-end;gap:3px;height:58px;border-top:1px solid var(--card-bd);padding-top:7px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">24.0%</div><div style="width:18px;height:36px;background:#8B5CF6;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2018</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">11.6%</div><div style="width:18px;height:18px;background:#8B5CF6;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2021</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">19.7%</div><div style="width:18px;height:30px;background:#8B5CF6;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2023</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">26.5%</div><div style="width:18px;height:40px;background:#8B5CF6;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2024</div></div></div>
           <a href="app-secteur.html?sec=mut&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#8B5CF6;text-decoration:none;text-align:center;border:1px solid #8B5CF622;border-radius:5px;padding:3px">&#8599; Tableau de bord Mutualité</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #EC4899">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #EC4899;cursor:pointer" onclick="window.location='app-secteur.html?sec=gps&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🛡️</span>
             <div>
@@ -632,7 +611,7 @@ footer span{color:#E24B4A}
           <div style="display:flex;align-items:flex-end;gap:3px;height:58px;border-top:1px solid var(--card-bd);padding-top:7px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">14.3%</div><div style="width:18px;height:18px;background:#EC4899;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2018</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">31.3%</div><div style="width:18px;height:40px;background:#EC4899;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2021</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">14.5%</div><div style="width:18px;height:19px;background:#EC4899;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2023</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="font-size:8px;color:#E24B4A;font-weight:700">0.0%</div><div style="width:18px;height:4px;background:#EC4899;border-radius:2px 2px 0 0;opacity:.85"></div><div style="font-size:7px;color:var(--text3)">2024</div></div></div>
           <a href="app-secteur.html?sec=gps&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#EC4899;text-decoration:none;text-align:center;border:1px solid #EC489922;border-radius:5px;padding:3px">&#8599; Tableau de bord GPS</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #14B8A6">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #14B8A6;cursor:pointer" onclick="window.location='app-secteur.html?sec=msa&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">🌾</span>
             <div>
@@ -655,7 +634,7 @@ footer span{color:#E24B4A}
           
           <a href="app-secteur.html?sec=msa&readonly&amp;tab=ciblage" style="display:block;margin-top:8px;font-size:9px;color:#14B8A6;text-decoration:none;text-align:center;border:1px solid #14B8A622;border-radius:5px;padding:3px">&#8599; Tableau de bord MSA</a>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #6B7280">
+        <div style="background:var(--bg);border:1px solid var(--card-bd);border-radius:10px;padding:12px;border-top:3px solid #6B7280;cursor:pointer" onclick="window.location='app-secteur.html?sec=ft&readonly&tab=ciblage'">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             <span style="font-size:16px">💼</span>
             <div>
@@ -956,7 +935,6 @@ function loadFedKpis() {
   buildAgenda('all');
   buildReprTable();
   buildStructsTable();
-  loadSecteurKpis(); /* ← lecture temps réel de tous les secteurs */
   var xhr = new XMLHttpRequest();
   xhr.open('GET', SB_URL + '/rest/v1/aci_sync?id=eq.1&select=edits,conquete,updated_at', true);
   xhr.setRequestHeader('apikey', SB_KEY);
@@ -996,77 +974,6 @@ function showFedError() {
   var msg = '<div style="color:var(--text2);font-size:12px;text-align:center;padding:8px">Données non disponibles</div>';
   if (c) c.innerHTML = msg;
   if (a) a.innerHTML = msg;
-}
-
-/* ── Lecture temps réel secteur_sync → KPI fédération ── */
-var SECT_LABELS = {
-  ml:'Missions Locales', ss:'Sécurité Sociale', ad:'Aide à Domicile',
-  rq:'Régies de Quartiers', mut:'Mutuelles', gps:'GPS',
-  msa:'MSA', ft:'Formation'
-};
-
-function loadSecteurKpis() {
-  var url = SB_URL + '/rest/v1/secteur_sync?select=id,kpis,ts';
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.setRequestHeader('apikey', SB_KEY);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + SB_KEY);
-  xhr.timeout = 8000;
-  xhr.onload = function() {
-    if (xhr.status !== 200) return;
-    try {
-      var rows = JSON.parse(xhr.responseText);
-      if (!rows || !rows.length) return;
-      var totalStructs = 0;
-      var sectData = [];
-      for (var i = 0; i < rows.length; i++) {
-        var r = rows[i];
-        var kpis = r.kpis || {};
-        var nb = kpis.nb || 0;
-        totalStructs += nb;
-        if (nb > 0) {
-          sectData.push({
-            id: r.id,
-            lbl: SECT_LABELS[r.id] || r.id.toUpperCase(),
-            nb: nb,
-            avec_elec: kpis.avec_elec || 0,
-            score_cgt: kpis.score_cgt || 0,
-            ts: r.ts
-          });
-        }
-      }
-      /* Mettre à jour le KPI "Structures autres secteurs" */
-      var elSect = document.getElementById('kpi-secteurs');
-      var elSub  = document.getElementById('kpi-secteurs-sub');
-      if (elSect) elSect.textContent = totalStructs > 0 ? totalStructs.toLocaleString('fr-FR') : '\u2014';
-      if (elSub)  elSub.textContent  = sectData.length + ' secteur(s) avec données';
-      /* Ajouter les lignes secteurs dans le tableau structures */
-      _appendSecteurRows(sectData);
-    } catch(e) {}
-  };
-  xhr.send();
-}
-
-function _appendSecteurRows(rows) {
-  var tbody = document.getElementById('structs-table-body');
-  if (!tbody) return;
-  /* Chercher s'il y a déjà des lignes secteur (éviter les doublons) */
-  var existing = tbody.querySelectorAll('tr.sect-live');
-  for (var i = 0; i < existing.length; i++) existing[i].parentNode.removeChild(existing[i]);
-  /* Ajouter les lignes */
-  rows.sort(function(a,b){ return b.nb - a.nb; });
-  for (var j = 0; j < rows.length; j++) {
-    var r = rows[j];
-    var ts = r.ts ? new Date(r.ts).toLocaleDateString('fr-FR') : '';
-    var tr = document.createElement('tr');
-    tr.className = 'sect-live';
-    tr.style.borderTop = j === 0 ? '2px solid var(--card-bd)' : '';
-    tr.innerHTML = '<td style="padding:5px 10px;color:var(--text)">' + r.lbl + '</td>'
-      + '<td style="text-align:right;padding:5px 8px">' + r.nb.toLocaleString('fr-FR') + '</td>'
-      + '<td style="text-align:right;padding:5px 8px">' + (r.avec_elec || '\u2014') + '</td>'
-      + '<td style="text-align:right;padding:5px 8px">' + (r.score_cgt ? r.score_cgt + '\u202f%' : '\u2014') + '</td>';
-    tbody.appendChild(tr);
-  }
 }
 
 function buildConquete(raw) {
@@ -1284,21 +1191,5 @@ function showTab(name, btn) {
 }
 </script>
 
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function() {
-    navigator.serviceWorker.register("./sw.js").then(function(reg) {
-      reg.addEventListener("updatefound", function() {
-        var w = reg.installing;
-        w.addEventListener("statechange", function() {
-          if (w.state === "installed" && navigator.serviceWorker.controller) {
-            w.postMessage({ type: "SKIP_WAITING" });
-          }
-        });
-      });
-    });
-  });
-}
-</script>
 </body>
 </html>

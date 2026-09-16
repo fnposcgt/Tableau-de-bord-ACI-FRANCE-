@@ -1200,6 +1200,26 @@ function init() {
   renderTable();
   renderConquete();
   buildRegionFilter();
+
+  /* Ouvrir un onglet directement depuis l'URL ?tab=xxx */
+  var urlTab = ''; try { urlTab = new URLSearchParams(window.location.search).get('tab') || ''; } catch(e) {}
+  if (urlTab) {
+    window.setTimeout(function() {
+      var btn = document.querySelector('.nav .nb[onclick*="\'' + urlTab + '\'"]');
+      showTab(urlTab, btn);
+    }, 120);
+  }
+
+  /* Ouvrir une fiche directement depuis l'URL ?fiche=SIRET */
+  try {
+    var ficheParam = new URLSearchParams(window.location.search).get('fiche');
+    if (ficheParam) {
+      window.setTimeout(function() {
+        var idx = structIdxBySiret(ficheParam);
+        if (idx >= 0) openFiche(idx);
+      }, 400);
+    }
+  } catch(e) {}
 }
 
 /* ════════════════════════════════
