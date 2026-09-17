@@ -1420,8 +1420,8 @@ function openFiche(siret) {
     for(var _ci=0; _ci<s.colleges.length; _ci++) {
       var _col = s.colleges[_ci];
       h += '<div style="background:var(--bg2);border-radius:8px;padding:10px;margin-bottom:8px">';
-      h += '<div style="font-weight:700;font-size:12px;color:var(--tx);margin-bottom:4px">' + esc(_col.n||('Coll\u00e8ge '+(_ci+1))) + '</div>';
-      if(_col.csp) h += '<div style="font-size:11px;color:var(--tx3);margin-bottom:6px">' + esc(_col.csp) + '</div>';
+      h += '<div style="font-weight:700;font-size:12px;color:var(--tx);margin-bottom:4px">' + escapeHtml(_col.n||('Coll\u00e8ge '+(_ci+1))) + '</div>';
+      if(_col.csp) h += '<div style="font-size:11px;color:var(--tx3);margin-bottom:6px">' + escapeHtml(_col.csp) + '</div>';
       h += '<div class="fiche-grid">';
       if(_col.sieges)   h += field("Si\u00e8ges \u00e0 pourvoir", _col.sieges);
       if(_col.quotient) h += field("Quotient \u00e9lectoral", _col.quotient);
@@ -1432,7 +1432,7 @@ function openFiche(siret) {
         for(var _si=0; _si<_col.synd.length; _si++) {
           var _sy = _col.synd[_si];
           h += '<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0">';
-          h += '<span>' + esc(_sy.n||'\u2014') + '</span>';
+          h += '<span>' + escapeHtml(_sy.n||'\u2014') + '</span>';
           h += '<span>' + (_sy.voix?fmt(parseInt(_sy.voix))+' voix':'') + (_sy.pct?' \u2014 '+_sy.pct+'%':'') + '</span>';
           h += '</div>';
         }
@@ -2077,9 +2077,9 @@ function esAddCollege(data){
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
     +'<span style="font-size:11px;font-weight:700;color:var(--tx2)">Coll\u00e8ge</span>'
     +'<button type="button" class="btn-del-icon" onclick="this.closest(\'.es-college-block\').remove()">&#128465;</button></div>'
-    +'<div class="edit-field"><label>Nom du coll\u00e8ge</label><input class="es-col-nom" type="text" value="'+esc(d.n||'')+'" placeholder="ex : Coll\u00e8ge employ\u00e9s"></div>'
-    +'<div class="edit-field"><label>Cat\u00e9gories socio-pro</label><input class="es-col-csp" type="text" value="'+esc(d.csp||'')+'" placeholder="ex : Ouvriers, employ\u00e9s"></div>'
-    +'<div class="edit-field-row"><div class="edit-field"><label>Si\u00e8ges \u00e0 pourvoir</label><input class="es-col-sieges" type="number" min="0" value="'+esc(d.sieges||'')+'"></div><div class="edit-field"><label>Quotient \u00e9lectoral</label><input class="es-col-quotient" type="number" min="0" step="0.01" value="'+esc(d.quotient||'')+'"></div></div>'
+    +'<div class="edit-field"><label>Nom du coll\u00e8ge</label><input class="es-col-nom" type="text" value="'+escapeHtml(d.n||'')+'" placeholder="ex : Coll\u00e8ge employ\u00e9s"></div>'
+    +'<div class="edit-field"><label>Cat\u00e9gories socio-pro</label><input class="es-col-csp" type="text" value="'+escapeHtml(d.csp||'')+'" placeholder="ex : Ouvriers, employ\u00e9s"></div>'
+    +'<div class="edit-field-row"><div class="edit-field"><label>Si\u00e8ges \u00e0 pourvoir</label><input class="es-col-sieges" type="number" min="0" value="'+escapeHtml(d.sieges||'')+'"></div><div class="edit-field"><label>Quotient \u00e9lectoral</label><input class="es-col-quotient" type="number" min="0" step="0.01" value="'+escapeHtml(d.quotient||'')+'"></div></div>'
     +'<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin:8px 0 4px">R\u00e9sultats par syndicat</div>'
     +'<div class="es-synd-list"></div>'
     +'<button type="button" class="btn-cancel" style="font-size:10px;padding:4px 8px" onclick="esAddSyndicat(this.previousElementSibling)">+ Syndicat</button>';
@@ -2094,9 +2094,9 @@ function esAddSyndicat(container, data){
   row.className='es-syn-row';
   row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:5px';
   row.innerHTML=
-    '<input class="es-syn-nom" type="text" placeholder="Syndicat" value="'+esc(d.n||'')+'" style="flex:1.2;font-size:11px;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)">'
-    +'<input class="es-syn-voix" type="number" min="0" placeholder="Voix" value="'+esc(d.voix||'')+'" style="width:64px;font-size:11px;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)">'
-    +'<input class="es-syn-pct" type="number" min="0" max="100" step="0.1" placeholder="%" value="'+esc(d.pct||'')+'" style="width:56px;font-size:11px;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)">'
+    '<input class="es-syn-nom" type="text" placeholder="Syndicat" value="'+escapeHtml(d.n||'')+'" style="flex:1.2;font-size:11px;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)">'
+    +'<input class="es-syn-voix" type="number" min="0" placeholder="Voix" value="'+escapeHtml(d.voix||'')+'" style="width:64px;font-size:11px;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)">'
+    +'<input class="es-syn-pct" type="number" min="0" max="100" step="0.1" placeholder="%" value="'+escapeHtml(d.pct||'')+'" style="width:56px;font-size:11px;padding:5px 7px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)">'
     +'<button type="button" class="btn-del-icon" onclick="this.closest(\'.es-syn-row\').remove()">&#10005;</button>';
   container.appendChild(row);
 }
@@ -2141,7 +2141,7 @@ function editStructSave(){
     nbcol:document.getElementById("es-nbcol").value.trim(),
     dm:document.getElementById("es-dm").value.trim(),
     ep:document.getElementById("es-ep").value,
-    sve:document.getElementById("es-sve").value,
+    sve:document.getElementById("es-sve").value.trim(),
     car:document.getElementById("es-car").value,
     colleges: esCollectColleges()
   };
@@ -6047,7 +6047,7 @@ if(GS_URL) gsLoad();
       <div class="edit-field-row"><div class="edit-field"><label>Nombre de coll&egrave;ges</label><input id="es-nbcol" type="number" min="0" max="20"></div><div class="edit-field"><label>Dur&eacute;e du mandat</label><input id="es-dm" type="text" placeholder="ex : 4 ans"></div></div>
       <div class="edit-field-row">
         <div class="edit-field"><label>&Eacute;lection partielle</label><select id="es-ep"><option value="">-</option><option value="OUI">OUI</option><option value="NON">NON</option></select></div>
-        <div class="edit-field"><label>SVE</label><select id="es-sve"><option value="">-</option><option value="OUI">OUI</option><option value="NON">NON</option></select></div>
+        <div class="edit-field"><label>SVE</label><input id="es-sve" type="number" min="0" placeholder="ex : 0"></div>
       </div>
       <div class="edit-field"><label>Carence de candidature</label><select id="es-car"><option value="">-</option><option value="OUI">OUI</option><option value="NON">NON</option></select></div>
 
