@@ -569,7 +569,7 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
   <div id="auth-card">
     <div id="auth-logo">CGT</div>
     <div id="auth-org">FNPOS-CGT — Portail fédéral</div>
-    <div id="auth-sector">Chargement…</div>
+    <div id="auth-sector">Missions Locales</div>
     <div id="auth-mode" class="auth-mode-admin">🔐 Administration</div>
     <input type="password" id="auth-input" placeholder="Mot de passe" autocomplete="current-password">
     <button id="auth-btn" onclick="checkAuth()">Accéder</button>
@@ -800,11 +800,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var sessionKey = IS_READONLY ? 'fnpos_auth_ro' : ('fnpos_auth_admin_' + _SEC);
   var already = false;
   try { already = sessionStorage.getItem(sessionKey) === '1'; } catch(e) {}
-  /* Masquer le lock-screen natif et bypasser son IIFE */
+  /* Masquer le lock-screen natif si présent (héritage ACI — no-op dans ML) */
   var ls = document.getElementById('lock-screen');
   if(ls) ls.style.display = 'none';
-  /* Marquer comme "unlocked" pour l'IIFE du lock-screen natif */
-  try { sessionStorage.setItem('fnpos_auth_admin_'+SEC, '1'); } catch(e) {}
+  /* NE PAS pré-setter la clé session ici — c'est authSuccess() qui le fait après vérif MDP */
   if (!already) {
     initAuth();
     /* Mettre à jour le label du bouton biométrie si déjà enregistré */
