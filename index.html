@@ -20,6 +20,13 @@
   --radius:12px;
   --shadow:0 4px 24px rgba(0,0,0,.45);
 }
+body.light{
+  --bg:#fff;--bg2:#f5f4f0;--bg3:#eceae3;
+  --tx1:#1a1a18;--tx2:#5f5e5a;--tx3:#888780;
+  --border:rgba(0,0,0,.10);
+  --shadow:0 4px 24px rgba(0,0,0,.12);
+}
+body{transition:background .2s,color .2s}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--tx1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
 
@@ -124,6 +131,9 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
     <button id="auth-bio-btn" onclick="tryBiometric()">🪪 Utiliser la biométrie / code PIN</button>
     <div id="auth-error"></div>
     <div id="auth-hint">Accès consultation — tous secteurs FNPOS-CGT</div>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      <a href="javascript:history.back()" style="font-size:12px;color:var(--tx3);text-decoration:none;display:inline-flex;align-items:center;gap:4px">&#8592; Retour</a>
+    </div>
   </div>
 </div>
 
@@ -138,6 +148,7 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
     <div class="hdr-sync" id="hdr-sync">
       <div class="sync-dot" id="sync-dot"></div>
       <span class="sync-label" id="sync-label">—</span>
+      <button id="theme-toggle" onclick="toggleTheme()" title="Thème clair/sombre" style="margin-left:8px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--tx1);cursor:pointer;font-size:14px;line-height:1;">🌙</button>
     </div>
   </div>
 </header>
@@ -445,6 +456,29 @@ function updateSyncStatus(state) {
   else if (state==='offline') { label.textContent = 'Hors ligne'; }
   else                        { label.textContent = 'Erreur sync'; }
 }
+
+/* ── THÈME JOUR/NUIT ── */
+function toggleTheme() {
+  var body = document.body;
+  var isLight = !body.classList.contains('light');
+  body.classList.toggle('light', isLight);
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = isLight ? '☀️' : '🌙';
+  try { localStorage.setItem('fnpos_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+}
+/* Restaurer le thème enregistré (partagé avec les apps secteur) */
+(function() {
+  try {
+    var saved = localStorage.getItem('fnpos_theme');
+    if (saved === 'light') {
+      document.body.classList.add('light');
+      document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('theme-toggle');
+        if (btn) btn.textContent = '☀️';
+      });
+    }
+  } catch(e) {}
+})();
 
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', function() {
