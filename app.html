@@ -569,7 +569,10 @@ td.td-adh{vertical-align:top;min-width:200px;width:240px;padding:4px 6px}
 <script>
 (function(){
   if(window.location.search.indexOf('readonly') !== -1){
-    var ov = document.getElementById('ro-overlay');
+    // Remplacer :
+if(v === 'Org@soc93100'){
+// Par :
+if(v === 'Org@soc93100RO' || v === 'Org@soc93100ACI' || v === 'Org@soc93100MASTER'){var ov = document.getElementById('ro-overlay');
     ov.style.display = 'flex';
     document.getElementById('wrap').style.display = 'none';
     // Masquer le lock-screen natif immédiatement
