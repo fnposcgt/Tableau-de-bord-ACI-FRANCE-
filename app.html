@@ -1189,7 +1189,19 @@ var STRUCTS_BY_SEC = {
 /* Détection du secteur depuis l'URL (?sec=ml, ?sec=ss, ...) */
 var SEC = (function(){
   var m = window.location.search.match(/[?&]sec=([a-z]+)/);
-  return (m && SECTORS[m[1]]) ? m[1] : 'aci';
+  if (m && SECTORS[m[1]]) {
+    try { localStorage.setItem('_fnpos_last_sec', m[1]); } catch(e){}
+    return m[1];
+  }
+  /* Pas de paramètre dans l'URL (rechargement PWA, raccourci…) : restaurer le dernier secteur visité */
+  try {
+    var saved = localStorage.getItem('_fnpos_last_sec');
+    if (saved && SECTORS[saved]) {
+      try { history.replaceState(null,'',window.location.pathname+'?sec='+saved+(window.location.hash||'')); } catch(e){}
+      return saved;
+    }
+  } catch(e){}
+  return 'aci';
 })();
 var CFG = SECTORS[SEC];
 /* ═══════════════════════════════════════════════════════ */
@@ -1628,30 +1640,34 @@ function openFiche(siret) {
   var trueReg=reg; try{trueReg=(typeof DEPT_TO_REGION!=='undefined')?(DEPT_TO_REGION[deptKey]||reg):reg;}catch(e){}
   var cntData=null; try{cntData=(typeof CONTACTS_BY_REGION!=='undefined')?(CONTACTS_BY_REGION[trueReg]||CONTACTS_BY_REGION[reg]||null):null;}catch(e){}
   var hasCnt=false,cntH="";
-  if(cntData){
-    var fRoles=[{key:"referents",label:"R\u00e9f\u00e9rents",color:"#E24B4A"},{key:"membres_cef",label:"CEF",color:"#185fa5"}];
-    for(var fr=0;fr<fRoles.length;fr++){
-      var fp=cntData[fRoles[fr].key]||[];
-      for(var fp2=0;fp2<fp.length;fp2++){
-        var p=fp[fp2];hasCnt=true;
-        var _gc=getCoords(p.nom);
-        var pTel=p.tel||_gc.tel||"";
-        var pEmail=p.email||_gc.email||"";
-        cntH+='<div class="fiche-contact-row">';
-        cntH+='<span class="fiche-badge" style="background:'+fRoles[fr].color+'">'+ fRoles[fr].label+'</span>';
-        cntH+='<span style="font-weight:600">'+p.nom+'</span>';
-        if(pTel)cntH+='<a href="tel:'+pTel.replace(/\s/g,"")+'" style="color:var(--tx3);font-size:10px">&#9990; '+pTel+'</a>';
-        if(pEmail)cntH+='<a href="mailto:'+pEmail+'" style="color:var(--tx2);font-size:10px">&#9993; '+pEmail+'</a>';
-        cntH+='</div>';
+  try {
+    if(cntData){
+      var fRoles=[{key:"referents",label:"R\u00e9f\u00e9rents",color:"#E24B4A"},{key:"membres_cef",label:"CEF",color:"#185fa5"}];
+      for(var fr=0;fr<fRoles.length;fr++){
+        var fp=cntData[fRoles[fr].key]||[];
+        for(var fp2=0;fp2<fp.length;fp2++){
+          var p=fp[fp2];hasCnt=true;
+          var _gc=getCoords(p.nom);
+          var pTel=p.tel||_gc.tel||"";
+          var pEmail=p.email||_gc.email||"";
+          cntH+='<div class="fiche-contact-row">';
+          cntH+='<span class="fiche-badge" style="background:'+fRoles[fr].color+'">'+ fRoles[fr].label+'</span>';
+          cntH+='<span style="font-weight:600">'+p.nom+'</span>';
+          if(pTel)cntH+='<a href="tel:'+pTel.replace(/\s/g,"")+'" style="color:var(--tx3);font-size:10px">&#9990; '+pTel+'</a>';
+          if(pEmail)cntH+='<a href="mailto:'+pEmail+'" style="color:var(--tx2);font-size:10px">&#9993; '+pEmail+'</a>';
+          cntH+='</div>';
+        }
       }
     }
-  }
+  } catch(e){ console.error("openFiche cntData error:", e); }
   var oldRegsArr=[]; try{oldRegsArr=(typeof RESPONSABLES_ANCIENNES_REGIONS!=='undefined')?(RESPONSABLES_ANCIENNES_REGIONS[trueReg]||RESPONSABLES_ANCIENNES_REGIONS[reg]||[]):[];}catch(e){}
   var respEntry=null;
-  for(var oi3=0;oi3<oldRegsArr.length;oi3++){
-    if(oldRegsArr[oi3].ancien===oldReg){respEntry=oldRegsArr[oi3];break;}
-    if(oldRegsArr.length===1){respEntry=oldRegsArr[0];break;}
-  }
+  try {
+    for(var oi3=0;oi3<oldRegsArr.length;oi3++){
+      if(oldRegsArr[oi3].ancien===oldReg){respEntry=oldRegsArr[oi3];break;}
+      if(oldRegsArr.length===1){respEntry=oldRegsArr[0];break;}
+    }
+  } catch(e){}
   /* ── CC emails pour printFiche (calculés ici car le popup Blob n'a pas accès aux données) ── */
   var _refEmailsCC=[];
   if(cntData&&cntData.referents){for(var _rci=0;_rci<cntData.referents.length;_rci++){if(cntData.referents[_rci].email)_refEmailsCC.push(cntData.referents[_rci].email);}}
@@ -1659,7 +1675,7 @@ function openFiche(siret) {
   if(respEntry&&respEntry.responsables){for(var _rsi=0;_rsi<respEntry.responsables.length;_rsi++){if(respEntry.responsables[_rsi].email)_respEmailsCC.push(respEntry.responsables[_rsi].email);}}
   window._ficheCtx.siret=g(s,"si");
   window._ficheCtx.ccEmails=_refEmailsCC.concat(_respEmailsCC);
-  if(respEntry&&respEntry.responsables.length>0){
+  try { if(respEntry&&respEntry.responsables&&respEntry.responsables.length>0){
     cntH+='<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--bd)">';
     cntH+='<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--tx3);margin-bottom:4px">Responsables — '+(oldReg||reg)+'</div>';
     for(var rr=0;rr<respEntry.responsables.length;rr++){
@@ -1672,7 +1688,7 @@ function openFiche(siret) {
       cntH+='</div>';
     }
     cntH+='</div>';
-  }
+  }} catch(e){ console.error("openFiche respEntry error:", e); }
   if(hasCnt){
     h+='<div class="fiche-section">';
     h+='<div class="fiche-section-title">Contacts CGT région</div>';
@@ -1726,8 +1742,10 @@ function openFiche(siret) {
   }
   h += '</div>';
   try { document.getElementById("fiche-body").innerHTML = h; } catch(e){}
-  document.getElementById("fiche-overlay").classList.add("open");
-  document.body.style.overflow = "hidden";
+  try {
+    document.getElementById("fiche-overlay").classList.add("open");
+    document.body.style.overflow = "hidden";
+  } catch(e){ console.error("openFiche overlay error:", e); }
   /* Mémoriser l'onglet actif pour y revenir à la fermeture */
   try { _ficheReturnTab = localStorage.getItem('fnpos_tab_'+SEC) || ''; } catch(e) { _ficheReturnTab = ''; }
 }
