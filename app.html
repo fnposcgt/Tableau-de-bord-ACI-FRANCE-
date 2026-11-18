@@ -1190,13 +1190,14 @@ var STRUCTS_BY_SEC = {
 var SEC = (function(){
   var m = window.location.search.match(/[?&]sec=([a-z]+)/);
   if (m && SECTORS[m[1]]) {
-    try { localStorage.setItem('_fnpos_last_sec', m[1]); } catch(e){}
+    /* Mémoriser dans sessionStorage (scope onglet uniquement) pour survivre aux rechargements SW */
+    try { sessionStorage.setItem('_fnpos_sec', m[1]); } catch(e){}
     return m[1];
   }
-  /* Pas de paramètre dans l'URL (rechargement PWA, raccourci…) : restaurer le dernier secteur visité */
+  /* Pas de paramètre dans l'URL : vérifier la session en cours (même onglet) */
   try {
-    var saved = localStorage.getItem('_fnpos_last_sec');
-    if (saved && SECTORS[saved]) {
+    var saved = sessionStorage.getItem('_fnpos_sec');
+    if (saved && SECTORS[saved] && saved !== 'aci') {
       try { history.replaceState(null,'',window.location.pathname+'?sec='+saved+(window.location.hash||'')); } catch(e){}
       return saved;
     }
