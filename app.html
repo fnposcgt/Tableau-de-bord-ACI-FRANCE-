@@ -732,16 +732,16 @@ async function tryBiometric() {
   var bioBtn = document.getElementById('auth-bio-btn');
   if (!window.PublicKeyCredential || !navigator.credentials) {
     if(errEl) errEl.textContent = '⚠️ Biométrie non supportée sur ce navigateur';
-    input.focus(); return;
+    return;
   }
-  var storedCid = localStorage.getItem('_fnpos_bio_cid');
-  var storedPwd = localStorage.getItem('_fnpos_bio_pwd');
+  var storedCid = null; var storedPwd = null;
+  try { storedCid = localStorage.getItem('_fnpos_bio_cid'); storedPwd = localStorage.getItem('_fnpos_bio_pwd'); } catch(e){}
   if (!storedCid || !storedPwd) {
     /* Première utilisation : demande le mot de passe puis enregistre */
     var pwd = input.value.trim();
     if (!pwd) {
-      if(errEl){ errEl.style.color='#FFD580'; errEl.textContent='💡 Entrez d\'abord votre mot de passe puis cliquez à nouveau Biométrie pour l\'enregistrer'; }
-      input.focus(); return;
+      if(errEl){ errEl.style.color='#FFD580'; errEl.textContent='💡 Entrez votre mot de passe dans le champ, puis cliquez à nouveau sur ce bouton pour enregistrer la biométrie'; }
+      return; /* NE PAS appeler input.focus() — déclenche le gestionnaire de mots de passe */
     }
     if(errEl){ errEl.style.color='rgba(255,255,255,.5)'; errEl.textContent='🔒 Enregistrement… validez avec Windows Hello / votre empreinte'; }
     try {
@@ -755,14 +755,14 @@ async function tryBiometric() {
         timeout: 60000, attestation: 'none'
       }});
       if (newCred) {
-        localStorage.setItem('_fnpos_bio_cid', _b64u(newCred.rawId));
-        localStorage.setItem('_fnpos_bio_pwd', btoa(unescape(encodeURIComponent(pwd))));
+        try { localStorage.setItem('_fnpos_bio_cid', _b64u(newCred.rawId));
+              localStorage.setItem('_fnpos_bio_pwd', btoa(unescape(encodeURIComponent(pwd)))); } catch(ls){}
         if(bioBtn) bioBtn.textContent = '🪪 Biométrie / PIN (activé ✓)';
         if(errEl){ errEl.style.color='#1D9E75'; errEl.textContent='✅ Biométrie enregistrée ! Connexion sans mot de passe activée.'; }
       }
     } catch(e) {
       if(errEl){ errEl.style.color='#ff7070'; errEl.textContent='❌ '+(e.name==='NotAllowedError'?'Annulé ou non autorisé':e.message||e.name); }
-      input.focus();
+      /* PAS de input.focus() ici */
     }
     return;
   }
@@ -778,13 +778,13 @@ async function tryBiometric() {
       timeout: 60000
     }});
     if (authCred) {
-      input.value = decodeURIComponent(escape(atob(storedPwd)));
+      try { input.value = decodeURIComponent(escape(atob(storedPwd))); } catch(de){ input.value = atob(storedPwd); }
       if(errEl) errEl.textContent = '';
       checkAuth();
     }
   } catch(e) {
     if(errEl){ errEl.style.color='#ff7070'; errEl.textContent='❌ '+(e.name==='NotAllowedError'?'Annulé ou non autorisé':e.message||e.name); }
-    input.focus();
+    /* PAS de input.focus() ici */
   }
 }
 
@@ -1509,7 +1509,7 @@ function openFiche(siret) {
   var reg = g(s, "r");
   var vil = g(s, "v");
   var tv  = 0;
-  document.getElementById("fiche-title").textContent = nom;
+  try { document.getElementById("fiche-title").textContent = nom; } catch(e){}
   FICHE_CURRENT_SIRET = siret;
   document.getElementById("fiche-sub").textContent =
     vil + (reg ? " \u2014 " + reg : "") + (g(s,"d") ? " (d\u00e9pt. " + g(s,"d") + ")" : "");
@@ -1604,12 +1604,16 @@ function openFiche(siret) {
     }
     h += '</div>';
   }
-  var udBlock = renderUDBlock(g(s,"cp"));
-  var _udObj2 = UD_MAP[getUDCode(g(s,"cp"))] || null;
-  var _cp5b = normCP(g(s,"cp"));
-  var _ulCodes2 = CP_UL_MAP[_cp5b] || [];
+  var udBlock = "";
+  try { udBlock = (typeof renderUDBlock==='function') ? renderUDBlock(g(s,"cp")) : ""; } catch(e){}
+  var _udObj2 = null;
+  try { _udObj2 = (typeof UD_MAP!=='undefined'&&typeof getUDCode==='function') ? (UD_MAP[getUDCode(g(s,"cp"))] || null) : null; } catch(e){}
+  var _cp5b = "";
+  try { _cp5b = (typeof normCP==='function') ? normCP(g(s,"cp")) : g(s,"cp"); } catch(e){}
+  var _ulCodes2 = [];
+  try { _ulCodes2 = (typeof CP_UL_MAP!=='undefined') ? (CP_UL_MAP[_cp5b] || []) : []; } catch(e){}
   window._ficheCtx = {title:nom, udEmail:_udObj2?(_udObj2.e||""):"", udNom:_udObj2?(_udObj2.n||""):"", ulEmails:[], ulNoms:[]};
-  for(var _ii=0;_ii<_ulCodes2.length;_ii++){var _ul2=UL_INDEX[String(_ulCodes2[_ii])]||{};if(_ul2.e){window._ficheCtx.ulEmails.push(_ul2.e);window._ficheCtx.ulNoms.push(_ul2.n||"");}}
+  try { for(var _ii=0;_ii<_ulCodes2.length;_ii++){var _ul2=(typeof UL_INDEX!=='undefined'?UL_INDEX[String(_ulCodes2[_ii])]:null)||{};if(_ul2.e){window._ficheCtx.ulEmails.push(_ul2.e);window._ficheCtx.ulNoms.push(_ul2.n||"");}}} catch(e){}
   if(udBlock) {
     h += '<div class="fiche-section">';
     h += '<div class="fiche-section-title">UD &amp; UL rattach\u00e9es</div>';
@@ -1620,9 +1624,9 @@ function openFiche(siret) {
   var deptKey=cpStr.length>=2?cpStr.substring(0,2).toUpperCase():"";
   if(cpStr.substring(0,3)==="200"||cpStr.substring(0,3)==="201")deptKey="2A";
   if(cpStr.substring(0,3)==="202"||cpStr.substring(0,3)==="206")deptKey="2B";
-  var oldReg=DEPT_TO_OLD_REGION[deptKey]||null;
-  var trueReg=DEPT_TO_REGION[deptKey]||reg;
-  var cntData=CONTACTS_BY_REGION[trueReg]||CONTACTS_BY_REGION[reg]||null;
+  var oldReg=null; try{oldReg=(typeof DEPT_TO_OLD_REGION!=='undefined')?(DEPT_TO_OLD_REGION[deptKey]||null):null;}catch(e){}
+  var trueReg=reg; try{trueReg=(typeof DEPT_TO_REGION!=='undefined')?(DEPT_TO_REGION[deptKey]||reg):reg;}catch(e){}
+  var cntData=null; try{cntData=(typeof CONTACTS_BY_REGION!=='undefined')?(CONTACTS_BY_REGION[trueReg]||CONTACTS_BY_REGION[reg]||null):null;}catch(e){}
   var hasCnt=false,cntH="";
   if(cntData){
     var fRoles=[{key:"referents",label:"R\u00e9f\u00e9rents",color:"#E24B4A"},{key:"membres_cef",label:"CEF",color:"#185fa5"}];
@@ -1642,7 +1646,7 @@ function openFiche(siret) {
       }
     }
   }
-  var oldRegsArr=RESPONSABLES_ANCIENNES_REGIONS[trueReg]||RESPONSABLES_ANCIENNES_REGIONS[reg]||[];
+  var oldRegsArr=[]; try{oldRegsArr=(typeof RESPONSABLES_ANCIENNES_REGIONS!=='undefined')?(RESPONSABLES_ANCIENNES_REGIONS[trueReg]||RESPONSABLES_ANCIENNES_REGIONS[reg]||[]):[];}catch(e){}
   var respEntry=null;
   for(var oi3=0;oi3<oldRegsArr.length;oi3++){
     if(oldRegsArr[oi3].ancien===oldReg){respEntry=oldRegsArr[oi3];break;}
@@ -1721,7 +1725,7 @@ function openFiche(siret) {
     }
   }
   h += '</div>';
-  document.getElementById("fiche-body").innerHTML = h;
+  try { document.getElementById("fiche-body").innerHTML = h; } catch(e){}
   document.getElementById("fiche-overlay").classList.add("open");
   document.body.style.overflow = "hidden";
   /* Mémoriser l'onglet actif pour y revenir à la fermeture */
