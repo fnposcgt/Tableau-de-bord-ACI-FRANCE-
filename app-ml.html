@@ -796,7 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try { document.body.classList.add('is-readonly'); } catch(e) {}
   }
   /* Lancer l'overlay auth */
-  var _SEC = (typeof SEC !== 'undefined') ? SEC : 'aci';
+  var _SEC = (typeof SEC !== 'undefined') ? SEC : 'ml';
   var sessionKey = IS_READONLY ? 'fnpos_auth_ro' : ('fnpos_auth_admin_' + _SEC);
   var already = false;
   try { already = sessionStorage.getItem(sessionKey) === '1'; } catch(e) {}
@@ -804,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var ls = document.getElementById('lock-screen');
   if(ls) ls.style.display = 'none';
   /* Marquer comme "unlocked" pour l'IIFE du lock-screen natif */
-  try { sessionStorage.setItem('aci_unlocked', '1'); } catch(e) {}
+  try { sessionStorage.setItem('fnpos_auth_admin_'+SEC, '1'); } catch(e) {}
   if (!already) {
     initAuth();
     /* Mettre à jour le label du bouton biométrie si déjà enregistré */
@@ -6416,7 +6416,7 @@ function doManualSync() {
 // ============================================================================
 
 function lockUnlockApp() {
-  try { sessionStorage.setItem('aci_unlocked', '1'); } catch(e) {}
+  try { sessionStorage.setItem('fnpos_auth_admin_'+SEC, '1'); } catch(e) {}
   var btn = document.getElementById('lock-btn');
   if(btn) { btn.textContent = '\u2713 Bienvenue'; btn.style.background = '#1D9E75'; }
   var ls = document.getElementById('lock-screen');
@@ -6434,7 +6434,7 @@ function lockUnlockApp() {
   }
 
   try {
-    if(sessionStorage.getItem('aci_unlocked') === '1') {
+    if(sessionStorage.getItem('fnpos_auth_admin_'+SEC) === '1') {
       var ls = document.getElementById('lock-screen');
       if(ls) ls.style.display = 'none';
       SyncManager.init();
@@ -6443,7 +6443,7 @@ function lockUnlockApp() {
   } catch(e) {}
 
   try {
-    var hasBio = localStorage.getItem('aci_bio_cred_id') && localStorage.getItem('aci_bio_pwd');
+    var hasBio = localStorage.getItem('_fnpos_bio_cid') && localStorage.getItem('_fnpos_bio_pwd');
     if(hasBio) {
       /* Afficher le bouton biométrie sans tester le matériel — biometricUnlock() gère l'absence */
       var bioBtn = document.getElementById('lock-bio-btn');
