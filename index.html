@@ -95,6 +95,8 @@ main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
 .cstat{background:var(--bg3);border-radius:8px;padding:6px 10px;min-width:80px}
 .cstat-num{font-size:18px;font-weight:800;color:var(--tx1);line-height:1}
 .cstat-lbl{font-size:10px;color:var(--tx3);margin-top:1px}
+.card-branch{font-size:11px;color:var(--tx3);margin-bottom:12px;padding:6px 8px;background:var(--bg3);border-radius:6px;line-height:1.6}
+.card-branch b{color:var(--tx2);font-weight:700}
 .card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .status-badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .status-badge.live{background:rgba(29,158,117,.15);color:#3ecfa0;border:1px solid rgba(29,158,117,.3)}
@@ -215,8 +217,10 @@ var SECTOR_PWDS = {
 
 /* ── SECTEURS ── */
 var FED_SECTORS = [
-  {key:'aci', name:"Ateliers Chantiers d'Insertion", short:'ACI',  idcc:'IDCC 3016', color:'#E24B4A', emoji:'🏭', url:'app.html',      status:'live',    desc:"IAE · Insertion par l'activité économique · CDDI · 20 000 salariés"},
-  {key:'ml',  name:'Missions Locales',               short:'ML',   idcc:'IDCC 1261', color:'#185fa5', emoji:'🎓', url:'app-ml.html',   status:'live',    desc:'Accompagnement jeunes · 16-25 ans · Emploi · 13 000 salariés'},
+  {key:'aci', name:"Ateliers Chantiers d'Insertion", short:'ACI',  idcc:'IDCC 3016', color:'#E24B4A', emoji:'🏭', url:'app.html',      status:'live',    desc:"IAE · Insertion par l'activité économique · CDDI · 20 000 salariés",
+   gs:{nb_total:2597, nb_ccn:2168, nb_elections:132, total_cgt:1121, total_votants:8779, total_insc:15137}},
+  {key:'ml',  name:'Missions Locales',               short:'ML',   idcc:'IDCC 1261', color:'#185fa5', emoji:'🎓', url:'app-ml.html',   status:'live',    desc:'Accompagnement jeunes · 16-25 ans · Emploi · 13 000 salariés',
+   gs:{nb_total:451, nb_ccn:417, nb_elections:0, total_cgt:0, total_votants:0, total_insc:0}},
   {key:'ad',  name:'Aides à Domicile',               short:'AD',   idcc:'IDCC 2111', color:'#1D9E75', emoji:'🏡', url:null,            status:'soon',    desc:'SAAD · SSIAD · Services à la personne · Maintien à domicile'},
   {key:'rq',  name:'Régies de Quartier',             short:'RQ',   idcc:'IDCC 1790', color:'#f57c00', emoji:'🏘️', url:null,            status:'planned', desc:'Développement local · Cohésion sociale · CNLRQ'},
   {key:'mut', name:'Mutualité',                      short:'MUT',  idcc:'IDCC 2256', color:'#7b1fa2', emoji:'🏥', url:null,            status:'planned', desc:'Mutuelles · Protection complémentaire · FNMF'},
@@ -323,7 +327,20 @@ function renderCard(s) {
 
   var statsHtml = '';
   if (s.status === 'live') {
-    statsHtml = '<div class="card-stats"><div class="cstat"><div class="cstat-num" id="adh-'+s.key+'">—</div><div class="cstat-lbl">Adhérents</div></div><div class="cstat"><div class="cstat-num" id="str-'+s.key+'">—</div><div class="cstat-lbl">Structures</div></div></div>';
+    statsHtml = '<div class="card-stats"><div class="cstat"><div class="cstat-num" id="adh-'+s.key+'">—</div><div class="cstat-lbl">Adhérents CGT</div></div><div class="cstat"><div class="cstat-num" id="str-'+s.key+'">—</div><div class="cstat-lbl">Structures suivies</div></div></div>';
+    if (s.gs) {
+      var parts = [];
+      parts.push('<b>' + s.gs.nb_total.toLocaleString('fr-FR') + '</b> structures dans la branche');
+      if (s.gs.nb_ccn) parts.push('<b>' + s.gs.nb_ccn.toLocaleString('fr-FR') + '</b> avec CCN confirmée');
+      if (s.gs.nb_elections) {
+        parts.push('<b>' + s.gs.nb_elections + '</b> élections suivies');
+        if (s.gs.total_cgt && s.gs.total_votants) {
+          var pct = (s.gs.total_cgt / s.gs.total_votants * 100).toFixed(1).replace('.',',');
+          parts.push('CGT&nbsp;<b>' + pct + '%</b> (' + s.gs.total_cgt.toLocaleString('fr-FR') + '&nbsp;voix / ' + s.gs.total_votants.toLocaleString('fr-FR') + ')');
+        }
+      }
+      statsHtml += '<div class="card-branch">' + parts.join('<br>') + '</div>';
+    }
   }
 
   return '<div class="sector-card '+s.status+'" onclick="'+(s.url ? 'location.href=\''+s.url+'\'' : '')+'">'
