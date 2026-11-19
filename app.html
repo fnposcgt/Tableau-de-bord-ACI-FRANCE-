@@ -4180,7 +4180,8 @@ function getDeptAdhInfo(code){
   }
   return total>0?{total:total,structs:structs}:null;
 }
-function _normReg(s){return(s||"").toUpperCase().replace(/-/g," ").replace(/[ÀÂÄÆ]/g,"A").replace(/[ÈÊËÉ]/g,"E").replace(/[ÎÏÌ]/g,"I").replace(/[ÔÖŒ]/g,"O").replace(/[ÛÙÜÚ]/g,"U").replace(/Ç/g,"C").replace(/\s+/g," ").trim();}
+var _REG_ALIAS={"PROVENCE ALPES COTE D AZUR":"PACA","PROVENCE-ALPES-COTE D AZUR":"PACA","ILE DE FRANCE":"ILE DE FRANCE","ILETS DE FRANCE":"ILE DE FRANCE"};
+function _normReg(s){var n=(s||"").toUpperCase().replace(/-/g," ").replace(/[ÀÂÄÆ]/g,"A").replace(/[ÈÊËÉ]/g,"E").replace(/[ÎÏÌÍ]/g,"I").replace(/[ÔÖŒÒ]/g,"O").replace(/[ÛÙÜÚ]/g,"U").replace(/Ç/g,"C").replace(/'/g," ").replace(/\s+/g," ").trim();return _REG_ALIAS[n]||n;}
 function getRegAdhInfo(rsKey){
   var total=0;var structs=[];
   var rsNorm=_normReg(rsKey);
