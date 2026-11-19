@@ -398,35 +398,36 @@ function fetchSyncTable(table, sector, onDone) {
 }
 
 function updateSectorStats(sector, row) {
-  /* Compter adhérents depuis edits */
+  /* Structure réelle edits: {kpi_adh:N, structs:{SIRET:{...}}, adherents:{SIRET:[...]}, ...} */
   var totalAdh = 0;
   var totalStr = 0;
   if (row.edits) {
     var edits = row.edits;
-    var sirets = Object.keys(edits);
-    totalStr = sirets.length;
-    for (var i = 0; i < sirets.length; i++) {
-      var str = edits[sirets[i]];
-      if (str && str.adherents) {
-        var adhs = str.adherents;
-        for (var j = 0; j < adhs.length; j++) {
-          if (!adhs[j]._deleted) totalAdh++;
+    /* Adhérents: priorité à kpi_adh, sinon comptage manuel */
+    if (typeof edits.kpi_adh === 'number') {
+      totalAdh = edits.kpi_adh;
+    } else if (edits.adherents && typeof edits.adherents === 'object') {
+      var adhs = edits.adherents;
+      var skeys = Object.keys(adhs);
+      for (var i = 0; i < skeys.length; i++) {
+        var arr = adhs[skeys[i]];
+        if (Array.isArray(arr)) {
+          for (var j = 0; j < arr.length; j++) {
+            if (!arr[j]._deleted && arr[j].arc !== 'OUI') totalAdh++;
+          }
         }
       }
     }
+    /* Structures suivies */
+    if (edits.structs && typeof edits.structs === 'object') {
+      totalStr = Object.keys(edits.structs).length;
+    }
   }
-  /* Conquête */
+  /* Conquête: structure {ts:{SIRET:ts}, dates:{SIRET:date}, notes:{SIRET:txt}, status:{SIRET:0-4}} */
   if (row.conquete) {
     var cq = row.conquete;
-    var ckeys = Object.keys(cq);
-    for (var ci = 0; ci < ckeys.length; ci++) {
-      var cstr = cq[ckeys[ci]];
-      if (cstr && cstr.adherents) {
-        for (var cj = 0; cj < cstr.adherents.length; cj++) {
-          if (!cstr.adherents[cj]._deleted) totalAdh++;
-        }
-      }
-      if (!totalStr) totalStr += ckeys.length;
+    if (cq.status && typeof cq.status === 'object') {
+      totalStr += Object.keys(cq.status).length;
     }
   }
 
