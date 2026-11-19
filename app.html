@@ -4180,11 +4180,13 @@ function getDeptAdhInfo(code){
   }
   return total>0?{total:total,structs:structs}:null;
 }
+function _normReg(s){return(s||"").toUpperCase().replace(/-/g," ").replace(/[ÀÂÄÆ]/g,"A").replace(/[ÈÊËÉ]/g,"E").replace(/[ÎÏÌ]/g,"I").replace(/[ÔÖŒ]/g,"O").replace(/[ÛÙÜÚ]/g,"U").replace(/Ç/g,"C").replace(/\s+/g," ").trim();}
 function getRegAdhInfo(rsKey){
   var total=0;var structs=[];
+  var rsNorm=_normReg(rsKey);
   for(var i=0;i<STRUCTS.length;i++){
-    var reg=STRUCTS[i].r||"";
-    if(reg!==rsKey)continue;
+    var reg=_normReg(STRUCTS[i].r||"");
+    if(reg!==rsNorm)continue;
     var si=STRUCTS[i].si||"";
     var adhLst=ADHERENTS[si]||[];
     var actifs=0;
@@ -4289,7 +4291,7 @@ function showPanel(name,code,dk,ai){
     var s=structs[i];
     var nom=s.nom||s.n||"";var ville=s.ville||s.v||"";var dept=s.dept||s.d||"";
     var insc=gi(s,"in")||gi(s,"insc");var gan=g(s,"ga")||g(s,"gagnant");var proch=g(s,"pr")||g(s,"prochaine");var siret2=s.siret||s.si||"";
-    sh+='<div class="si" onclick="'+(siret2?'jumpToStruct(\''+siret2+'\')':'jumpTo(\''+nom.replace(/\'/g,"\\'")+'\'')+'" ><div class="sn">'+nom+(siret2?' <span style="font-size:9px;font-family:monospace;color:var(--tx3);font-weight:400">'+siret2+'</span>':'')+'</div><div class="si2">'+ville+(dept?" ("+dept+")":"")+' &bull; '+(insc>0?insc+' inscrits':'pas d&rsquo;\u00e9lections')+(gan?' &bull; <span style="color:'+uc(gan)+'">\u2605 '+gan+'</span>':'')+(proch?' &bull; &#128197; '+proch:'')+'</div></div>';
+    sh+='<div class="si" onclick="'+(siret2?'jumpToStruct(\''+siret2+'\')':'jumpTo(\''+nom.replace(/\'/g,"\\'")+'\',\''+ville.replace(/\'/g,"\\'")+'\',\''+dept+'\'')+'" ><div class="sn">'+nom+(siret2?' <span style="font-size:9px;font-family:monospace;color:var(--tx3);font-weight:400">'+siret2+'</span>':'')+'</div><div class="si2">'+ville+(dept?" ("+dept+")":"")+' &bull; '+(insc>0?insc+' inscrits':'pas d&rsquo;\u00e9lections')+(gan?' &bull; <span style="color:'+uc(gan)+'">\u2605 '+gan+'</span>':'')+(proch?' &bull; &#128197; '+proch:'')+'</div></div>';
   }
   document.getElementById("pd-structs").innerHTML=sh||'<div style="font-size:11px;color:var(--tx3)">Aucune structure.</div>';
   document.getElementById("pd-col").innerHTML=uh||'<div style="font-size:11px;color:var(--tx3)">Pas de r\u00e9sultats syndicaux.</div>';
@@ -4322,7 +4324,7 @@ function showDeptPanel(name,code,dk,regCode,ai){
     var s=dlist[i];
     var nom=s.nom||s.n||"";var ville=s.ville||s.v||"";
     var insc=gi(s,"in")||gi(s,"insc");var gan=g(s,"ga")||g(s,"gagnant");var proch=g(s,"pr")||g(s,"prochaine");var siret3=s.siret||s.si||"";
-    sh+='<div class="si" onclick="'+(siret3?'jumpToStruct(\''+siret3+'\')':'jumpTo(\''+nom.replace(/\'/g,"\\'")+'\'')+'" ><div class="sn">'+nom+(siret3?' <span style="font-size:9px;font-family:monospace;color:var(--tx3);font-weight:400">'+siret3+'</span>':'')+'</div><div class="si2">'+ville+' &bull; '+(insc>0?insc+' inscrits':'pas d&rsquo;\u00e9lections')+(gan?' &bull; <span style="color:'+uc(gan)+'">\u2605 '+gan+'</span>':'')+(proch?' &bull; &#128197; '+proch:'')+'</div></div>';
+    sh+='<div class="si" onclick="'+(siret3?'jumpToStruct(\''+siret3+'\')':'jumpTo(\''+nom.replace(/\'/g,"\\'")+'\',\''+ville.replace(/\'/g,"\\'")+'\',\''+code+'\'')+'" ><div class="sn">'+nom+(siret3?' <span style="font-size:9px;font-family:monospace;color:var(--tx3);font-weight:400">'+siret3+'</span>':'')+'</div><div class="si2">'+ville+' &bull; '+(insc>0?insc+' inscrits':'pas d&rsquo;\u00e9lections')+(gan?' &bull; <span style="color:'+uc(gan)+'">\u2605 '+gan+'</span>':'')+(proch?' &bull; &#128197; '+proch:'')+'</div></div>';
   }
   document.getElementById("pd-structs").innerHTML=sh||'<div style="font-size:11px;color:var(--tx3)">Aucune structure.</div>';
   document.getElementById("pd-col").innerHTML=uh||'<div style="font-size:11px;color:var(--tx3)">Pas de r\u00e9sultats syndicaux.</div>';
@@ -4349,9 +4351,21 @@ function ptab(id){
   var ids=["pt-stats","pt-structs","pt-col"],btns=document.querySelectorAll(".ptb");
   for(var i=0;i<ids.length;i++){document.getElementById(ids[i]).style.display=ids[i]===id?"block":"none";if(btns[i])btns[i].classList.toggle("on",ids[i]===id);}
 }
-function jumpTo(nom){
+function jumpTo(nom,ville,dept){
   var si=null;
-  for(var i=0;i<STRUCTS.length;i++){if((STRUCTS[i].n||"")===nom){si=g(STRUCTS[i],"si");break;}}
+  var nomL=(nom||"").toLowerCase();
+  /* 1. correspondance exacte */
+  for(var i=0;i<STRUCTS.length;i++){if((STRUCTS[i].n||"").toLowerCase()===nomL){si=g(STRUCTS[i],"si");break;}}
+  /* 2. correspondance ville+dept si toujours pas trouvé */
+  if(!si&&ville){
+    var vilL=(ville||"").toLowerCase();
+    var dep2=dept?String(parseFloat(dept)||"").replace(/\.0$/,""):"";
+    for(var i=0;i<STRUCTS.length;i++){
+      var scp=String(STRUCTS[i].cp||"").replace(/[^0-9]/g,"").padStart(5,"0");
+      var sd=scp.substring(0,2);
+      if((STRUCTS[i].v||"").toLowerCase()===vilL&&(!dep2||sd===dep2.padStart(2,"0"))){si=g(STRUCTS[i],"si");break;}
+    }
+  }
   if(si){openFiche(si);}
   else{goTab("tableau");document.getElementById("fsearch").value=nom;buildTable();}
 }
